@@ -1,0 +1,1073 @@
+[
+ {
+  "name": "neutral stab",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball"
+ },
+ {
+  "name": "physical stab",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "super effective",
+  "attacker": {
+   "species": "Gholdengo",
+   "ability": "Good as Gold"
+  },
+  "defender": {
+   "species": "Iron Valiant",
+   "ability": "Quark Drive"
+  },
+  "move": "makeitrain"
+ },
+ {
+  "name": "resisted",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Corviknight",
+   "ability": "Pressure"
+  },
+  "move": "dragondarts"
+ },
+ {
+  "name": "immune",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Corviknight",
+   "ability": "Pressure"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "crit",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball",
+  "crit": true
+ },
+ {
+  "name": "burn halves physical",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "status": "brn"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "guts ignores burn",
+  "attacker": {
+   "species": "Ursaluna",
+   "ability": "Guts",
+   "status": "brn"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "facade"
+ },
+ {
+  "name": "sun boosts fire",
+  "attacker": {
+   "species": "Volcarona",
+   "ability": "Flame Body"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fireblast",
+  "weather": "sunnyday"
+ },
+ {
+  "name": "rain weakens fire",
+  "attacker": {
+   "species": "Volcarona",
+   "ability": "Flame Body"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fireblast",
+  "weather": "raindance"
+ },
+ {
+  "name": "attack boost +2",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "boosts": {
+    "atk": 2
+   }
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "defense boost +2",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "boosts": {
+    "def": 2
+   }
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "negative boosts",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "boosts": {
+    "atk": -2
+   }
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "boosts": {
+    "def": -1
+   }
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "life orb",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body",
+   "item": "Life Orb"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball"
+ },
+ {
+  "name": "choice band",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "item": "Choice Band"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "expert belt se",
+  "attacker": {
+   "species": "Gholdengo",
+   "ability": "Good as Gold",
+   "item": "Expert Belt"
+  },
+  "defender": {
+   "species": "Iron Valiant",
+   "ability": "Quark Drive"
+  },
+  "move": "makeitrain"
+ },
+ {
+  "name": "assault vest",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball"
+ },
+ {
+  "name": "eviolite",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Dusclops",
+   "ability": "Pressure",
+   "item": "Eviolite"
+  },
+  "move": "headlongrush"
+ },
+ {
+  "name": "reflect",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthquake",
+  "screens": [
+   "reflect"
+  ]
+ },
+ {
+  "name": "light screen",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball",
+  "screens": [
+   "lightscreen"
+  ]
+ },
+ {
+  "name": "multiscale",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Dragonite",
+   "ability": "Multiscale"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "thick fat",
+  "attacker": {
+   "species": "Volcarona",
+   "ability": "Flame Body"
+  },
+  "defender": {
+   "species": "Snorlax",
+   "ability": "Thick Fat"
+  },
+  "move": "fireblast"
+ },
+ {
+  "name": "levitate immune",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Rotom-Wash",
+   "ability": "Levitate"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "technician",
+  "attacker": {
+   "species": "Scizor",
+   "ability": "Technician"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bulletpunch"
+ },
+ {
+  "name": "tough claws",
+  "attacker": {
+   "species": "Barraskewda",
+   "ability": "Swift Swim"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aquajet"
+ },
+ {
+  "name": "tera stab boost",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body",
+   "tera": "Ghost"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball"
+ },
+ {
+  "name": "tera new type",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "tera": "Fire"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flamethrower"
+ },
+ {
+  "name": "tera changes defense",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "tera": "Flying"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "electric terrain",
+  "attacker": {
+   "species": "Iron Hands",
+   "ability": "Quark Drive"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "wildcharge",
+  "terrain": "electricterrain"
+ },
+ {
+  "name": "grassy terrain",
+  "attacker": {
+   "species": "Rillaboom",
+   "ability": "Grassy Surge"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "woodhammer",
+  "terrain": "grassyterrain"
+ },
+ {
+  "name": "psychic terrain",
+  "attacker": {
+   "species": "Iron Valiant",
+   "ability": "Quark Drive"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psychic",
+  "terrain": "psychicterrain"
+ },
+ {
+  "name": "low level",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body",
+   "level": 76
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball"
+ },
+ {
+  "name": "solid rock",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Camerupt",
+   "ability": "Solid Rock"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "tinted lens",
+  "attacker": {
+   "species": "Venomoth",
+   "ability": "Tinted Lens"
+  },
+  "defender": {
+   "species": "Corviknight",
+   "ability": "Pressure"
+  },
+  "move": "bugbuzz"
+ },
+ {
+  "name": "fur coat",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Fur Coat"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "ice scales",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Frosmoth",
+   "ability": "Ice Scales"
+  },
+  "move": "shadowball"
+ },
+ {
+  "name": "huge power",
+  "attacker": {
+   "species": "Azumarill",
+   "ability": "Huge Power"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "playrough"
+ },
+ {
+  "name": "body press uses def",
+  "attacker": {
+   "species": "Corviknight",
+   "ability": "Pressure",
+   "boosts": {
+    "def": 2
+   }
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bodypress"
+ },
+ {
+  "name": "psyshock hits def",
+  "attacker": {
+   "species": "Iron Valiant",
+   "ability": "Quark Drive"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psyshock"
+ },
+ {
+  "name": "foul play uses target atk",
+  "attacker": {
+   "species": "Sableye",
+   "ability": "Prankster"
+  },
+  "defender": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "move": "foulplay"
+ },
+ {
+  "name": "freeze dry vs water",
+  "attacker": {
+   "species": "Frosmoth",
+   "ability": "Ice Scales"
+  },
+  "defender": {
+   "species": "Quagsire",
+   "ability": "Unaware"
+  },
+  "move": "freezedry"
+ },
+ {
+  "name": "unaware ignores boosts",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "boosts": {
+    "atk": 4
+   }
+  },
+  "defender": {
+   "species": "Quagsire",
+   "ability": "Unaware"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "snow boosts ice def",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Baxcalibur",
+   "ability": "Thermal Exchange"
+  },
+  "move": "earthquake",
+  "weather": "snowscape"
+ },
+ {
+  "name": "sand boosts rock spd",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Tyranitar",
+   "ability": "Sand Stream"
+  },
+  "move": "shadowball",
+  "weather": "sandstorm"
+ },
+ {
+  "name": "cb facade statused",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "status": "par"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "facade"
+ },
+ {
+  "name": "cb hex statused target",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "status": "psn"
+  },
+  "move": "hex"
+ },
+ {
+  "name": "cb hex healthy target",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "hex"
+ },
+ {
+  "name": "cb venoshock",
+  "attacker": {
+   "species": "Gengar",
+   "ability": "Cursed Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "status": "psn"
+  },
+  "move": "venoshock"
+ },
+ {
+  "name": "cb brine half hp",
+  "attacker": {
+   "species": "Barraskewda",
+   "ability": "Swift Swim"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "hpPercent": 0.4
+  },
+  "move": "brine"
+ },
+ {
+  "name": "cb acrobatics no item",
+  "attacker": {
+   "species": "Talonflame",
+   "ability": "Flame Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "acrobatics"
+ },
+ {
+  "name": "cb acrobatics with item",
+  "attacker": {
+   "species": "Talonflame",
+   "ability": "Flame Body",
+   "item": "Leftovers"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "acrobatics"
+ },
+ {
+  "name": "cb knockoff item",
+  "attacker": {
+   "species": "Weavile",
+   "ability": "Pressure"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "item": "Leftovers"
+  },
+  "move": "knockoff"
+ },
+ {
+  "name": "cb knockoff no item",
+  "attacker": {
+   "species": "Weavile",
+   "ability": "Pressure"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "knockoff"
+ },
+ {
+  "name": "cb lowkick heavy",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "No Guard"
+  },
+  "defender": {
+   "species": "Snorlax",
+   "ability": "Thick Fat"
+  },
+  "move": "lowkick"
+ },
+ {
+  "name": "cb grassknot light",
+  "attacker": {
+   "species": "Rillaboom",
+   "ability": "Grassy Surge"
+  },
+  "defender": {
+   "species": "Gastrodon",
+   "ability": "Storm Drain"
+  },
+  "move": "grassknot"
+ },
+ {
+  "name": "cb heavyslam ratio",
+  "attacker": {
+   "species": "Copperajah",
+   "ability": "Sheer Force"
+  },
+  "defender": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "move": "heavyslam"
+ },
+ {
+  "name": "cb gyroball slow",
+  "attacker": {
+   "species": "Corviknight",
+   "ability": "Iron Barbs"
+  },
+  "defender": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "move": "gyroball"
+ },
+ {
+  "name": "cb electroball fast",
+  "attacker": {
+   "species": "Iron Bundle",
+   "ability": "Quark Drive"
+  },
+  "defender": {
+   "species": "Snorlax",
+   "ability": "Thick Fat"
+  },
+  "move": "electroball"
+ },
+ {
+  "name": "cb storedpower boosted",
+  "attacker": {
+   "species": "Espeon",
+   "ability": "Magic Bounce",
+   "boosts": {
+    "atk": 1,
+    "spa": 2,
+    "spe": 1
+   }
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "storedpower"
+ },
+ {
+  "name": "cb punishment target boosts",
+  "attacker": {
+   "species": "Weavile",
+   "ability": "Pressure"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "boosts": {
+    "atk": 2,
+    "def": 1
+   }
+  },
+  "move": "punishment"
+ },
+ {
+  "name": "cb eruption full hp",
+  "attacker": {
+   "species": "Typhlosion",
+   "ability": "Blaze"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "eruption"
+ },
+ {
+  "name": "cb eruption low hp",
+  "attacker": {
+   "species": "Typhlosion",
+   "ability": "Blaze",
+   "hpPercent": 0.3
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "eruption"
+ },
+ {
+  "name": "cb wringout",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "hpPercent": 0.6
+  },
+  "move": "wringout"
+ },
+ {
+  "name": "cb hardpress",
+  "attacker": {
+   "species": "Archaludon",
+   "ability": "Stamina"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "hpPercent": 0.75
+  },
+  "move": "hardpress"
+ },
+ {
+  "name": "cb ragefist",
+  "attacker": {
+   "species": "Annihilape",
+   "ability": "Defiant"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "ragefist",
+  "timesAttacked": 3
+ },
+ {
+  "name": "cb lastrespects",
+  "attacker": {
+   "species": "Basculegion",
+   "ability": "Adaptability"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "lastrespects",
+  "faintedCount": 2
+ },
+ {
+  "name": "cb avalanche hit",
+  "attacker": {
+   "species": "Avalugg",
+   "ability": "Sturdy"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "avalanche",
+  "userDamaged": true
+ },
+ {
+  "name": "cb avalanche unhit",
+  "attacker": {
+   "species": "Avalugg",
+   "ability": "Sturdy"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "avalanche"
+ },
+ {
+  "name": "cb assurance damaged",
+  "attacker": {
+   "species": "Weavile",
+   "ability": "Pressure"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "assurance",
+  "targetDamaged": true
+ },
+ {
+  "name": "cb payback moves last",
+  "attacker": {
+   "species": "Weavile",
+   "ability": "Pressure"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "payback",
+  "movesFirst": false
+ },
+ {
+  "name": "cb boltbeak moves last",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Sand Rush"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "boltbeak",
+  "movesFirst": false
+ },
+ {
+  "name": "cb weatherball sun",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "weatherball",
+  "weather": "sunnyday"
+ },
+ {
+  "name": "cb weatherball none",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "weatherball"
+ },
+ {
+  "name": "cb terrainpulse electric",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "terrainpulse",
+  "terrain": "electricterrain"
+ },
+ {
+  "name": "cb terablast stellar",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body",
+   "tera": "Stellar"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "terablast"
+ },
+ {
+  "name": "cb terablast typed",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body",
+   "tera": "Fire"
+  },
+  "defender": {
+   "species": "Corviknight",
+   "ability": "Iron Barbs"
+  },
+  "move": "terablast"
+ },
+ {
+  "name": "cb solarbeam rain",
+  "attacker": {
+   "species": "Rillaboom",
+   "ability": "Grassy Surge"
+  },
+  "defender": {
+   "species": "Gastrodon",
+   "ability": "Storm Drain"
+  },
+  "move": "solarbeam",
+  "weather": "raindance"
+ },
+ {
+  "name": "cb psyblade terrain",
+  "attacker": {
+   "species": "Iron Leaves",
+   "ability": "Quark Drive"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psyblade",
+  "terrain": "electricterrain"
+ },
+ {
+  "name": "cb expandingforce terrain",
+  "attacker": {
+   "species": "Indeedee",
+   "ability": "Psychic Surge"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "expandingforce",
+  "terrain": "psychicterrain"
+ },
+ {
+  "name": "cb risingvoltage terrain",
+  "attacker": {
+   "species": "Iron Hands",
+   "ability": "Quark Drive"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "risingvoltage",
+  "terrain": "electricterrain"
+ },
+ {
+  "name": "cb mistyexplosion terrain",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "mistyexplosion",
+  "terrain": "mistyterrain"
+ },
+ {
+  "name": "cb photongeyser category",
+  "attacker": {
+   "species": "Necrozma",
+   "ability": "Prism Armor"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "photongeyser"
+ },
+ {
+  "name": "cb freezedry water",
+  "attacker": {
+   "species": "Frosmoth",
+   "ability": "Ice Scales"
+  },
+  "defender": {
+   "species": "Gastrodon",
+   "ability": "Storm Drain"
+  },
+  "move": "freezedry"
+ }
+]

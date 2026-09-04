@@ -1,0 +1,4061 @@
+[
+ {
+  "name": "neutral stab",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball",
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   111,
+   109,
+   108,
+   106,
+   106,
+   105,
+   103,
+   102,
+   102,
+   100,
+   99,
+   97,
+   97,
+   96,
+   94,
+   93
+  ]
+ },
+ {
+  "name": "physical stab",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   525,
+   519,
+   514,
+   508,
+   504,
+   498,
+   493,
+   487,
+   483,
+   477,
+   472,
+   466,
+   462,
+   456,
+   451,
+   445
+  ]
+ },
+ {
+  "name": "super effective",
+  "attacker": {
+   "species": "Gholdengo",
+   "ability": "Good as Gold"
+  },
+  "defender": {
+   "species": "Iron Valiant",
+   "ability": "Quark Drive"
+  },
+  "move": "makeitrain",
+  "attackerStats": {
+   "atk": 177,
+   "def": 247,
+   "spa": 323,
+   "spd": 239,
+   "spe": 225
+  },
+  "defenderStats": {
+   "atk": 317,
+   "def": 237,
+   "spa": 297,
+   "spd": 177,
+   "spe": 289
+  },
+  "attackerMaxHP": 336,
+  "defenderMaxHP": 310,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   554,
+   548,
+   542,
+   536,
+   530,
+   524,
+   518,
+   516,
+   510,
+   504,
+   498,
+   492,
+   486,
+   480,
+   476,
+   470
+  ]
+ },
+ {
+  "name": "resisted",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Corviknight",
+   "ability": "Pressure"
+  },
+  "move": "dragondarts",
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 231,
+   "def": 267,
+   "spa": 163,
+   "spd": 227,
+   "spe": 191
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 358,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   36,
+   35,
+   35,
+   34,
+   34,
+   33,
+   33,
+   33,
+   33,
+   32,
+   32,
+   31,
+   31,
+   30,
+   30,
+   30
+  ]
+ },
+ {
+  "name": "immune",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Corviknight",
+   "ability": "Pressure"
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 231,
+   "def": 267,
+   "spa": 163,
+   "spd": 227,
+   "spe": 191
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 358,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune"
+  ]
+ },
+ {
+  "name": "crit",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball",
+  "crit": true,
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   166,
+   163,
+   162,
+   160,
+   159,
+   157,
+   156,
+   154,
+   153,
+   151,
+   148,
+   147,
+   145,
+   144,
+   142,
+   141
+  ]
+ },
+ {
+  "name": "burn halves physical",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "status": "brn"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   262,
+   259,
+   257,
+   254,
+   252,
+   249,
+   246,
+   243,
+   241,
+   238,
+   236,
+   233,
+   231,
+   228,
+   225,
+   222
+  ]
+ },
+ {
+  "name": "guts ignores burn",
+  "attacker": {
+   "species": "Ursaluna",
+   "ability": "Guts",
+   "status": "brn"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "facade",
+  "attackerStats": {
+   "atk": 337,
+   "def": 267,
+   "spa": 147,
+   "spd": 217,
+   "spe": 157
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 422,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   1159,
+   1147,
+   1135,
+   1123,
+   1113,
+   1101,
+   1089,
+   1077,
+   1066,
+   1054,
+   1042,
+   1030,
+   1020,
+   1008,
+   996,
+   985
+  ]
+ },
+ {
+  "name": "sun boosts fire",
+  "attacker": {
+   "species": "Volcarona",
+   "ability": "Flame Body"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fireblast",
+  "weather": "sunnyday",
+  "attackerStats": {
+   "atk": 177,
+   "def": 187,
+   "spa": 327,
+   "spd": 267,
+   "spe": 257
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 332,
+  "defenderMaxHP": 672,
+  "actualWeather": "sunnyday",
+  "actualTerrain": null,
+  "damages": [
+   211,
+   208,
+   207,
+   204,
+   202,
+   199,
+   198,
+   196,
+   193,
+   192,
+   189,
+   187,
+   186,
+   183,
+   181,
+   178
+  ]
+ },
+ {
+  "name": "rain weakens fire",
+  "attacker": {
+   "species": "Volcarona",
+   "ability": "Flame Body"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fireblast",
+  "weather": "raindance",
+  "attackerStats": {
+   "atk": 177,
+   "def": 187,
+   "spa": 327,
+   "spd": 267,
+   "spe": 257
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 332,
+  "defenderMaxHP": 672,
+  "actualWeather": "raindance",
+  "actualTerrain": null,
+  "damages": [
+   70,
+   69,
+   69,
+   67,
+   67,
+   66,
+   66,
+   64,
+   64,
+   63,
+   63,
+   61,
+   61,
+   60,
+   60,
+   58
+  ]
+ },
+ {
+  "name": "attack boost +2",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "boosts": {
+    "atk": 2
+   }
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   1047,
+   1036,
+   1026,
+   1015,
+   1005,
+   994,
+   984,
+   973,
+   963,
+   952,
+   942,
+   931,
+   921,
+   910,
+   900,
+   889
+  ]
+ },
+ {
+  "name": "defense boost +2",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "boosts": {
+    "def": 2
+   }
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   264,
+   261,
+   258,
+   255,
+   252,
+   250,
+   247,
+   244,
+   241,
+   240,
+   237,
+   234,
+   231,
+   229,
+   226,
+   223
+  ]
+ },
+ {
+  "name": "negative boosts",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "boosts": {
+    "atk": -2
+   }
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "boosts": {
+    "def": -1
+   }
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   394,
+   390,
+   385,
+   382,
+   378,
+   373,
+   370,
+   366,
+   361,
+   358,
+   354,
+   351,
+   346,
+   342,
+   339,
+   334
+  ]
+ },
+ {
+  "name": "life orb",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body",
+   "item": "Life Orb"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball",
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   144,
+   142,
+   140,
+   138,
+   138,
+   136,
+   134,
+   133,
+   133,
+   130,
+   129,
+   126,
+   126,
+   125,
+   122,
+   121
+  ]
+ },
+ {
+  "name": "choice band",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "item": "Choice Band"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   784,
+   775,
+   768,
+   760,
+   753,
+   744,
+   736,
+   729,
+   721,
+   712,
+   705,
+   697,
+   690,
+   682,
+   673,
+   666
+  ]
+ },
+ {
+  "name": "expert belt se",
+  "attacker": {
+   "species": "Gholdengo",
+   "ability": "Good as Gold",
+   "item": "Expert Belt"
+  },
+  "defender": {
+   "species": "Iron Valiant",
+   "ability": "Quark Drive"
+  },
+  "move": "makeitrain",
+  "attackerStats": {
+   "atk": 177,
+   "def": 247,
+   "spa": 323,
+   "spd": 239,
+   "spe": 225
+  },
+  "defenderStats": {
+   "atk": 317,
+   "def": 237,
+   "spa": 297,
+   "spd": 177,
+   "spe": 289
+  },
+  "attackerMaxHP": 336,
+  "defenderMaxHP": 310,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   665,
+   658,
+   650,
+   643,
+   636,
+   629,
+   622,
+   619,
+   612,
+   605,
+   598,
+   590,
+   583,
+   576,
+   571,
+   564
+  ]
+ },
+ {
+  "name": "assault vest",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball",
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   111,
+   109,
+   108,
+   106,
+   106,
+   105,
+   103,
+   102,
+   102,
+   100,
+   99,
+   97,
+   97,
+   96,
+   94,
+   93
+  ]
+ },
+ {
+  "name": "eviolite",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Dusclops",
+   "ability": "Pressure",
+   "item": "Eviolite"
+  },
+  "move": "headlongrush",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 317,
+   "spa": 177,
+   "spd": 317,
+   "spe": 107
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 242,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   103,
+   102,
+   100,
+   99,
+   99,
+   97,
+   96,
+   96,
+   94,
+   93,
+   93,
+   91,
+   90,
+   90,
+   88,
+   87
+  ]
+ },
+ {
+  "name": "reflect",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthquake",
+  "screens": [
+   "reflect"
+  ],
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   262,
+   259,
+   257,
+   254,
+   252,
+   249,
+   246,
+   243,
+   241,
+   238,
+   236,
+   233,
+   231,
+   228,
+   225,
+   222
+  ]
+ },
+ {
+  "name": "light screen",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball",
+  "screens": [
+   "lightscreen"
+  ],
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   51,
+   50,
+   49,
+   48,
+   48,
+   48,
+   47,
+   46
+  ]
+ },
+ {
+  "name": "multiscale",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Dragonite",
+   "ability": "Multiscale"
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 325,
+   "def": 247,
+   "spa": 257,
+   "spd": 257,
+   "spe": 217
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 344,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune"
+  ]
+ },
+ {
+  "name": "thick fat",
+  "attacker": {
+   "species": "Volcarona",
+   "ability": "Flame Body"
+  },
+  "defender": {
+   "species": "Snorlax",
+   "ability": "Thick Fat"
+  },
+  "move": "fireblast",
+  "attackerStats": {
+   "atk": 177,
+   "def": 187,
+   "spa": 327,
+   "spd": 267,
+   "spe": 257
+  },
+  "defenderStats": {
+   "atk": 277,
+   "def": 187,
+   "spa": 187,
+   "spd": 277,
+   "spe": 117
+  },
+  "attackerMaxHP": 332,
+  "defenderMaxHP": 482,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   84,
+   82,
+   81,
+   81,
+   79,
+   79,
+   78,
+   78,
+   76,
+   75,
+   75,
+   73,
+   73,
+   72,
+   72,
+   70
+  ]
+ },
+ {
+  "name": "levitate immune",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Rotom-Wash",
+   "ability": "Levitate"
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 187,
+   "def": 271,
+   "spa": 267,
+   "spd": 271,
+   "spe": 229
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 262,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune"
+  ]
+ },
+ {
+  "name": "technician",
+  "attacker": {
+   "species": "Scizor",
+   "ability": "Technician"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bulletpunch",
+  "attackerStats": {
+   "atk": 317,
+   "def": 257,
+   "spa": 167,
+   "spd": 217,
+   "spe": 187
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 302,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   313,
+   309,
+   306,
+   303,
+   300,
+   297,
+   294,
+   291,
+   288,
+   285,
+   282,
+   279,
+   274,
+   271,
+   268,
+   265
+  ]
+ },
+ {
+  "name": "tough claws",
+  "attacker": {
+   "species": "Barraskewda",
+   "ability": "Swift Swim"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aquajet",
+  "attackerStats": {
+   "atk": 303,
+   "def": 177,
+   "spa": 177,
+   "spd": 157,
+   "spe": 329
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 284,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   201,
+   198,
+   196,
+   193,
+   192,
+   190,
+   187,
+   186,
+   184,
+   181,
+   180,
+   178,
+   175,
+   174,
+   172,
+   169
+  ]
+ },
+ {
+  "name": "tera stab boost",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body",
+   "tera": "Ghost"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball",
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   148,
+   146,
+   144,
+   142,
+   142,
+   140,
+   138,
+   136,
+   136,
+   134,
+   132,
+   130,
+   130,
+   128,
+   126,
+   124
+  ]
+ },
+ {
+  "name": "tera new type",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "tera": "Fire"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flamethrower",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   58,
+   57,
+   57,
+   55,
+   55,
+   55,
+   54,
+   54,
+   52,
+   52,
+   52,
+   51,
+   51,
+   49,
+   49,
+   49
+  ]
+ },
+ {
+  "name": "tera changes defense",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "tera": "Flying"
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune",
+   "immune"
+  ]
+ },
+ {
+  "name": "electric terrain",
+  "attacker": {
+   "species": "Iron Hands",
+   "ability": "Quark Drive"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "wildcharge",
+  "terrain": "electricterrain",
+  "attackerStats": {
+   "atk": 337,
+   "def": 273,
+   "spa": 157,
+   "spd": 193,
+   "spe": 157
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 470,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": "electricterrain",
+  "damages": [
+   648,
+   640,
+   634,
+   628,
+   621,
+   615,
+   609,
+   601,
+   595,
+   589,
+   582,
+   576,
+   570,
+   562,
+   556,
+   550
+  ]
+ },
+ {
+  "name": "grassy terrain",
+  "attacker": {
+   "species": "Rillaboom",
+   "ability": "Grassy Surge"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "woodhammer",
+  "terrain": "grassyterrain",
+  "attackerStats": {
+   "atk": 307,
+   "def": 237,
+   "spa": 177,
+   "spd": 197,
+   "spe": 227
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 362,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": "grassyterrain",
+  "damages": [
+   786,
+   777,
+   769,
+   762,
+   754,
+   745,
+   738,
+   730,
+   723,
+   714,
+   706,
+   699,
+   691,
+   682,
+   675,
+   667
+  ]
+ },
+ {
+  "name": "psychic terrain",
+  "attacker": {
+   "species": "Iron Valiant",
+   "ability": "Quark Drive"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psychic",
+  "terrain": "psychicterrain",
+  "attackerStats": {
+   "atk": 317,
+   "def": 237,
+   "spa": 297,
+   "spd": 177,
+   "spe": 289
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 310,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": "psychicterrain",
+  "damages": [
+   91,
+   90,
+   89,
+   88,
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77
+  ]
+ },
+ {
+  "name": "low level",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body",
+   "level": 76
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball",
+  "attackerStats": {
+   "atk": 226,
+   "def": 158,
+   "spa": 196,
+   "spd": 158,
+   "spe": 260
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 259,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   66,
+   64,
+   64,
+   63,
+   63,
+   61,
+   61,
+   60,
+   60,
+   60,
+   58,
+   58,
+   57,
+   57,
+   55,
+   55
+  ]
+ },
+ {
+  "name": "solid rock",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Camerupt",
+   "ability": "Solid Rock"
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 257,
+   "def": 197,
+   "spa": 267,
+   "spd": 207,
+   "spe": 137
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 302,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   310,
+   306,
+   303,
+   298,
+   297,
+   294,
+   289,
+   288,
+   283,
+   280,
+   279,
+   274,
+   271,
+   270,
+   265,
+   262
+  ]
+ },
+ {
+  "name": "tinted lens",
+  "attacker": {
+   "species": "Venomoth",
+   "ability": "Tinted Lens"
+  },
+  "defender": {
+   "species": "Corviknight",
+   "ability": "Pressure"
+  },
+  "move": "bugbuzz",
+  "attackerStats": {
+   "atk": 187,
+   "def": 177,
+   "spa": 237,
+   "spd": 207,
+   "spe": 237
+  },
+  "defenderStats": {
+   "atk": 231,
+   "def": 267,
+   "spa": 163,
+   "spd": 227,
+   "spe": 191
+  },
+  "attackerMaxHP": 302,
+  "defenderMaxHP": 358,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   60,
+   58,
+   58,
+   56,
+   56,
+   56,
+   56,
+   54,
+   54,
+   54,
+   54,
+   52,
+   52,
+   50,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "fur coat",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Fur Coat"
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   102,
+   100,
+   99,
+   97,
+   97,
+   96,
+   94,
+   94,
+   93,
+   91,
+   91,
+   90,
+   88,
+   88,
+   87,
+   85
+  ]
+ },
+ {
+  "name": "ice scales",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Frosmoth",
+   "ability": "Ice Scales"
+  },
+  "move": "shadowball",
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 187,
+   "def": 177,
+   "spa": 307,
+   "spd": 237,
+   "spe": 187
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 302,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   51,
+   50,
+   49,
+   48,
+   48,
+   48,
+   47,
+   46
+  ]
+ },
+ {
+  "name": "huge power",
+  "attacker": {
+   "species": "Azumarill",
+   "ability": "Huge Power"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "playrough",
+  "attackerStats": {
+   "atk": 157,
+   "def": 217,
+   "spa": 177,
+   "spd": 217,
+   "spe": 157
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 362,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   465,
+   459,
+   454,
+   450,
+   445,
+   441,
+   436,
+   432,
+   427,
+   423,
+   418,
+   412,
+   408,
+   403,
+   399,
+   394
+  ]
+ },
+ {
+  "name": "body press uses def",
+  "attacker": {
+   "species": "Corviknight",
+   "ability": "Pressure",
+   "boosts": {
+    "def": 2
+   }
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bodypress",
+  "attackerStats": {
+   "atk": 231,
+   "def": 267,
+   "spa": 163,
+   "spd": 227,
+   "spe": 191
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 358,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   936,
+   926,
+   916,
+   906,
+   898,
+   888,
+   878,
+   870,
+   860,
+   850,
+   842,
+   832,
+   822,
+   814,
+   804,
+   794
+  ]
+ },
+ {
+  "name": "psyshock hits def",
+  "attacker": {
+   "species": "Iron Valiant",
+   "ability": "Quark Drive"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psyshock",
+  "attackerStats": {
+   "atk": 317,
+   "def": 237,
+   "spa": 297,
+   "spd": 177,
+   "spe": 289
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 310,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   261,
+   258,
+   255,
+   253,
+   250,
+   247,
+   245,
+   242,
+   240,
+   237,
+   234,
+   232,
+   229,
+   227,
+   224,
+   221
+  ]
+ },
+ {
+  "name": "foul play uses target atk",
+  "attacker": {
+   "species": "Sableye",
+   "ability": "Prankster"
+  },
+  "defender": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "move": "foulplay",
+  "attackerStats": {
+   "atk": 207,
+   "def": 207,
+   "spa": 187,
+   "spd": 187,
+   "spe": 157
+  },
+  "defenderStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "attackerMaxHP": 262,
+  "defenderMaxHP": 392,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   60,
+   60,
+   59,
+   58,
+   57,
+   57,
+   57,
+   56,
+   55,
+   54,
+   54,
+   54,
+   53,
+   52,
+   51,
+   51
+  ]
+ },
+ {
+  "name": "freeze dry vs water",
+  "attacker": {
+   "species": "Frosmoth",
+   "ability": "Ice Scales"
+  },
+  "defender": {
+   "species": "Quagsire",
+   "ability": "Unaware"
+  },
+  "move": "freezedry",
+  "attackerStats": {
+   "atk": 187,
+   "def": 177,
+   "spa": 307,
+   "spd": 237,
+   "spe": 187
+  },
+  "defenderStats": {
+   "atk": 227,
+   "def": 227,
+   "spa": 187,
+   "spd": 187,
+   "spe": 127
+  },
+  "attackerMaxHP": 302,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   588,
+   580,
+   576,
+   568,
+   564,
+   556,
+   552,
+   544,
+   540,
+   532,
+   528,
+   520,
+   516,
+   508,
+   504,
+   496
+  ]
+ },
+ {
+  "name": "unaware ignores boosts",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "boosts": {
+    "atk": 4
+   }
+  },
+  "defender": {
+   "species": "Quagsire",
+   "ability": "Unaware"
+  },
+  "move": "earthquake",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 227,
+   "def": 227,
+   "spa": 187,
+   "spd": 187,
+   "spe": 127
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   180,
+   177,
+   175,
+   174,
+   172,
+   171,
+   168,
+   166,
+   165,
+   163,
+   162,
+   159,
+   157,
+   156,
+   154,
+   153
+  ]
+ },
+ {
+  "name": "snow boosts ice def",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Baxcalibur",
+   "ability": "Thermal Exchange"
+  },
+  "move": "earthquake",
+  "weather": "snowscape",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 347,
+   "def": 241,
+   "spa": 207,
+   "spd": 229,
+   "spe": 231
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 392,
+  "actualWeather": "snowscape",
+  "actualTerrain": null,
+  "damages": [
+   114,
+   112,
+   111,
+   109,
+   108,
+   108,
+   106,
+   105,
+   103,
+   103,
+   102,
+   100,
+   99,
+   99,
+   97,
+   96
+  ]
+ },
+ {
+  "name": "sand boosts rock spd",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Tyranitar",
+   "ability": "Sand Stream"
+  },
+  "move": "shadowball",
+  "weather": "sandstorm",
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 325,
+   "def": 277,
+   "spa": 247,
+   "spd": 257,
+   "spe": 179
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 362,
+  "actualWeather": "sandstorm",
+  "actualTerrain": null,
+  "damages": [
+   34,
+   33,
+   33,
+   33,
+   33,
+   32,
+   32,
+   31,
+   31,
+   30,
+   30,
+   30,
+   30,
+   30,
+   29,
+   29
+  ]
+ },
+ {
+  "name": "cb facade statused",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "status": "par"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "facade",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   489,
+   484,
+   479,
+   474,
+   469,
+   464,
+   459,
+   454,
+   449,
+   444,
+   440,
+   435,
+   430,
+   425,
+   420,
+   415
+  ]
+ },
+ {
+  "name": "cb hex statused target",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "status": "psn"
+  },
+  "move": "hex",
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   180,
+   177,
+   175,
+   174,
+   172,
+   171,
+   168,
+   166,
+   165,
+   163,
+   162,
+   159,
+   157,
+   156,
+   154,
+   153
+  ]
+ },
+ {
+  "name": "cb hex healthy target",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "hex",
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   91,
+   90,
+   88,
+   88,
+   87,
+   85,
+   85,
+   84,
+   84,
+   82,
+   81,
+   81,
+   79,
+   79,
+   78,
+   76
+  ]
+ },
+ {
+  "name": "cb venoshock",
+  "attacker": {
+   "species": "Gengar",
+   "ability": "Cursed Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "status": "psn"
+  },
+  "move": "venoshock",
+  "attackerStats": {
+   "atk": 187,
+   "def": 177,
+   "spa": 317,
+   "spd": 207,
+   "spe": 277
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 282,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   444,
+   438,
+   434,
+   428,
+   426,
+   420,
+   416,
+   410,
+   408,
+   402,
+   398,
+   392,
+   390,
+   384,
+   380,
+   374
+  ]
+ },
+ {
+  "name": "cb brine half hp",
+  "attacker": {
+   "species": "Barraskewda",
+   "ability": "Swift Swim"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "hpPercent": 0.4
+  },
+  "move": "brine",
+  "attackerStats": {
+   "atk": 303,
+   "def": 177,
+   "spa": 177,
+   "spd": 157,
+   "spe": 329
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 284,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   91,
+   90,
+   88,
+   88,
+   87,
+   85,
+   85,
+   84,
+   84,
+   82,
+   81,
+   81,
+   79,
+   79,
+   78,
+   76
+  ]
+ },
+ {
+  "name": "cb acrobatics no item",
+  "attacker": {
+   "species": "Talonflame",
+   "ability": "Flame Body"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "acrobatics",
+  "attackerStats": {
+   "atk": 219,
+   "def": 199,
+   "spa": 205,
+   "spd": 195,
+   "spe": 309
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 318,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   151,
+   148,
+   147,
+   145,
+   144,
+   142,
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   130,
+   129,
+   127
+  ]
+ },
+ {
+  "name": "cb acrobatics with item",
+  "attacker": {
+   "species": "Talonflame",
+   "ability": "Flame Body",
+   "item": "Leftovers"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "acrobatics",
+  "attackerStats": {
+   "atk": 219,
+   "def": 199,
+   "spa": 205,
+   "spd": 195,
+   "spe": 309
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 318,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   76,
+   75,
+   73,
+   73,
+   72,
+   72,
+   70,
+   70,
+   69,
+   69,
+   67,
+   67,
+   66,
+   66,
+   64,
+   64
+  ]
+ },
+ {
+  "name": "cb knockoff item",
+  "attacker": {
+   "species": "Weavile",
+   "ability": "Pressure"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "item": "Leftovers"
+  },
+  "move": "knockoff",
+  "attackerStats": {
+   "atk": 297,
+   "def": 187,
+   "spa": 147,
+   "spd": 227,
+   "spe": 307
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 302,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   90,
+   89,
+   88,
+   87,
+   87,
+   85,
+   84,
+   84,
+   83,
+   82,
+   81,
+   80,
+   79,
+   78,
+   78,
+   76
+  ]
+ },
+ {
+  "name": "cb knockoff no item",
+  "attacker": {
+   "species": "Weavile",
+   "ability": "Pressure"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "knockoff",
+  "attackerStats": {
+   "atk": 297,
+   "def": 187,
+   "spa": 147,
+   "spd": 227,
+   "spe": 307
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 302,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   60,
+   60,
+   59,
+   58,
+   57,
+   57,
+   57,
+   56,
+   55,
+   54,
+   54,
+   54,
+   53,
+   52,
+   51,
+   51
+  ]
+ },
+ {
+  "name": "cb lowkick heavy",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "No Guard"
+  },
+  "defender": {
+   "species": "Snorlax",
+   "ability": "Thick Fat"
+  },
+  "move": "lowkick",
+  "attackerStats": {
+   "atk": 319,
+   "def": 319,
+   "spa": 163,
+   "spd": 163,
+   "spe": 231
+  },
+  "defenderStats": {
+   "atk": 277,
+   "def": 187,
+   "spa": 187,
+   "spd": 277,
+   "spe": 117
+  },
+  "attackerMaxHP": 392,
+  "defenderMaxHP": 482,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   518,
+   512,
+   506,
+   500,
+   498,
+   492,
+   486,
+   480,
+   476,
+   470,
+   464,
+   458,
+   456,
+   450,
+   444,
+   440
+  ]
+ },
+ {
+  "name": "cb grassknot light",
+  "attacker": {
+   "species": "Rillaboom",
+   "ability": "Grassy Surge"
+  },
+  "defender": {
+   "species": "Gastrodon",
+   "ability": "Storm Drain"
+  },
+  "move": "grassknot",
+  "attackerStats": {
+   "atk": 307,
+   "def": 237,
+   "spa": 177,
+   "spd": 197,
+   "spe": 227
+  },
+  "defenderStats": {
+   "atk": 223,
+   "def": 193,
+   "spa": 241,
+   "spd": 221,
+   "spe": 135
+  },
+  "attackerMaxHP": 362,
+  "defenderMaxHP": 384,
+  "actualWeather": null,
+  "actualTerrain": "grassyterrain",
+  "damages": [
+   324,
+   316,
+   312,
+   312,
+   304,
+   304,
+   300,
+   300,
+   292,
+   292,
+   288,
+   288,
+   280,
+   276,
+   276,
+   268
+  ]
+ },
+ {
+  "name": "cb heavyslam ratio",
+  "attacker": {
+   "species": "Copperajah",
+   "ability": "Sheer Force"
+  },
+  "defender": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "move": "heavyslam",
+  "attackerStats": {
+   "atk": 317,
+   "def": 195,
+   "spa": 217,
+   "spd": 195,
+   "spe": 117
+  },
+  "defenderStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "attackerMaxHP": 406,
+  "defenderMaxHP": 338,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   234,
+   231,
+   228,
+   226,
+   223,
+   222,
+   219,
+   217,
+   214,
+   211,
+   210,
+   207,
+   205,
+   202,
+   201,
+   198
+  ]
+ },
+ {
+  "name": "cb gyroball slow",
+  "attacker": {
+   "species": "Corviknight",
+   "ability": "Iron Barbs"
+  },
+  "defender": {
+   "species": "Dragapult",
+   "ability": "Clear Body"
+  },
+  "move": "gyroball",
+  "attackerStats": {
+   "atk": 231,
+   "def": 267,
+   "spa": 163,
+   "spd": 227,
+   "spe": 191
+  },
+  "defenderStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "attackerMaxHP": 358,
+  "defenderMaxHP": 338,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   66,
+   64,
+   64,
+   63,
+   63,
+   61,
+   61,
+   60,
+   60,
+   60,
+   58,
+   58,
+   57,
+   57,
+   55,
+   55
+  ]
+ },
+ {
+  "name": "cb electroball fast",
+  "attacker": {
+   "species": "Iron Bundle",
+   "ability": "Quark Drive"
+  },
+  "defender": {
+   "species": "Snorlax",
+   "ability": "Thick Fat"
+  },
+  "move": "electroball",
+  "attackerStats": {
+   "atk": 217,
+   "def": 285,
+   "spa": 305,
+   "spd": 177,
+   "spe": 329
+  },
+  "defenderStats": {
+   "atk": 277,
+   "def": 187,
+   "spa": 187,
+   "spd": 277,
+   "spe": 117
+  },
+  "attackerMaxHP": 274,
+  "defenderMaxHP": 482,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   75,
+   74,
+   73,
+   72,
+   72,
+   71,
+   70,
+   69,
+   69,
+   68,
+   67,
+   66,
+   66,
+   65,
+   64,
+   63
+  ]
+ },
+ {
+  "name": "cb storedpower boosted",
+  "attacker": {
+   "species": "Espeon",
+   "ability": "Magic Bounce",
+   "boosts": {
+    "atk": 1,
+    "spa": 2,
+    "spe": 1
+   }
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "storedpower",
+  "attackerStats": {
+   "atk": 187,
+   "def": 177,
+   "spa": 317,
+   "spd": 247,
+   "spe": 277
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 292,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   246,
+   243,
+   240,
+   238,
+   235,
+   232,
+   231,
+   228,
+   225,
+   223,
+   220,
+   217,
+   216,
+   213,
+   211,
+   208
+  ]
+ },
+ {
+  "name": "cb punishment target boosts",
+  "attacker": {
+   "species": "Weavile",
+   "ability": "Pressure"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "boosts": {
+    "atk": 2,
+    "def": 1
+   }
+  },
+  "move": "punishment",
+  "attackerStats": {
+   "atk": 297,
+   "def": 187,
+   "spa": 147,
+   "spd": 227,
+   "spe": 307
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 302,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   75,
+   74,
+   73,
+   72,
+   72,
+   71,
+   70,
+   69,
+   69,
+   68,
+   67,
+   66,
+   66,
+   65,
+   64,
+   63
+  ]
+ },
+ {
+  "name": "cb eruption full hp",
+  "attacker": {
+   "species": "Typhlosion",
+   "ability": "Blaze"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "eruption",
+  "attackerStats": {
+   "atk": 225,
+   "def": 213,
+   "spa": 275,
+   "spd": 227,
+   "spe": 257
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 318,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   160,
+   157,
+   156,
+   154,
+   153,
+   151,
+   150,
+   148,
+   147,
+   145,
+   144,
+   142,
+   141,
+   139,
+   138,
+   135
+  ]
+ },
+ {
+  "name": "cb eruption low hp",
+  "attacker": {
+   "species": "Typhlosion",
+   "ability": "Blaze",
+   "hpPercent": 0.3
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "eruption",
+  "attackerStats": {
+   "atk": 225,
+   "def": 213,
+   "spa": 275,
+   "spd": 227,
+   "spe": 257
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 318,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   72,
+   70,
+   70,
+   69,
+   69,
+   67,
+   67,
+   66,
+   66,
+   64,
+   64,
+   63,
+   63,
+   61,
+   61,
+   60
+  ]
+ },
+ {
+  "name": "cb wringout",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "hpPercent": 0.6
+  },
+  "move": "wringout",
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44,
+   43,
+   43,
+   42,
+   42,
+   41,
+   41,
+   40,
+   40,
+   39
+  ]
+ },
+ {
+  "name": "cb hardpress",
+  "attacker": {
+   "species": "Archaludon",
+   "ability": "Stamina"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "hpPercent": 0.75
+  },
+  "move": "hardpress",
+  "attackerStats": {
+   "atk": 267,
+   "def": 317,
+   "spa": 307,
+   "spd": 187,
+   "spe": 227
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 342,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   252,
+   248,
+   246,
+   242,
+   240,
+   236,
+   234,
+   234,
+   230,
+   228,
+   224,
+   222,
+   218,
+   218,
+   216,
+   212
+  ]
+ },
+ {
+  "name": "cb ragefist",
+  "attacker": {
+   "species": "Annihilape",
+   "ability": "Defiant"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "ragefist",
+  "timesAttacked": 3,
+  "attackerStats": {
+   "atk": 287,
+   "def": 217,
+   "spa": 157,
+   "spd": 237,
+   "spe": 237
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 382,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   358,
+   354,
+   351,
+   346,
+   343,
+   340,
+   336,
+   333,
+   328,
+   325,
+   322,
+   318,
+   315,
+   310,
+   307,
+   304
+  ]
+ },
+ {
+  "name": "cb lastrespects",
+  "attacker": {
+   "species": "Basculegion",
+   "ability": "Adaptability"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "lastrespects",
+  "faintedCount": 2,
+  "attackerStats": {
+   "atk": 281,
+   "def": 187,
+   "spa": 217,
+   "spd": 207,
+   "spe": 213
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 402,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   352,
+   348,
+   344,
+   340,
+   336,
+   334,
+   330,
+   326,
+   322,
+   320,
+   316,
+   312,
+   308,
+   306,
+   302,
+   298
+  ]
+ },
+ {
+  "name": "cb avalanche hit",
+  "attacker": {
+   "species": "Avalugg",
+   "ability": "Sturdy"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "avalanche",
+  "userDamaged": true,
+  "attackerStats": {
+   "atk": 291,
+   "def": 425,
+   "spa": 145,
+   "spd": 149,
+   "spe": 113
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   219,
+   216,
+   214,
+   211,
+   210,
+   207,
+   205,
+   202,
+   201,
+   198,
+   196,
+   193,
+   192,
+   190,
+   187,
+   186
+  ]
+ },
+ {
+  "name": "cb avalanche unhit",
+  "attacker": {
+   "species": "Avalugg",
+   "ability": "Sturdy"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "avalanche",
+  "attackerStats": {
+   "atk": 291,
+   "def": 425,
+   "spa": 145,
+   "spd": 149,
+   "spe": 113
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   111,
+   109,
+   108,
+   106,
+   106,
+   105,
+   103,
+   102,
+   102,
+   100,
+   99,
+   97,
+   97,
+   96,
+   94,
+   93
+  ]
+ },
+ {
+  "name": "cb assurance damaged",
+  "attacker": {
+   "species": "Weavile",
+   "ability": "Pressure"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "assurance",
+  "targetDamaged": true,
+  "attackerStats": {
+   "atk": 297,
+   "def": 187,
+   "spa": 147,
+   "spd": 227,
+   "spe": 307
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 302,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   111,
+   110,
+   109,
+   108,
+   107,
+   105,
+   105,
+   103,
+   102,
+   101,
+   100,
+   99,
+   98,
+   96,
+   96,
+   94
+  ]
+ },
+ {
+  "name": "cb payback moves last",
+  "attacker": {
+   "species": "Weavile",
+   "ability": "Pressure"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "payback",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 297,
+   "def": 187,
+   "spa": 147,
+   "spd": 227,
+   "spe": 307
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 302,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   93,
+   91,
+   90,
+   90,
+   89,
+   87,
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   79,
+   78
+  ]
+ },
+ {
+  "name": "cb boltbeak moves last",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Sand Rush"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "boltbeak",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   71,
+   70,
+   69,
+   68,
+   68,
+   67,
+   66,
+   66,
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60
+  ]
+ },
+ {
+  "name": "cb weatherball sun",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "weatherball",
+  "weather": "sunnyday",
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": "sunnyday",
+  "actualTerrain": null,
+  "damages": [
+   97,
+   96,
+   95,
+   94,
+   93,
+   92,
+   91,
+   90,
+   89,
+   88,
+   87,
+   86,
+   85,
+   84,
+   83,
+   82
+  ]
+ },
+ {
+  "name": "cb weatherball none",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "weatherball",
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   33,
+   32,
+   32,
+   32,
+   31,
+   31,
+   31,
+   30,
+   30,
+   30,
+   29,
+   29,
+   29,
+   28,
+   28,
+   28
+  ]
+ },
+ {
+  "name": "cb terrainpulse electric",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "terrainpulse",
+  "terrain": "electricterrain",
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": "electricterrain",
+  "damages": [
+   84,
+   83,
+   82,
+   81,
+   80,
+   79,
+   78,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73,
+   73,
+   72,
+   71
+  ]
+ },
+ {
+  "name": "cb terablast stellar",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body",
+   "tera": "Stellar"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "terablast",
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   149,
+   146,
+   145,
+   144,
+   143,
+   140,
+   139,
+   138,
+   137,
+   134,
+   133,
+   132,
+   131,
+   128,
+   127,
+   126
+  ]
+ },
+ {
+  "name": "cb terablast typed",
+  "attacker": {
+   "species": "Dragapult",
+   "ability": "Clear Body",
+   "tera": "Fire"
+  },
+  "defender": {
+   "species": "Corviknight",
+   "ability": "Iron Barbs"
+  },
+  "move": "terablast",
+  "attackerStats": {
+   "atk": 297,
+   "def": 207,
+   "spa": 257,
+   "spd": 207,
+   "spe": 341
+  },
+  "defenderStats": {
+   "atk": 231,
+   "def": 267,
+   "spa": 163,
+   "spd": 227,
+   "spe": 191
+  },
+  "attackerMaxHP": 338,
+  "defenderMaxHP": 358,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   228,
+   224,
+   222,
+   218,
+   216,
+   216,
+   212,
+   210,
+   206,
+   206,
+   204,
+   200,
+   198,
+   198,
+   194,
+   192
+  ]
+ },
+ {
+  "name": "cb solarbeam rain",
+  "attacker": {
+   "species": "Rillaboom",
+   "ability": "Grassy Surge"
+  },
+  "defender": {
+   "species": "Gastrodon",
+   "ability": "Storm Drain"
+  },
+  "move": "solarbeam",
+  "weather": "raindance",
+  "attackerStats": {
+   "atk": 307,
+   "def": 237,
+   "spa": 177,
+   "spd": 197,
+   "spe": 227
+  },
+  "defenderStats": {
+   "atk": 223,
+   "def": 193,
+   "spa": 241,
+   "spd": 221,
+   "spe": 135
+  },
+  "attackerMaxHP": 362,
+  "defenderMaxHP": 384,
+  "actualWeather": "raindance",
+  "actualTerrain": "grassyterrain",
+  "damages": [
+   324,
+   316,
+   312,
+   312,
+   304,
+   304,
+   300,
+   300,
+   292,
+   292,
+   288,
+   288,
+   280,
+   276,
+   276,
+   268
+  ]
+ },
+ {
+  "name": "cb psyblade terrain",
+  "attacker": {
+   "species": "Iron Leaves",
+   "ability": "Quark Drive"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psyblade",
+  "terrain": "electricterrain",
+  "attackerStats": {
+   "atk": 317,
+   "def": 233,
+   "spa": 197,
+   "spd": 273,
+   "spe": 265
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 342,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": "electricterrain",
+  "damages": [
+   624,
+   616,
+   610,
+   604,
+   598,
+   592,
+   586,
+   579,
+   573,
+   567,
+   561,
+   555,
+   549,
+   541,
+   535,
+   529
+  ]
+ },
+ {
+  "name": "cb expandingforce terrain",
+  "attacker": {
+   "species": "Indeedee",
+   "ability": "Psychic Surge"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "expandingforce",
+  "terrain": "psychicterrain",
+  "attackerStats": {
+   "atk": 187,
+   "def": 167,
+   "spa": 267,
+   "spd": 247,
+   "spe": 247
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 282,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": "psychicterrain",
+  "damages": [
+   162,
+   159,
+   157,
+   156,
+   154,
+   153,
+   151,
+   150,
+   148,
+   147,
+   145,
+   144,
+   142,
+   139,
+   138,
+   136
+  ]
+ },
+ {
+  "name": "cb risingvoltage terrain",
+  "attacker": {
+   "species": "Iron Hands",
+   "ability": "Quark Drive"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "risingvoltage",
+  "terrain": "electricterrain",
+  "attackerStats": {
+   "atk": 337,
+   "def": 273,
+   "spa": 157,
+   "spd": 193,
+   "spe": 157
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 470,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": "electricterrain",
+  "damages": [
+   112,
+   111,
+   109,
+   108,
+   108,
+   106,
+   105,
+   103,
+   103,
+   102,
+   100,
+   99,
+   99,
+   97,
+   96,
+   94
+  ]
+ },
+ {
+  "name": "cb mistyexplosion terrain",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "mistyexplosion",
+  "terrain": "mistyterrain",
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": "mistyterrain",
+  "damages": [
+   145,
+   144,
+   142,
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   130,
+   129,
+   127,
+   126,
+   124,
+   123
+  ]
+ },
+ {
+  "name": "cb photongeyser category",
+  "attacker": {
+   "species": "Necrozma",
+   "ability": "Prism Armor"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "photongeyser",
+  "attackerStats": {
+   "atk": 271,
+   "def": 259,
+   "spa": 311,
+   "spd": 235,
+   "spe": 215
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 356,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   121,
+   120,
+   118,
+   117,
+   115,
+   114,
+   114,
+   112,
+   111,
+   109,
+   108,
+   108,
+   106,
+   105,
+   103,
+   102
+  ]
+ },
+ {
+  "name": "cb freezedry water",
+  "attacker": {
+   "species": "Frosmoth",
+   "ability": "Ice Scales"
+  },
+  "defender": {
+   "species": "Gastrodon",
+   "ability": "Storm Drain"
+  },
+  "move": "freezedry",
+  "attackerStats": {
+   "atk": 187,
+   "def": 177,
+   "spa": 307,
+   "spd": 237,
+   "spe": 187
+  },
+  "defenderStats": {
+   "atk": 223,
+   "def": 193,
+   "spa": 241,
+   "spd": 221,
+   "spe": 135
+  },
+  "attackerMaxHP": 302,
+  "defenderMaxHP": 384,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   496,
+   492,
+   484,
+   480,
+   472,
+   468,
+   468,
+   460,
+   456,
+   448,
+   444,
+   436,
+   436,
+   432,
+   424,
+   420
+  ]
+ }
+]
