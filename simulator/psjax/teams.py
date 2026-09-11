@@ -164,7 +164,11 @@ def legal_action_mask(data, state):
         forced = state.force_switch[side]
         row = jnp.where(forced,
                         jnp.concatenate([jnp.zeros(8, bool), switch_ok]), row)
-        # A player with nothing to do passes; slot 0 keeps the action space total.
-        row = jnp.where(jnp.any(row), row, jnp.zeros(C.NUM_ACTIONS, bool).at[0].set(True))
+        # A player with nothing to do still needs one legal action. While being
+        # asked for a replacement that fallback has to decode to a switch, not to
+        # move slot 0 -- action 0 would decode as switch-to-slot-minus-eight.
+        stuck = jnp.zeros(C.NUM_ACTIONS, bool).at[C.ACTION_SWITCH_BASE].set(True)
+        idle = jnp.zeros(C.NUM_ACTIONS, bool).at[0].set(True)
+        row = jnp.where(jnp.any(row), row, jnp.where(forced, stuck, idle))
         mask = mask.at[side].set(row)
     return mask

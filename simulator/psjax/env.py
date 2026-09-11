@@ -40,14 +40,11 @@ class BattleEnv:
         """`keys` is `[N, 2]`; returns a `BattleState` with a leading `N` axis."""
         return jax.vmap(self.reset)(keys)
 
-    # NOTE on batching. `jax.vmap` over `reset`, `observe` and the individual
-    # mechanics helpers is fine, but `jax.vmap(step)` currently takes many
-    # minutes to compile even at a batch of 8: the blow-up is inside
-    # `moves.execute_move`, and it is a compile-time problem, not a runtime one.
-    # (`residuals`, `switch_to` and the 31-branch effect switch each vmap in
-    # under a second, so the large `lax.switch`es are not the cause.) Until that
-    # is tracked down, `step_batch` maps sequentially with `lax.map`, which
-    # compiles the unbatched body once and still runs entirely on device.
+    # Batching runs through `jax.vmap`. That needs the XLA backend optimisation
+    # level dropped -- see the note in `psjax/__init__.py` -- without which
+    # compiling a batched step does not finish in any practical time. With it,
+    # compilation is a one-off ~26s for any batch size and throughput is roughly
+    # an order of magnitude above stepping battles one at a time.
 
     @functools.partial(jax.jit, static_argnums=0)
     def step(self, state: BattleState, actions):
@@ -72,9 +69,10 @@ class BattleEnv:
             jnp.zeros(2))
         return new_state, self.observe(new_state), rewards, done
 
+    @functools.partial(jax.jit, static_argnums=0)
     def step_batch(self, states, actions):
-        """Step a batch of battles. Sequential on device -- see the note above."""
-        return jax.lax.map(lambda xs: self.step(xs[0], xs[1]), (states, actions))
+        """Step a batch of battles in parallel. Leading axis is the batch."""
+        return jax.vmap(self.step)(states, actions)
 
     # --- action masking -----------------------------------------------------
 
@@ -149,8 +147,8 @@ class BattleEnv:
 def rollout(env: BattleEnv, state: BattleState, key, max_steps: int = 300):
     """Play one battle out with uniform random legal actions.
 
-    A `lax.scan`, so the whole rollout stays on device. For many battles at once
-    use `rollout_batch`, which maps this sequentially rather than vmapping it.
+    A `lax.scan`, so the whole rollout stays on device. Use `rollout_batch` to
+    play many battles at once.
     """
     def body(carry, k):
         st = carry
@@ -165,6 +163,10 @@ def rollout(env: BattleEnv, state: BattleState, key, max_steps: int = 300):
 
 
 def rollout_batch(env: BattleEnv, states: BattleState, keys, max_steps: int = 300):
-    """Play out a batch of battles. `states` and `keys` carry a leading `N` axis."""
-    return jax.lax.map(
-        lambda xs: rollout(env, xs[0], xs[1], max_steps), (states, keys))
+    """Play out a batch of battles in parallel.
+
+    `states` and `keys` carry a leading `N` axis. Every battle runs the full
+    `max_steps` scan; finished ones absorb further steps (see `BattleEnv.step`),
+    so the result is the same as stopping each at its own end.
+    """
+    return jax.vmap(lambda s, k: rollout(env, s, k, max_steps))(states, keys)

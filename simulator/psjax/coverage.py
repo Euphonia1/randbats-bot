@@ -10,6 +10,7 @@ from __future__ import annotations
 import collections
 import json
 import pathlib
+import re
 
 from . import consts as C
 from . import effects as E
@@ -31,6 +32,28 @@ def randbats_usage(raw):
     return moves, abilities
 
 
+def wired_abilities() -> set:
+    """Abilities that actually influence the simulation.
+
+    Having an id only means an ability *can* be referred to. It does something
+    only if engine code compares against it (`ab == A.GUTS`) or it appears in one
+    of the data-driven tables in `hooks.py`. Anything else is inert: it does not
+    error, it simply has no effect, which is exactly the sort of gap this report
+    exists to surface.
+    """
+    src = "".join((ROOT / "psjax" / f).read_text() for f in
+                  ("damage.py", "mechanics.py", "moves.py", "engine.py",
+                   "callbacks.py", "teams.py"))
+    attrs = set(re.findall(r"\bA\.([A-Z0-9_]+)", src))
+    by_attr = {n.upper().replace(" ", "").replace("-", ""): n for n in H.ABILITY_NAMES}
+    wired = {by_attr[a] for a in attrs if a in by_attr}
+    for table in (H.ABSORB, H.TYPE_IMMUNE, H.WEATHER_SETTER, H.TERRAIN_SETTER,
+                  H.STATUS_IMMUNE, H.ATE_ABILITIES, H.MOLD_BREAKER,
+                  H.WEATHER_SUPPRESS):
+        wired |= set(table)
+    return wired
+
+
 def report():
     raw = json.load(open(RAW))
     move_usage, ability_usage = randbats_usage(raw)
@@ -44,7 +67,11 @@ def report():
     # --- moves ---
     from .moves import MISSING_EFFECTS
     handled = set(E.BP_REPLACE_INDEX) | set(E.BP_MODIFY_INDEX) | \
-        set(E.DMG_INDEX) | set(E.TYPE_INDEX) | set(E.EFFECT_INDEX)
+        set(E.DMG_INDEX) | set(E.TYPE_INDEX) | set(E.EFFECT_INDEX) | \
+        set(E.ACC_INDEX)
+    # Crash damage (`onMoveFail` on the jump kicks) is applied straight from the
+    # compiled `move_crash_damage` column, so those moves need no handler.
+    handled |= {mid for mid, m in raw["moves"].items() if m["hasCrashDamage"]}
     missing_effect_moves = {mid for h in MISSING_EFFECTS
                             for mid in E.EFFECT_MOVES.get(h, [])}
 
@@ -74,20 +101,31 @@ def report():
 
     # --- abilities ---
     known = set(H.ABILITY_NAMES)
+    wired = wired_abilities()
     rb_abilities = set(ability_usage)
     missing_ab = sorted(rb_abilities - known, key=lambda a: -ability_usage[a])
+    inert = sorted(rb_abilities - wired, key=lambda a: -ability_usage[a])
     total_ab = sum(ability_usage.values())
     covered_ab = total_ab - sum(ability_usage[a] for a in missing_ab)
+    wired_ab = total_ab - sum(ability_usage[a] for a in inert)
     add("")
     add(f"ABILITIES  {len(H.ABILITY_NAMES) - 1} in the registry")
-    add(f"  Random Battle abilities: {len(rb_abilities) - len(missing_ab)}/{len(rb_abilities)} "
-        f"have an id")
-    add(f"  weighted by set appearances: {100 * covered_ab / total_ab:.1f}%")
-    add("  NOTE: an id is necessary but not sufficient -- only abilities wired into")
-    add("        damage.py / mechanics.py / engine.py actually do anything.")
+    add(f"  Random Battle abilities with an id: "
+        f"{len(rb_abilities) - len(missing_ab)}/{len(rb_abilities)} "
+        f"({100 * covered_ab / total_ab:.1f}% by set usage)")
+    add(f"  ... of which actually wired to behaviour: "
+        f"{len(rb_abilities) - len(inert)}/{len(rb_abilities)} "
+        f"({100 * wired_ab / total_ab:.1f}% by set usage)")
+    add("  An ability with an id but no wiring is inert: it does not error, it")
+    add("  simply has no effect. Some are legitimately passive (Multitype just")
+    add("  fixes a forme's type, which the species data already encodes).")
     if missing_ab:
-        add("  most-used abilities with no id (no effect at all):")
-        for a in missing_ab[:20]:
+        add("  most-used abilities with no id at all:")
+        for a in missing_ab[:10]:
+            add(f"    {ability_usage[a]:5d}x  {a}")
+    if inert:
+        add("  most-used registered but inert:")
+        for a in inert[:15]:
             add(f"    {ability_usage[a]:5d}x  {a}")
 
     # --- special effect handlers ---

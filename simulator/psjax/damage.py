@@ -19,7 +19,7 @@ import jax.numpy as jnp
 from . import callbacks as cb
 from . import consts as C
 from .hooks import A, I
-from .stats import boost_multiply, chain_modify, modify
+from .stats import boost_multiply, chain_modify, idiv, modify
 
 # Multipliers are carried in 4096ths, as Showdown does, so that chained
 # modifiers quantise identically.
@@ -45,6 +45,7 @@ class Attacker(NamedTuple):
     maxhp: jnp.ndarray
     terastallized: jnp.ndarray
     tera_type: jnp.ndarray
+    boosted_stat: jnp.ndarray   # Protosynthesis / Quark Drive; -1 when inactive
 
 
 class Defender(NamedTuple):
@@ -59,6 +60,7 @@ class Defender(NamedTuple):
     terastallized: jnp.ndarray
     tera_type: jnp.ndarray
     nfe: jnp.ndarray          # eligible for Eviolite
+    boosted_stat: jnp.ndarray
 
 
 class MoveCtx(NamedTuple):
@@ -135,6 +137,24 @@ def type_effectiveness(data, move_type, def_types, move_ctx, ignore_immunity_mas
 
 # --- offensive / defensive stats ---------------------------------------------
 
+def _pick_stat(stats, boosts, stat_idx):
+    """Read stat `stat_idx` (1..5) and its boost stage without a dynamic gather.
+
+    `stat_idx` depends on the move's category, which is traced, so indexing
+    directly would lower to a gather. Selecting between five statically-read
+    values instead is what lets `vmap` compile this in seconds rather than
+    minutes.
+    """
+    value = stats[C.ATK]
+    stage = boosts[C.B_ATK]
+    for stat, boost in ((C.DEF, C.B_DEF), (C.SPA, C.B_SPA),
+                        (C.SPD, C.B_SPD), (C.SPE, C.B_SPE)):
+        hit = stat_idx == stat
+        value = jnp.where(hit, stats[stat], value)
+        stage = jnp.where(hit, boosts[boost], stage)
+    return value, stage
+
+
 def _attack_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
                  defender_stats_source, weather):
     """The attacking stat after boosts and ability/item modifiers.
@@ -150,8 +170,7 @@ def _attack_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
     stats = jnp.where(use_target, defender_stats_source, atk.stats)
     boosts = jnp.where(use_target, dfn.boosts, atk.boosts)
 
-    raw = stats[stat_idx]
-    stage = boosts[stat_idx - 1]                 # boost vector skips HP
+    raw, stage = _pick_stat(stats, boosts, stat_idx)
     stage = jnp.where(is_crit, jnp.maximum(stage, 0), stage)
     # Unaware ignores the attacker's offensive boosts entirely.
     stage = jnp.where(dfn.ability == A.UNAWARE, 0, stage)
@@ -188,6 +207,9 @@ def _attack_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
     mod = apply(mod, (d_ab == A.WATERBUBBLE) & (mv.type == C.FIRE), m(0.5))
     mod = apply(mod, (d_ab == A.PURIFYINGSALT) & (mv.type == C.GHOST), m(0.5))
 
+    # Protosynthesis / Quark Drive: x1.3 on the stat picked when it activated.
+    mod = apply(mod, atk.boosted_stat == stat_idx, m(1.3))
+
     mod = apply(mod, (it == I.CHOICEBAND) & phys, m(1.5))
     mod = apply(mod, (it == I.CHOICESPECS) & ~phys, m(1.5))
     mod = apply(mod, (it == I.LIGHTBALL), m(2.0))  # Pikachu-only in practice
@@ -208,8 +230,7 @@ def _defense_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
     default_stat = jnp.where(cat == C.CAT_PHYSICAL, C.DEF, C.SPD)
     stat_idx = jnp.where(override != 0, override.astype(jnp.int32), default_stat)
 
-    raw = dfn.stats[stat_idx]
-    stage = dfn.boosts[stat_idx - 1]
+    raw, stage = _pick_stat(dfn.stats, dfn.boosts, stat_idx)
     stage = jnp.where(is_crit, jnp.minimum(stage, 0), stage)
     stage = jnp.where(atk.ability == A.UNAWARE, 0, stage)
     stage = jnp.where(data["move_ignore_defensive"][mv.id], jnp.minimum(stage, 0), stage)
@@ -225,6 +246,7 @@ def _defense_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
     mod = apply(mod, (ab == A.FURCOAT) & phys, m(2.0))
     mod = apply(mod, (ab == A.GRASSPELT) & phys & (terrain == C.GRASSY_TERRAIN), m(1.5))
     mod = apply(mod, (ab == A.MARVELSCALE) & phys & (dfn.status != C.STATUS_NONE), m(1.5))
+    mod = apply(mod, dfn.boosted_stat == stat_idx, m(1.3))
     mod = apply(mod, (it == I.ASSAULTVEST) & ~phys, m(1.5))
     mod = apply(mod, (it == I.EVIOLITE) & dfn.nfe, m(1.5))
     # Snow raises the Defense of Ice types; Sand raises Sp. Def of Rock types.
@@ -240,7 +262,8 @@ def _defense_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
 
 def _base_power_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx,
                           terrain, has_secondary, analytic_ok, fainted_count,
-                          bp_cb_mod, grounded_user, grounded_target):
+                          bp_cb_mod, grounded_user, grounded_target,
+                          target_switched_in):
     """Ability/item multipliers applied to base power before the main formula."""
     ab, it = atk.ability, atk.item
     mod = jnp.int32(M1)
@@ -255,6 +278,12 @@ def _base_power_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx,
     mod = apply(mod, (ab == A.IRONFIST) & has_flag(mv.flags, "punch"), m(1.2))
     mod = apply(mod, (ab == A.SHARPNESS) & has_flag(mv.flags, "slicing"), m(1.5))
     mod = apply(mod, (ab == A.PUNKROCK) & has_flag(mv.flags, "sound"), m(1.3))
+    mod = apply(mod, (ab == A.STEELYSPIRIT) & (mv.type == C.STEEL), m(1.5))
+    mod = apply(mod, (ab == A.STAKEOUT) & target_switched_in, m(2.0))
+    # The "-ate" abilities turn Normal moves into their type for +20% power; the
+    # type change itself happens in resolve_move_ctx.
+    mod = apply(mod, (data["ability_ate_type"][ab] != C.TYPE_NONE) &
+                (data["move_type"][mv.id] == C.NORMAL), m(1.2))
     mod = apply(mod, (ab == A.RECKLESS) & (data["move_recoil"][mv.id, 0] > 0), m(1.2))
     mod = apply(mod, (ab == A.SHEERFORCE) & has_secondary, m(1.3))
     # Analytic only applies when the user moves last.
@@ -385,8 +414,9 @@ def _final_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx, type_exp,
 def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
                 is_crit, damage_roll, weather, terrain, side_conditions,
                 type_exp, bp_cb_mod=4096, grounded_user=True, grounded_target=True,
-                has_secondary=False, utility_umbrella=False,
-                analytic_ok=False, fainted_count=0, defender_stats_source=None):
+                has_secondary=False, utility_umbrella=False, analytic_ok=False,
+                fainted_count=0, target_switched_in=False,
+                defender_stats_source=None):
     """Damage for one hit. `damage_roll` is 0..15, matching Showdown's `random(16)`.
 
     `type_exp` comes from `type_effectiveness`; immunity is handled by the caller
@@ -397,7 +427,8 @@ def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
 
     bp_mod = _base_power_modifiers(data, atk, dfn, mv, terrain, has_secondary,
                                    analytic_ok, fainted_count, bp_cb_mod,
-                                   grounded_user, grounded_target)
+                                   grounded_user, grounded_target,
+                                   target_switched_in)
     power = jnp.maximum(chain_modify(mv.base_power, bp_mod), 1)
 
     attack = _attack_stat(data, atk, dfn, mv, is_crit, defender_stats_source, weather)
@@ -405,7 +436,7 @@ def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
 
     level = atk.level.astype(jnp.int32)
     base = ((2 * level) // 5) + 2
-    base = (base * power * attack) // defense
+    base = idiv(base * power * attack, defense)
     base = base // 50 + 2
 
     base = chain_modify(base, weather_modifier(weather, mv.type, utility_umbrella))
@@ -414,15 +445,17 @@ def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
     base = (base * (100 - damage_roll)) // 100
     base = chain_modify(base, stab_modifier(atk, mv.type))
 
-    # Type effectiveness: double up, then halve with truncation, one step at a time.
-    def double(i, v):
-        return jnp.where(i < type_exp, v * 2, v)
-
-    def halve(i, v):
-        return jnp.where(i < -type_exp, v // 2, v)
-
-    base = jax.lax.fori_loop(0, 6, double, base)
-    base = jax.lax.fori_loop(0, 6, halve, base)
+    # Type effectiveness. Showdown doubles or floor-halves one step at a time;
+    # repeated floor-halving is exactly a single floor division by 2**k, so this
+    # is equivalent without the loops. That matters: these were nested inside the
+    # multi-hit loop, and nested batched `while` loops are what made
+    # `vmap(execute_move)` take minutes to compile.
+    up = jnp.clip(type_exp, 0, 6)
+    down = jnp.clip(-type_exp, 0, 6)
+    # Shifts rather than multiply/divide: `base` is non-negative here, and a
+    # traced integer divisor is expensive for XLA to lower.
+    base = jnp.left_shift(base, up)
+    base = jnp.right_shift(base, down)
 
     # Burn halves physical damage, unless the attacker has Guts.
     burned = (atk.status == C.BRN) & (mv.category == C.CAT_PHYSICAL) & \
@@ -450,10 +483,17 @@ def crit_chance_stage(data, mv: MoveCtx, atk: Attacker):
 
 
 def accuracy_check(data, mv: MoveCtx, atk: Attacker, dfn: Defender,
-                   acc_boost, eva_boost, roll, gravity):
-    """True if the move connects. `roll` is uniform in [0, 100)."""
+                   acc_boost, eva_boost, roll, gravity, weather_acc=None):
+    """True if the move connects. `roll` is uniform in [0, 100).
+
+    `weather_acc` comes from `callbacks.modify_accuracy`: -1 means the move
+    cannot miss in the current weather, -2 means no override.
+    """
     base_acc = data["move_accuracy"][mv.id].astype(jnp.int32)
-    always = base_acc < 0
+    if weather_acc is not None:
+        base_acc = jnp.where(weather_acc != -2, weather_acc, base_acc)
+    # No Guard on either side means the move always connects.
+    always = (base_acc < 0) | (atk.ability == A.NOGUARD) | (dfn.ability == A.NOGUARD)
 
     # Accuracy and evasion share one stage table; evasion counts against you.
     stage = jnp.clip(acc_boost - eva_boost, -6, 6)
@@ -461,7 +501,7 @@ def accuracy_check(data, mv: MoveCtx, atk: Attacker, dfn: Defender,
     stage = jnp.where(dfn.ability == A.UNAWARE, acc_boost, stage)
     num = jnp.where(stage >= 0, 3 + stage, 3)
     den = jnp.where(stage >= 0, 3, 3 - stage)
-    acc = (base_acc * num) // den
+    acc = idiv(base_acc * num, den)
 
     mod = jnp.int32(M1)
     mod = jnp.where(atk.ability == A.COMPOUNDEYES, chain_modify(mod, m(1.3)), mod)
@@ -488,6 +528,9 @@ def resolve_move_ctx(data, move_id, cb_ctx: "cb.CbCtx") -> MoveCtx:
 
     ctx = cb_ctx._replace(base_power=declared_bp, move_type=declared_type)
     mv_type = cb.modify_type(data["move_type_cb"][move_id], ctx)
+    # Aerilate / Pixilate / Refrigerate / Galvanize retype Normal moves.
+    ate = data["ability_ate_type"][cb_ctx.user_ability]
+    mv_type = jnp.where((ate != C.TYPE_NONE) & (mv_type == C.NORMAL), ate, mv_type)
     ctx = ctx._replace(move_type=mv_type)
     base_power = cb.base_power_replace(data["move_bp_replace"][move_id], ctx)
 

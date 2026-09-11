@@ -21,11 +21,15 @@ from psjax.teams import legal_action_mask, new_battle
 DATA = load_data()
 N = names()
 
+# Compiled once for the whole module: `step` is a large program and re-jitting it
+# per test would dominate the run time.
+JIT_STEP = jax.jit(step)
+
 
 def play(key, max_steps=400):
     """Play a battle out with random legal actions, checking invariants each step."""
     state = new_battle(key, DATA)
-    jstep = jax.jit(step)
+    jstep = JIT_STEP
     for _ in range(max_steps):
         if int(state.phase) == C.PHASE_END:
             break
@@ -222,3 +226,45 @@ def test_forced_switch_phase_only_allows_switches():
     mask = legal_action_mask(DATA, state)
     assert not bool(jnp.any(mask[0, :C.ACTION_SWITCH_BASE])), "moves offered while forced to switch"
     assert bool(jnp.any(mask[0, C.ACTION_SWITCH_BASE:]))
+
+
+def test_no_replacement_requested_with_an_empty_bench():
+    """A self-switch with nothing left to bring in must not ask for a switch.
+
+    Regression: `has_bench` counted the active Pokemon, so a side whose active
+    survived a U-turn with a wiped-out bench was still put into PHASE_SWITCH.
+    The only "legal" action then decoded to team slot -8, which JAX silently
+    clamped, corrupting `active`.
+    """
+    state = new_battle(jax.random.PRNGKey(1), DATA)
+    # Wipe player 1's bench, leaving only the active alive, and ask to switch.
+    hp = state.hp.at[1].set(jnp.zeros(C.TEAM_SIZE, jnp.int16))
+    hp = hp.at[1, int(state.active[1])].set(state.maxhp[1, int(state.active[1])])
+    state = state._replace(hp=hp, force_switch=state.force_switch.at[1].set(True))
+
+    mask = legal_action_mask(DATA, state)
+    assert bool(jnp.any(mask[1])), "player 1 was left with no legal action"
+    for action in jnp.nonzero(mask[1])[0]:
+        assert int(action) >= C.ACTION_SWITCH_BASE, \
+            "a forced switch offered a non-switch action"
+
+    # Whatever the engine does next, the active slot must stay in range.
+    stepped = step(state, jnp.array([0, int(jnp.argmax(mask[1]))]), DATA)
+    assert bool(jnp.all((stepped.active >= 0) & (stepped.active < C.TEAM_SIZE))), \
+        f"active slot out of range: {stepped.active}"
+
+
+def test_effect_handlers_only_write_declared_fields():
+    """`run_effect` returns a projection, so a handler writing elsewhere is lost."""
+    from psjax.moves import EFFECT_FNS, EFFECT_WRITES
+    state = new_battle(jax.random.PRNGKey(0), DATA)
+    stray = []
+    for name, fn in EFFECT_FNS.items():
+        out = fn(DATA, state, 0, 1, jax.random.PRNGKey(0))
+        for field in state._fields:
+            if field in EFFECT_WRITES or field == "key":
+                continue
+            before, after = getattr(state, field), getattr(out, field)
+            if before.shape != after.shape or not bool(jnp.all(before == after)):
+                stray.append((name, field))
+    assert not stray, f"handlers wrote fields outside EFFECT_WRITES: {stray}"

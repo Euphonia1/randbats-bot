@@ -19,7 +19,7 @@ import jax.numpy as jnp
 
 from . import consts as C
 from . import effects as E
-from .stats import chain_modify
+from .stats import chain_modify, idiv
 
 
 class CbCtx(NamedTuple):
@@ -59,6 +59,9 @@ class CbCtx(NamedTuple):
     last_damage_category: jnp.ndarray
     off_atk: jnp.ndarray             # boosted but unmodified Attack ...
     off_spa: jnp.ndarray             # ... and Sp. Atk, for the category switches
+    user_ability: jnp.ndarray        # for the "-ate" retyping
+    last_move_failed: jnp.ndarray    # Stomping Tantrum
+    stats_lowered: jnp.ndarray       # Lash Out
 
 M1 = 4096
 
@@ -86,13 +89,18 @@ def _bp_boltbeak(c): return jnp.where(c.moves_first, c.base_power * 2, c.base_po
 
 
 def _bp_electroball(c):
-    ratio = c.atk_speed // jnp.maximum(c.dfn_speed, 1)
-    table = jnp.array([40, 60, 80, 120, 150], jnp.int32)
-    return table[jnp.clip(ratio, 0, 4)]
+    # Showdown steps on floor(userSpeed / targetSpeed); comparing against
+    # multiples avoids the division entirely.
+    d = jnp.maximum(c.dfn_speed.astype(jnp.int32), 1)
+    a = c.atk_speed.astype(jnp.int32)
+    bp = jnp.int32(40)
+    for mult, power in ((1, 60), (2, 80), (3, 120), (4, 150)):
+        bp = jnp.where(a >= mult * d, jnp.int32(power), bp)
+    return bp
 
 
 def _bp_gyroball(c):
-    power = (25 * c.dfn_speed) // jnp.maximum(c.atk_speed, 1) + 1
+    power = idiv(25 * c.dfn_speed, c.atk_speed) + 1
     return jnp.clip(power, 1, 150)
 
 
@@ -104,19 +112,22 @@ def _bp_lowkick(c):
 
 
 def _bp_heavyslam(c):
+    # Same trick as Electro Ball: the steps are on the weight ratio.
     aw = (c.atk_weight * 10).astype(jnp.int32)
     dw = jnp.maximum((c.dfn_weight * 10).astype(jnp.int32), 1)
-    ratio = aw // dw
-    return _steps(ratio, [2, 3, 4, 5], [40, 60, 80, 100, 120])
+    bp = jnp.int32(40)
+    for mult, power in ((2, 60), (3, 80), (4, 100), (5, 120)):
+        bp = jnp.where(aw >= mult * dw, jnp.int32(power), bp)
+    return bp
 
 
 def _bp_eruption(c):
-    return jnp.maximum((c.base_power * c.atk_hp) // jnp.maximum(c.atk_maxhp, 1), 1)
+    return jnp.maximum(idiv(c.base_power * c.atk_hp, c.atk_maxhp), 1)
 
 
 def _hp_fraction_power(base, hp, maxhp):
     """Showdown's Wring Out / Hard Press rounding, transcribed literally."""
-    frac = (hp.astype(jnp.int32) * 4096) // jnp.maximum(maxhp, 1)
+    frac = idiv(hp.astype(jnp.int32) * 4096, maxhp)
     bp = (((base * (100 * frac)) + 2048 - 1) // 4096) // 100
     return jnp.maximum(bp, 1)
 
@@ -219,11 +230,20 @@ def _m_solarbeam(c):
     return jnp.where(weak, 2048, M1)
 
 
+def _m_stompingtantrum(c):
+    return jnp.where(c.last_move_failed, 8192, M1)
+
+
+def _m_lashout(c):
+    return jnp.where(c.stats_lowered, 8192, M1)
+
+
 BP_MODIFY_FNS = {
     "none": _m_none, "facade": _m_facade, "hex": _m_hex, "venoshock": _m_venoshock,
     "brine": _m_brine, "knockoff": _m_knockoff, "expandingforce": _m_expandingforce,
     "mistyexplosion": _m_mistyexplosion, "psyblade": _m_psyblade,
-    "solarbeam": _m_solarbeam,
+    "solarbeam": _m_solarbeam, "stompingtantrum": _m_stompingtantrum,
+    "lashout": _m_lashout,
 }
 
 
@@ -309,6 +329,26 @@ TYPE_FNS = {
 }
 
 
+# --- weather-dependent accuracy ----------------------------------------------
+# Handlers return the accuracy to use, or -1 for "never misses".
+
+def _a_none(c): return jnp.int32(-2)          # -2 == "use the declared accuracy"
+
+
+def _a_rain_perfect(c):
+    rain = (c.weather == C.RAIN) | (c.weather == C.HEAVY_RAIN)
+    sun = (c.weather == C.SUN) | (c.weather == C.HARSH_SUN)
+    return jnp.where(rain, -1, jnp.where(sun, 50, -2)).astype(jnp.int32)
+
+
+def _a_snow_perfect(c):
+    return jnp.where(c.weather == C.SNOW, -1, -2).astype(jnp.int32)
+
+
+ACC_FNS = {"none": _a_none, "rain_perfect": _a_rain_perfect,
+           "snow_perfect": _a_snow_perfect}
+
+
 # --- dispatch ----------------------------------------------------------------
 
 def _make_switch(handler_names, fns, name):
@@ -330,3 +370,4 @@ base_power_replace = _make_switch(E.BP_REPLACE_HANDLERS, BP_REPLACE_FNS, "bp_rep
 base_power_modify = _make_switch(E.BP_MODIFY_HANDLERS, BP_MODIFY_FNS, "bp_modify")
 fixed_damage = _make_switch(E.DMG_HANDLERS, DMG_FNS, "damage")
 modify_type = _make_switch(E.TYPE_HANDLERS, TYPE_FNS, "type")
+modify_accuracy = _make_switch(E.ACC_HANDLERS, ACC_FNS, "accuracy")

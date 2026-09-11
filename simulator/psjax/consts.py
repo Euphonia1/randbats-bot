@@ -84,8 +84,9 @@ SIDE_CONDITION_MAX = {
  V_INGRAIN, V_CURSE, V_ATTRACT, V_PERISHSONG, V_SALTCURE, V_PARTIALLYTRAPPED,
  V_LOCKEDMOVE, V_TWOTURN, V_RECHARGE, V_FOCUSENERGY, V_HELPINGHAND, V_SLOWSTART,
  V_PROTOSYNTHESIS, V_QUARKDRIVE, V_GLAIVERUSH, V_THROATCHOP, V_TORMENT,
- V_MINIMIZE, V_DEFENSECURL, V_TARSHOT, V_FLASHFIRE, V_CHARGE) = range(36)
-NUM_VOLATILES = 36
+ V_MINIMIZE, V_DEFENSECURL, V_TARSHOT, V_FLASHFIRE, V_CHARGE,
+ V_UNBURDEN) = range(37)
+NUM_VOLATILES = 37
 VOLATILE_IDX = {
     "confusion": V_CONFUSION, "flinch": V_FLINCH, "substitute": V_SUBSTITUTE,
     "leechseed": V_LEECHSEED, "taunt": V_TAUNT, "encore": V_ENCORE,
@@ -99,7 +100,7 @@ VOLATILE_IDX = {
     "protosynthesis": V_PROTOSYNTHESIS, "quarkdrive": V_QUARKDRIVE,
     "glaiverush": V_GLAIVERUSH, "throatchop": V_THROATCHOP, "torment": V_TORMENT,
     "minimize": V_MINIMIZE, "defensecurl": V_DEFENSECURL, "tarshot": V_TARSHOT,
-    "flashfire": V_FLASHFIRE, "charge": V_CHARGE,
+    "flashfire": V_FLASHFIRE, "charge": V_CHARGE, "unburden": V_UNBURDEN,
 }
 
 # --- Random Battle set roles -------------------------------------------------

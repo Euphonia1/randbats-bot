@@ -62,6 +62,16 @@ ABILITY_NAMES = [
     "embodyaspectteal", "embodyaspectwellspring", "embodyaspecthearthflame",
     "embodyaspectcornerstone", "toxicchain", "hospitality", "poisonpuppeteer",
     "tabletsofruin", "swordofruin", "vesselofruin", "beadsofruin", "mindseye", "supersweetsyrup",
+    # Added for Random Battle coverage.
+    "harvest", "poisontouch", "frisk", "synchronize", "liquidooze",
+    "unburden", "illusion", "stakeout", "dancer", "rockhead",
+    "skilllink", "airlock", "magician", "soulheart", "surgesurfer",
+    "cloudnine", "galvanize", "earlybird", "cudchew", "oblivious",
+    "noguard", "cheekpouch", "corrosion", "hungerswitch", "unseenfist",
+    "zerotohero", "terashift", "imposter", "pickpocket", "baddreams",
+    "battlebond", "pixilate", "liquidvoice", "queenlymajesty", "shieldsdown",
+    "powerspot", "heavymetal", "lightmetal", "cutecharm", "refrigerate",
+    "aerilate", "normalize", "steelyspirit",
 ]
 
 # --- Items -------------------------------------------------------------------
@@ -175,3 +185,14 @@ TYPE_BOOST_ITEM = {
 }
 
 CHOICE_ITEMS = {"choicescarf", "choiceband", "choicespecs"}
+
+# Abilities that switch the weather off entirely while their holder is out.
+# (`mechanics.weather_active` previously tested Neutralizing Gas here, which is
+# a different ability with a different effect.)
+WEATHER_SUPPRESS = {"airlock", "cloudnine"}
+
+# "-ate" abilities: Normal-type moves become this type and gain 20% power.
+ATE_ABILITIES = {
+    "galvanize": "electric", "pixilate": "fairy", "refrigerate": "ice",
+    "aerilate": "flying",
+}

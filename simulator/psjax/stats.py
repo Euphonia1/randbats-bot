@@ -16,13 +16,31 @@ from . import consts as C
 #   accuracy/evasion use 3 instead of 2.
 
 
+def idiv(a, b):
+    """`floor(a / b)` for non-negative integers, computed through a float divide.
+
+    XLA's lowering of integer division by a non-constant divisor is very large,
+    and several of them inside one `lax.switch` makes `vmap` compilation blow up
+    (8 branches was already minutes on CPU). A float divide plus a two-step
+    correction is exact for the magnitudes here -- the largest numerator is
+    `4096 * maxhp`, around 2.9e6, well inside float32's exact integer range of
+    2^24 -- and compiles to a handful of ops.
+    """
+    a = jnp.asarray(a, jnp.int32)
+    b = jnp.maximum(jnp.asarray(b, jnp.int32), 1)
+    q = jnp.floor(a.astype(jnp.float32) / b.astype(jnp.float32)).astype(jnp.int32)
+    q = q - (a < q * b).astype(jnp.int32)          # float rounded up
+    q = q + ((q + 1) * b <= a).astype(jnp.int32)   # float rounded down
+    return q
+
+
 def boost_multiply(stat, stage, denom=2):
     """`floor(stat * boostTable[stage])`, matching Pokemon.getStat."""
     stage = jnp.clip(stage, -6, 6).astype(jnp.int32)
     stat = stat.astype(jnp.int32)
     num = jnp.where(stage >= 0, denom + stage, denom)
     den = jnp.where(stage >= 0, denom, denom - stage)
-    return (stat * num) // den
+    return idiv(stat * num, den)
 
 
 def modify(value, numerator, denominator=1):
@@ -59,7 +77,7 @@ def compute_stat(base, level, iv=31, ev=85, nature_num=1, nature_den=1):
     base = base.astype(jnp.int32)
     level = level.astype(jnp.int32)
     val = ((2 * base + iv + ev // 4) * level) // 100 + 5
-    return ((val * nature_num) // nature_den).astype(jnp.int16)
+    return idiv(val * nature_num, nature_den).astype(jnp.int16)
 
 
 def compute_all_stats(base_stats, level, ivs=None, evs=None):

@@ -1069,5 +1069,73 @@
    "ability": "Storm Drain"
   },
   "move": "freezedry"
+ },
+ {
+  "name": "protosynthesis atk in sun",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis",
+   "boosted": true
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "earthquake",
+  "weather": "sunnyday"
+ },
+ {
+  "name": "protosynthesis off in no sun",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "quarkdrive spa on terrain",
+  "attacker": {
+   "species": "Iron Moth",
+   "ability": "Quark Drive",
+   "boosted": true
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fierywrath",
+  "terrain": "electricterrain"
+ },
+ {
+  "name": "protosynthesis booster energy",
+  "attacker": {
+   "species": "Roaring Moon",
+   "ability": "Protosynthesis",
+   "item": "Booster Energy",
+   "boosted": true
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "knockoff"
+ },
+ {
+  "name": "protosynthesis defensive",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Iron Treads",
+   "ability": "Quark Drive",
+   "boosted": true
+  },
+  "move": "earthquake",
+  "terrain": "electricterrain"
  }
 ]

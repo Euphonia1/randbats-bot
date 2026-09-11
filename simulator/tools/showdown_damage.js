@@ -53,6 +53,18 @@ function setup(c) {
   // would otherwise skew Payback / Bolt Beak, which read it directly.
   src.newlySwitched = false;
   tgt.newlySwitched = false;
+  // Protosynthesis / Quark Drive are volatiles in Showdown; set them explicitly
+  // so the case does not depend on switch-in ordering.
+  for (const [mon, spec] of [[src, c.attacker], [tgt, c.defender]]) {
+    if (!spec.boosted) continue;
+    const id = mon.hasAbility('quarkdrive') ? 'quarkdrive' : 'protosynthesis';
+    let best = 'atk';
+    for (const st of ['atk', 'def', 'spa', 'spd', 'spe']) {
+      if (mon.storedStats[st] > mon.storedStats[best]) best = st;
+    }
+    mon.addVolatile(id);
+    if (mon.volatiles[id]) mon.volatiles[id].bestStat = best;
+  }
   if (c.timesAttacked) src.timesAttacked = c.timesAttacked;
   if (c.faintedCount) src.side.totalFainted = c.faintedCount;
   if (c.targetDamaged) tgt.hurtThisTurn = 1;

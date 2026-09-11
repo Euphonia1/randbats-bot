@@ -30,16 +30,16 @@ cannot cross into JAX. Rather than reimplement mechanics from a wiki, this repo:
 
 ```
 $ pytest -q
-187 passed
+193 passed
 ```
 
 166 of those are damage checks: 83 scenarios × 16 rolls, matching Showdown's
 `getDamage` exactly — crits, weather, screens, Tera, Adaptability, Unaware, Low
 Kick's weight steps, Wring Out's fixed-point rounding, and so on. The remaining
-21 cover the turn engine: battles terminate with a consistent winner, HP, PP and
+27 cover the turn engine and batching: battles terminate with a consistent winner, HP, PP and
 boosts stay in range, rewards are zero-sum and paid once, priority beats Speed,
-Trick Room inverts it, Choice locks hold, and Stealth Rock scales with the Rock
-matchup.
+Trick Room inverts it, Choice locks hold, Stealth Rock scales with the Rock
+matchup, and a batched step matches a sequential one field for field.
 
 Four real bugs were caught this way and fixed: Thick Fat, Heatproof, Water Bubble
 and Purifying Salt were on the wrong hook (Showdown reduces the *attacking stat*,
@@ -103,36 +103,83 @@ Actions are a single integer per player:
 
 `env.observe` returns `[2, 524]` floats — each row is one player's view.
 
-## Performance
+## Batching
 
-On one CPU core (Apple Silicon), single battle:
+Battles run in parallel through `jax.vmap`, and batched results are bit-identical
+to stepping each battle on its own (`tests/test_batching.py` asserts this field
+by field).
+
+```python
+env = BattleEnv()
+states = env.reset_batch(jax.random.split(key, 1024))     # 1024 battles
+states, obs, rewards, done = env.step_batch(states, actions)
+
+final, rewards = rollout_batch(env, states, keys)         # play them all out
+```
+
+Measured on one CPU (Apple Silicon):
+
+| batch | compile | per step | throughput |
+| --- | --- | --- | --- |
+| 1 | 25 s | 0.66 ms | 1,500 steps/s |
+| 64 | 26 s | 4.0 ms | 16,000 steps/s |
+| 256 | 27 s | 9.7 ms | 26,500 steps/s |
+| 1024 | 28 s | 27.9 ms | 36,700 steps/s |
+
+Compile time is a flat one-off and barely moves with batch size; throughput
+scales roughly 24x from a single battle to 1024.
+
+### Why the XLA flag
+
+`psjax/__init__.py` sets `--xla_backend_optimization_level=0` before JAX starts.
+This is load-bearing, and worth explaining because the symptom was baffling:
+`vmap(step)` at a batch of **one** compiled in 6 seconds, and at a batch of
+**two** did not finish in 150.
+
+A battle step is thousands of tiny operations on six- and seven-element arrays.
+Unbatched they fold away; batched, each becomes a real vectorised op, and XLA's
+CPU backend then runs LLVM optimisation passes whose cost grows superlinearly in
+that op count. Dropping the backend optimisation level skips those passes:
+compilation becomes ~26 s at any batch size. It costs roughly 35% on
+*unbatched* per-step time, which the batching repays many times over. Set
+`PSJAX_NO_XLA_TUNING=1` to opt out, or set `xla_backend_optimization_level`
+yourself and psjax will leave it alone.
+
+Getting there also needed the engine itself to stop generating pathological
+batched code. Each of these was found by bisecting compile time and is worth
+knowing about if you extend the engine:
+
+- **Integer division by a traced divisor.** XLA's lowering is enormous; a handful
+  inside one `lax.switch` was minutes on its own. `stats.idiv` does an exact
+  float divide with a two-step correction instead.
+- **Indexing with a traced index.** `state.hp[side, slot]` is a gather over the
+  team axis, and there are dozens per move. `mechanics.slot_get` / `slot_set`
+  select over the six slots elementwise instead. Same for the stat index in
+  `damage._pick_stat`, which the move's category makes traced.
+- **`lax.cond` returning a `BattleState`.** Under `vmap` it computes both
+  branches and selects over the *entire* pytree, so gating a two-field update
+  costs as much as gating a forty-field one. Every such site now takes a `when`
+  mask and no-ops internally; `run_effect` additionally returns only the 15
+  fields any handler writes rather than all 47.
+- **Repeated calls that could be folded.** Ten `apply_boosts` calls keyed on a
+  single ability value became one accumulated vector.
+
+## Performance (single battle)
 
 | | |
 | --- | --- |
-| `jax.jit(step)` compile | ~8 s, once per process |
-| per decision point | 0.57 ms (~1,700 steps/s) |
-| full random battle | ~520 ms (mean 42 turns) |
-
-**Batching caveat.** `jax.vmap` works on `reset`, `observe` and the individual
-mechanics helpers, but `jax.vmap(step)` currently takes many minutes to compile
-even at a batch of 8. This is a compile-time blow-up inside
-`moves.execute_move`, not a runtime cost — `residuals`, `switch_to` and the
-31-branch effect `lax.switch` each vmap in under a second, so the large switches
-are not the cause and it has not yet been narrowed further. Until it is,
-`env.step_batch` and `env.rollout_batch` use `lax.map`, which compiles the
-unbatched body once and still runs entirely on device, but sequentially rather
-than in parallel. Getting `vmap(step)` to compile is the single highest-value
-next piece of work: it is what would turn this into a fast self-play
-environment.
+| `jax.jit(step)` compile | ~11 s, once per process |
+| per decision point | 0.90 ms |
+| full random battle | ~600 ms (mean 42 turns) |
 
 ## State of the implementation
 
 Run `python -m psjax.coverage` for the current numbers. As of Showdown v0.11.11:
 
-- **Moves.** 299/349 of the Random Battle movepool is fully modelled; weighted by
-  how often moves appear in sets, **94.8%** of usage is covered. The rest run as
+- **Moves.** 321/349 of the Random Battle movepool is fully modelled; weighted by
+  how often moves appear in sets, **98.6%** of usage is covered. The rest run as
   ordinary moves with their special behaviour skipped.
-- **Abilities.** 164/203 Random Battle abilities have an id (**89.4%** by usage).
+- **Abilities.** All 203 Random Battle abilities have an id (**100%** by usage).
   An id is necessary but not sufficient: only abilities wired into
   `damage.py` / `mechanics.py` / `engine.py` actually do anything. An ability
   with no id has *no effect at all* — it does not error, it is simply inert.

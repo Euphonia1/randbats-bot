@@ -21,7 +21,7 @@ import jax.numpy as jnp
 from . import consts as C
 from .data import load_data
 from .hooks import A, I
-from .mechanics import (act, active_types, apply_boosts, cure_status,
+from .mechanics import (act, active_types, apply_boosts, cure_status, slot_get,
                         damage_pokemon, effective_speed, effective_weather,
                         fraction_of_max, heal_pokemon, is_grounded, set_status)
 from .moves import execute_move
@@ -169,6 +169,21 @@ def apply_switch_in_ability(data, state, side):
         jnp.where(dropped & (o_ab == A.COMPETITIVE),
                   jnp.zeros(7, jnp.int32).at[C.B_SPA].set(2), 0))
 
+    # Protosynthesis (sun) and Quark Drive (Electric Terrain) raise whichever of
+    # the arriving Pokemon's stats is highest, ignoring stage boosts. Booster
+    # Energy triggers them with no weather or terrain at all.
+    weather_now = effective_weather(state)
+    booster = slot_get(state.item, side, i) == I.BOOSTERENERGY
+    proto = (ab == A.PROTOSYNTHESIS) & (
+        (weather_now == C.SUN) | (weather_now == C.HARSH_SUN) | booster)
+    quark = (ab == A.QUARKDRIVE) & ((state.terrain == C.ELECTRIC_TERRAIN) | booster)
+    active_boost = proto | quark
+    # Ties go to the earlier stat, matching Showdown's scan order.
+    stats = slot_get(state.stats, side, i)[1:]
+    best = (jnp.argmax(stats) + 1).astype(jnp.int8)
+    state = state._replace(boosted_stat=state.boosted_stat.at[side].set(
+        jnp.where(active_boost, best, jnp.int8(-1))))
+
     # Intrepid Sword / Dauntless Shield boost the arriving Pokemon once.
     state, _ = apply_boosts(
         state, side,
@@ -181,8 +196,10 @@ def apply_switch_in_ability(data, state, side):
 
 def switch_to(data, state, side, slot):
     """Bring `slot` in for `side`, clearing slot state and running entry effects."""
-    slot = slot.astype(jnp.int32)
-    valid = (state.hp[side, slot] > 0) & (slot != act(state, side))
+    requested = slot.astype(jnp.int32)
+    slot = jnp.clip(requested, 0, C.TEAM_SIZE - 1)
+    valid = ((requested == slot) & (slot_get(state.hp, side, slot) > 0) &
+             (slot != act(state, side)))
     slot = jnp.where(valid, slot, act(state, side))
 
     # Regenerator heals the departing Pokemon by a third.
@@ -286,7 +303,21 @@ def residuals(data, state, key):
             state, side, i,
             jnp.where(salted, fraction_of_max(state, side, i, 1, jnp.where(weak, 4, 8)), 0))
 
-        # 8. Curse.
+        # 8. Shed Skin / Hydration shake off status at the end of the turn.
+        shed = (ab == A.SHEDSKIN) & alive & (slot_get(state.status, side, i) != 0) & \
+            (jax.random.uniform(jax.random.fold_in(key, side)) < (1.0 / 3.0))
+        hydrated = (ab == A.HYDRATION) & alive & \
+            ((w == C.RAIN) | (w == C.HEAVY_RAIN))
+        state = cure_status(state, side, i, when=shed | hydrated)
+
+        # 9. Speed Boost raises Speed at the end of every turn.
+        state, _ = apply_boosts(
+            state, side,
+            jnp.where((ab == A.SPEEDBOOST) & alive & jnp.logical_not(
+                state.switched_this_turn[side]),
+                jnp.zeros(7, jnp.int32).at[C.B_SPE].set(1), 0))
+
+        # 10. Curse.
         cursed = (state.volatiles[side, C.V_CURSE] > 0) & alive & \
                  jnp.logical_not(magic_guard)
         state, _ = damage_pokemon(state, side, i,
@@ -341,7 +372,18 @@ def check_winner(state):
 
 # --- one action --------------------------------------------------------------
 
-def run_action(data, state, side, action, moves_first, key):
+def is_attacking_action(data, state, side, action):
+    """True if `side` is about to use a damaging move (not a switch or status move).
+
+    Sucker Punch needs this about its target.
+    """
+    ai = act(state, side)
+    mid = jnp.maximum(state.moves[side, ai, move_slot(action)], 0)
+    return jnp.logical_not(is_switch(action)) & \
+        (data["move_category"][mid] != C.CAT_STATUS)
+
+
+def run_action(data, state, side, action, moves_first, key, target_attacking=True):
     """Execute one side's chosen action, if its Pokemon is still able to act."""
     i = act(state, side)
     alive = state.hp[side, i] > 0
@@ -355,7 +397,8 @@ def run_action(data, state, side, action, moves_first, key):
         ai = act(s, side)
         s = s._replace(terastallized=s.terastallized.at[side, ai].set(
             s.terastallized[side, ai] | tera))
-        return execute_move(data, s, side, move_slot(action), moves_first, key)
+        return execute_move(data, s, side, move_slot(action), moves_first, key,
+                            target_attacking)
 
     return jax.lax.cond(alive,
                         lambda s: jax.lax.cond(is_switch(action), do_switch, do_move, s),
@@ -371,6 +414,7 @@ def start_turn(state):
         switched_this_turn=jnp.zeros((C.NUM_PLAYERS,), bool),
         damage_taken=jnp.zeros((C.NUM_PLAYERS,), jnp.int16),
         damage_category=jnp.full((C.NUM_PLAYERS,), -1, jnp.int8),
+        stats_lowered=jnp.zeros((C.NUM_PLAYERS,), bool),
         turn=state.turn + 1,
     )
 
@@ -380,14 +424,22 @@ def run_turn(data, state, actions, key):
     state = start_turn(state)
     first = turn_order(data, state, actions, k_order)
 
-    state = run_action(data, state, first, actions[first], jnp.bool_(True), k_a)
+    # Sucker Punch checks whether its target is about to attack.
+    p0_attacks = is_attacking_action(data, state, 0, actions[0])
+    p1_attacks = is_attacking_action(data, state, 1, actions[1])
+    attacks = jnp.stack([p0_attacks, p1_attacks])
+
+    state = run_action(data, state, first, actions[first], jnp.bool_(True), k_a,
+                       attacks[1 - first])
     state = run_action(data, state, 1 - first, actions[1 - first],
-                       jnp.bool_(False), k_b)
+                       jnp.bool_(False), k_b, attacks[first])
     state = residuals(data, state, k_res)
 
     # Anyone whose active fainted owes a replacement.
     fainted = state.hp[jnp.arange(C.NUM_PLAYERS), state.active.astype(jnp.int32)] <= 0
-    has_bench = jnp.sum(state.hp > 0, axis=1) > 0
+    on_bench = (state.hp > 0) & (jnp.arange(C.TEAM_SIZE)[None, :] !=
+                                 state.active.astype(jnp.int32)[:, None])
+    has_bench = jnp.sum(on_bench, axis=1) > 0
     state = state._replace(
         force_switch=(state.force_switch | fainted) & has_bench,
         fainted_count=jnp.sum(state.hp <= 0, axis=1).astype(jnp.int8))

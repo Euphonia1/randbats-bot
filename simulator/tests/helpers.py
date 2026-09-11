@@ -32,6 +32,21 @@ def _boosts(spec):
     return b
 
 
+def _boosted_stat(spec, stats):
+    """Which stat Protosynthesis / Quark Drive raised, or -1 for none.
+
+    The case can name it explicitly; otherwise it is the highest non-HP stat,
+    the way the abilities pick on switch-in.
+    """
+    if not spec.get("boosted"):
+        return -1
+    named = spec["boosted"]
+    if named is True:
+        return int(jnp.argmax(stats[1:])) + 1
+    return {"atk": C.ATK, "def": C.DEF, "spa": C.SPA,
+            "spd": C.SPD, "spe": C.SPE}[named]
+
+
 def make_attacker(spec) -> Attacker:
     data, n = load_data(), names()
     sid, level, stats, types = _stats_and_types(spec)
@@ -49,6 +64,7 @@ def make_attacker(spec) -> Attacker:
         status=jnp.int8(STATUS.get(spec.get("status"), 0)),
         hp=hp, maxhp=maxhp,
         terastallized=jnp.bool_(bool(tera)), tera_type=tera_type,
+        boosted_stat=jnp.int8(_boosted_stat(spec, stats)),
     )
 
 
@@ -70,6 +86,7 @@ def make_defender(spec) -> Defender:
         hp=hp, maxhp=maxhp,
         terastallized=jnp.bool_(bool(tera)), tera_type=tera_type,
         nfe=jnp.bool_(bool(data["species_nfe"][sid])),
+        boosted_stat=jnp.int8(_boosted_stat(spec, stats)),
     )
 
 
@@ -103,6 +120,9 @@ def make_cb_ctx(case, atk: Attacker, dfn: Defender, weather, terrain) -> CbCtx:
         level=atk.level, last_damage=jnp.int32(case.get("lastDamage", 0)),
         last_damage_category=jnp.int8(case.get("lastDamageCategory", -1)),
         off_atk=boosted(atk, C.ATK), off_spa=boosted(atk, C.SPA),
+        user_ability=atk.ability,
+        last_move_failed=jnp.bool_(case.get("lastMoveFailed", False)),
+        stats_lowered=jnp.bool_(case.get("statsLowered", False)),
     )
 
 

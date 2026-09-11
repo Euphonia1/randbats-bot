@@ -152,6 +152,7 @@ def build_moves(raw):
         "move_is_charge": np.zeros(n, np.bool_),
         "move_duration": z8(),
         "move_bp_replace": z8(), "move_bp_modify": z8(), "move_dmg_cb": z8(),
+        "move_acc_cb": z8(),
         "move_type_cb": z8(), "move_effect_cb": z8(),
         "move_implemented": np.zeros(n, np.bool_),
     }
@@ -263,6 +264,7 @@ def build_moves(raw):
 
         out["move_bp_replace"][i] = E.BP_REPLACE_INDEX.get(mid, 0)
         out["move_bp_modify"][i] = E.BP_MODIFY_INDEX.get(mid, 0)
+        out["move_acc_cb"][i] = E.ACC_INDEX.get(mid, 0)
         out["move_dmg_cb"][i] = E.DMG_INDEX.get(mid, 0)
         out["move_type_cb"][i] = E.TYPE_INDEX.get(mid, 0)
         out["move_effect_cb"][i] = E.EFFECT_INDEX.get(mid, 0)
@@ -271,7 +273,7 @@ def build_moves(raw):
         # either it declares no callbacks, or we route it to a handler.
         has_handler = any(out[k][i] for k in
                           ("move_bp_replace", "move_bp_modify", "move_dmg_cb",
-                           "move_type_cb", "move_effect_cb"))
+                           "move_type_cb", "move_effect_cb", "move_acc_cb"))
         out["move_implemented"][i] = (not m["callbacks"]) or has_handler
 
     return idx, out
@@ -298,6 +300,7 @@ def build_abilities(raw):
         "ability_weather": np.zeros(n, np.int8),
         "ability_terrain": np.zeros(n, np.int8),
         "ability_status_immune": np.zeros(n, np.int64),   # bitmask over statuses
+        "ability_ate_type": np.full(n, C.TYPE_NONE, np.int8),
     }
     boost_name_to_idx = {"atk": C.B_ATK, "def": C.B_DEF, "spa": C.B_SPA,
                          "spd": C.B_SPD, "spe": C.B_SPE}
@@ -322,6 +325,9 @@ def build_abilities(raw):
     for name, t in H.TERRAIN_SETTER.items():
         if name in H.ABILITY_IDX:
             out["ability_terrain"][H.ABILITY_IDX[name]] = C.TERRAIN_IDX[t]
+    for name, t in H.ATE_ABILITIES.items():
+        if name in H.ABILITY_IDX:
+            out["ability_ate_type"][H.ABILITY_IDX[name]] = C.TYPE_IDX[t]
     for name, statuses in H.STATUS_IMMUNE.items():
         i = H.ABILITY_IDX.get(name)
         if i is None:
@@ -447,7 +453,8 @@ def main() -> int:
 
     # Cross-check: every move named in the effect registry must exist.
     unknown = sorted({m for reg in (E.BP_REPLACE_MOVES, E.BP_MODIFY_MOVES,
-                                    E.DMG_MOVES, E.TYPE_MOVES, E.EFFECT_MOVES)
+                                    E.DMG_MOVES, E.TYPE_MOVES, E.EFFECT_MOVES,
+                                    E.ACC_MOVES)
                       for ms in reg.values() for m in ms if m not in move_idx})
     if unknown:
         raise BuildError(f"effects.py references unknown moves: {unknown}")

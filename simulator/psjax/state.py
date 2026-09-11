@@ -59,6 +59,9 @@ class BattleState(NamedTuple):
     moved_this_turn: jnp.ndarray    # [P] bool
     switched_this_turn: jnp.ndarray # [P] bool
     fainted_count: jnp.ndarray      # [P] int8, Last Respects / Supreme Overlord
+    moves_since_switch: jnp.ndarray # [P] int8, gates Fake Out / First Impression
+    last_move_failed: jnp.ndarray   # [P] bool, Stomping Tantrum
+    stats_lowered: jnp.ndarray      # [P] bool, Lash Out (this turn)
 
     # --- field --------------------------------------------------------------
     weather: jnp.ndarray            # scalar int8
@@ -125,7 +128,8 @@ def empty_state(key: jnp.ndarray) -> BattleState:
         times_hit=i8(P), protect_streak=i8(P), damage_taken=i16(P),
         damage_category=jnp.full((P,), -1, jnp.int8),
         moved_this_turn=jnp.zeros((P,), bool), switched_this_turn=jnp.zeros((P,), bool),
-        fainted_count=i8(P),
+        fainted_count=i8(P), moves_since_switch=i8(P),
+        last_move_failed=jnp.zeros((P,), bool), stats_lowered=jnp.zeros((P,), bool),
         weather=jnp.int8(0), weather_turns=jnp.int8(0),
         terrain=jnp.int8(0), terrain_turns=jnp.int8(0),
         trick_room=jnp.int8(0), gravity=jnp.int8(0),
@@ -152,4 +156,6 @@ def reset_slot_state(state: BattleState, player: jnp.ndarray) -> BattleState:
         choice_slot=z(state.choice_slot, -1), last_move=z(state.last_move, -1),
         boosted_stat=z(state.boosted_stat, -1), times_hit=z(state.times_hit),
         protect_streak=z(state.protect_streak),
+        moves_since_switch=z(state.moves_since_switch),
+        last_move_failed=z(state.last_move_failed, False),
     )

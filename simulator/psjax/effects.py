@@ -85,6 +85,8 @@ BP_MODIFY_HANDLERS = [
     "mistyexplosion",  # x1.5 on Misty Terrain, user grounded
     "psyblade",        # x1.5 on Electric Terrain
     "solarbeam",       # x0.5 in rain, sand or snow
+    "stompingtantrum", # x2 if the user's previous move failed
+    "lashout",         # x2 if the user had a stat lowered this turn
 ]
 BP_MODIFY_MOVES = {
     "facade": ["facade"],
@@ -96,6 +98,22 @@ BP_MODIFY_MOVES = {
     "mistyexplosion": ["mistyexplosion"],
     "psyblade": ["psyblade"],
     "solarbeam": ["solarbeam", "solarblade"],
+    "stompingtantrum": ["stompingtantrum"],
+    "lashout": ["lashout"],
+}
+
+# --- Weather-dependent accuracy ---------------------------------------------
+# A few moves ignore the accuracy check entirely in one weather and are less
+# accurate in another. Showdown does this in `onModifyMove`.
+ACC_HANDLERS = [
+    "none",
+    "rain_perfect",   # never misses in rain, 50% accurate in sun
+    "snow_perfect",   # never misses in snow
+]
+ACC_MOVES = {
+    "rain_perfect": ["hurricane", "thunder", "bleakwindstorm", "wildboltstorm",
+                     "sandsearstorm"],
+    "snow_perfect": ["blizzard"],
 }
 
 # --- Fixed-damage callbacks --------------------------------------------------
@@ -217,6 +235,10 @@ EFFECT_HANDLERS = [
     "shedtail",
     "chillyreception",
     "revivalblessing",
+    "screenbreak",     # Brick Break and friends shatter screens before hitting
+    "fakeout",         # fails unless the user has not yet moved since switching in
+    "icespinner",      # removes the terrain
+    "auroraveil",      # only succeeds while it is snowing
 ]
 EFFECT_MOVES = {
     "substitute": ["substitute"],
@@ -277,6 +299,10 @@ EFFECT_MOVES = {
     "beakblast": ["beakblast"],
     "chillyreception": ["chillyreception"],
     "revivalblessing": ["revivalblessing"],
+    "screenbreak": ["brickbreak", "psychicfangs", "ragingbull"],
+    "fakeout": ["fakeout", "firstimpression"],
+    "icespinner": ["icespinner"],
+    "auroraveil": ["auroraveil"],
 }
 
 
@@ -296,6 +322,7 @@ def _index(handlers, moves):
 
 BP_REPLACE_INDEX = _index(BP_REPLACE_HANDLERS, BP_REPLACE_MOVES)
 BP_MODIFY_INDEX = _index(BP_MODIFY_HANDLERS, BP_MODIFY_MOVES)
+ACC_INDEX = _index(ACC_HANDLERS, ACC_MOVES)
 DMG_INDEX = _index(DMG_HANDLERS, DMG_MOVES)
 TYPE_INDEX = _index(TYPE_HANDLERS, TYPE_MOVES)
 EFFECT_INDEX = _index(EFFECT_HANDLERS, EFFECT_MOVES)
