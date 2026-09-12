@@ -30,10 +30,10 @@ cannot cross into JAX. Rather than reimplement mechanics from a wiki, this repo:
 
 ```
 $ pytest -q
-193 passed
+203 passed
 ```
 
-166 of those are damage checks: 83 scenarios × 16 rolls, matching Showdown's
+176 of those are damage checks: 88 scenarios × 16 rolls, matching Showdown's
 `getDamage` exactly — crits, weather, screens, Tera, Adaptability, Unaware, Low
 Kick's weight steps, Wring Out's fixed-point rounding, and so on. The remaining
 27 cover the turn engine and batching: battles terminate with a consistent winner, HP, PP and
@@ -66,6 +66,7 @@ entirely.
 | `psjax/teams.py` | Random Battle team generation |
 | `psjax/env.py` | batched RL environment wrapper |
 | `psjax/coverage.py` | what is and is not modelled |
+| `tests/test_batching.py` | batched execution == sequential, field by field |
 
 ## Setup
 
@@ -179,10 +180,11 @@ Run `python -m psjax.coverage` for the current numbers. As of Showdown v0.11.11:
 - **Moves.** 321/349 of the Random Battle movepool is fully modelled; weighted by
   how often moves appear in sets, **98.6%** of usage is covered. The rest run as
   ordinary moves with their special behaviour skipped.
-- **Abilities.** All 203 Random Battle abilities have an id (**100%** by usage).
-  An id is necessary but not sufficient: only abilities wired into
-  `damage.py` / `mechanics.py` / `engine.py` actually do anything. An ability
-  with no id has *no effect at all* — it does not error, it is simply inert.
+- **Abilities.** All 203 Random Battle abilities have an id, and **138 of them
+  (81.9% by set usage)** are wired to actual behaviour. The rest are inert: they
+  do not error, they simply have no effect. `python -m psjax.coverage` lists
+  them. Some are legitimately passive — Multitype, the single most common, only
+  fixes a forme's type, which the species data already encodes.
 - **Items.** All 33 items the Gen 9 Random Battle generator can assign are
   present, plus ~55 more.
 
