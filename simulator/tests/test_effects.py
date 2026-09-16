@@ -45,10 +45,18 @@ def _action(choice):
 
 
 def _run(case, seed):
+    from psjax import consts as C
     state = build(case, jax.random.PRNGKey(seed))
     actions = jnp.array([_action(case.get("p1move")),
                          _action(case.get("p2move"))], jnp.int32)
-    return snapshot(_JIT_STEP(state, actions))
+    state = _JIT_STEP(state, actions)
+    # A self-switch suspends the turn to ask for a replacement; answer it so the
+    # rest of the turn runs, exactly as the Showdown harness does.
+    if case.get("p1switchAfter") and int(state.phase) == C.PHASE_SWITCH:
+        reply = jnp.array([C.ACTION_SWITCH_BASE + case["p1switchAfter"] - 1, 0],
+                          jnp.int32)
+        state = _JIT_STEP(state, reply)
+    return snapshot(state)
 
 
 def _truncate(value, width):

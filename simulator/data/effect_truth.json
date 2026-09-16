@@ -15414,5 +15414,349 @@
     "subHP": 0
    }
   }
+ },
+ {
+  "name": "u-turn: the opponent's move hits the replacement",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "uturn"
+   ]
+  },
+  "p2": {
+   "species": "Snorlax",
+   "ability": "Thick Fat",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "check": [
+   "p1.hp",
+   "p1.active"
+  ],
+  "p1team": [
+   {
+    "species": "Weavile",
+    "ability": "Pressure",
+    "moves": [
+     "uturn"
+    ]
+   },
+   {
+    "species": "Blissey",
+    "ability": "Natural Cure",
+    "moves": [
+     "splash"
+    ]
+   }
+  ],
+  "p1switchAfter": 2,
+  "before": {
+   "turn": 1,
+   "weather": "",
+   "terrain": "",
+   "p1": {
+    "active": 0,
+    "hp": [
+     302,
+     672
+    ],
+    "maxhp": [
+     302,
+     672
+    ],
+    "status": [
+     "",
+     ""
+    ],
+    "item": [
+     "",
+     ""
+    ],
+    "boosts": {
+     "atk": 0,
+     "def": 0,
+     "spa": 0,
+     "spd": 0,
+     "spe": 0,
+     "accuracy": 0,
+     "evasion": 0
+    },
+    "sideConditions": [],
+    "spikeLayers": 0,
+    "toxicSpikeLayers": 0,
+    "volatiles": [],
+    "subHP": 0
+   },
+   "p2": {
+    "active": 0,
+    "hp": [
+     482
+    ],
+    "maxhp": [
+     482
+    ],
+    "status": [
+     ""
+    ],
+    "item": [
+     ""
+    ],
+    "boosts": {
+     "atk": 0,
+     "def": 0,
+     "spa": 0,
+     "spd": 0,
+     "spe": 0,
+     "accuracy": 0,
+     "evasion": 0
+    },
+    "sideConditions": [],
+    "spikeLayers": 0,
+    "toxicSpikeLayers": 0,
+    "volatiles": [],
+    "subHP": 0
+   }
+  },
+  "after": {
+   "turn": 2,
+   "weather": "",
+   "terrain": "",
+   "p1": {
+    "active": 1,
+    "hp": [
+     302,
+     572
+    ],
+    "maxhp": [
+     302,
+     672
+    ],
+    "status": [
+     "",
+     ""
+    ],
+    "item": [
+     "",
+     ""
+    ],
+    "boosts": {
+     "atk": 0,
+     "def": 0,
+     "spa": 0,
+     "spd": 0,
+     "spe": 0,
+     "accuracy": 0,
+     "evasion": 0
+    },
+    "sideConditions": [],
+    "spikeLayers": 0,
+    "toxicSpikeLayers": 0,
+    "volatiles": [],
+    "subHP": 0
+   },
+   "p2": {
+    "active": 0,
+    "hp": [
+     387
+    ],
+    "maxhp": [
+     482
+    ],
+    "status": [
+     ""
+    ],
+    "item": [
+     ""
+    ],
+    "boosts": {
+     "atk": 0,
+     "def": 0,
+     "spa": 0,
+     "spd": 0,
+     "spe": 0,
+     "accuracy": 0,
+     "evasion": 0
+    },
+    "sideConditions": [],
+    "spikeLayers": 0,
+    "toxicSpikeLayers": 0,
+    "volatiles": [],
+    "subHP": 0
+   }
+  }
+ },
+ {
+  "name": "parting shot also switches its user out",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "partingshot"
+   ]
+  },
+  "p2": {
+   "species": "Snorlax",
+   "ability": "Thick Fat",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "check": [
+   "p2.boosts",
+   "p1.active"
+  ],
+  "p1team": [
+   {
+    "species": "Weavile",
+    "ability": "Pressure",
+    "moves": [
+     "partingshot"
+    ]
+   },
+   {
+    "species": "Blissey",
+    "ability": "Natural Cure",
+    "moves": [
+     "splash"
+    ]
+   }
+  ],
+  "p1switchAfter": 2,
+  "before": {
+   "turn": 1,
+   "weather": "",
+   "terrain": "",
+   "p1": {
+    "active": 0,
+    "hp": [
+     302,
+     672
+    ],
+    "maxhp": [
+     302,
+     672
+    ],
+    "status": [
+     "",
+     ""
+    ],
+    "item": [
+     "",
+     ""
+    ],
+    "boosts": {
+     "atk": 0,
+     "def": 0,
+     "spa": 0,
+     "spd": 0,
+     "spe": 0,
+     "accuracy": 0,
+     "evasion": 0
+    },
+    "sideConditions": [],
+    "spikeLayers": 0,
+    "toxicSpikeLayers": 0,
+    "volatiles": [],
+    "subHP": 0
+   },
+   "p2": {
+    "active": 0,
+    "hp": [
+     482
+    ],
+    "maxhp": [
+     482
+    ],
+    "status": [
+     ""
+    ],
+    "item": [
+     ""
+    ],
+    "boosts": {
+     "atk": 0,
+     "def": 0,
+     "spa": 0,
+     "spd": 0,
+     "spe": 0,
+     "accuracy": 0,
+     "evasion": 0
+    },
+    "sideConditions": [],
+    "spikeLayers": 0,
+    "toxicSpikeLayers": 0,
+    "volatiles": [],
+    "subHP": 0
+   }
+  },
+  "after": {
+   "turn": 2,
+   "weather": "",
+   "terrain": "",
+   "p1": {
+    "active": 1,
+    "hp": [
+     302,
+     572
+    ],
+    "maxhp": [
+     302,
+     672
+    ],
+    "status": [
+     "",
+     ""
+    ],
+    "item": [
+     "",
+     ""
+    ],
+    "boosts": {
+     "atk": 0,
+     "def": 0,
+     "spa": 0,
+     "spd": 0,
+     "spe": 0,
+     "accuracy": 0,
+     "evasion": 0
+    },
+    "sideConditions": [],
+    "spikeLayers": 0,
+    "toxicSpikeLayers": 0,
+    "volatiles": [],
+    "subHP": 0
+   },
+   "p2": {
+    "active": 0,
+    "hp": [
+     482
+    ],
+    "maxhp": [
+     482
+    ],
+    "status": [
+     ""
+    ],
+    "item": [
+     ""
+    ],
+    "boosts": {
+     "atk": -1,
+     "def": 0,
+     "spa": -1,
+     "spd": 0,
+     "spe": 0,
+     "accuracy": 0,
+     "evasion": 0
+    },
+    "sideConditions": [],
+    "spikeLayers": 0,
+    "toxicSpikeLayers": 0,
+    "volatiles": [],
+    "subHP": 0
+   }
+  }
  }
 ]

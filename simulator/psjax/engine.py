@@ -1,17 +1,23 @@
 """Turn resolution: ordering, switching, residuals, and the public `step`.
 
-The battle is a two-phase state machine:
+The battle is a state machine over three phases:
 
     PHASE_MOVE    both players submit a move or a switch; the engine resolves the
-                  whole turn (both actions, then end-of-turn residuals)
-    PHASE_SWITCH  one or both players owe a replacement for a fainted Pokemon
+                  turn (both actions, then end-of-turn residuals)
+    PHASE_SWITCH  one or both players owe a replacement
     PHASE_END     the battle is over; `winner` says who took it
 
-Known deviation: a self-switch (U-turn, Volt Switch) or a forced switch
-(Whirlwind) is resolved at the *end* of the turn rather than immediately. In a
-real battle the replacement arrives before the opponent moves; here the opponent
-attacks the Pokemon that used the move. Everything else in the turn follows
-Showdown's ordering.
+There are three ways a Pokemon leaves the field, and they are not the same:
+
+* **Fainting.** The replacement is chosen after the turn finishes, residuals and
+  all, which is what Showdown does in singles.
+* **A self-switch** (U-turn, Volt Switch, Parting Shot, Teleport). The user picks
+  a replacement *during* the turn, so the turn suspends: `PHASE_SWITCH` is
+  entered with `pending_side`/`pending_action` holding the opponent's
+  already-locked move, which then runs against whoever arrives.
+* **Being phazed** (Whirlwind, Roar, Dragon Tail). A random Pokemon is dragged in
+  with no choice to make, so `resolve_phazing` settles it inline and no decision
+  point is created.
 """
 from __future__ import annotations
 
@@ -225,8 +231,28 @@ def switch_to(data, state, side, slot):
 
 # --- residuals ---------------------------------------------------------------
 
-def residuals(data, state, key):
-    """End-of-turn effects, in Showdown's residual order."""
+#: Every field `residuals` writes. A suspended turn runs them with `when=False`,
+#: which selects the old value back for each -- cheaper than branching around the
+#: whole function, which under vmap would select over the entire BattleState.
+RESIDUAL_WRITES = ("hp", "status", "status_turns", "volatiles", "boosts",
+                   "weather", "weather_turns", "terrain", "terrain_turns",
+                   "trick_room", "gravity", "side_conditions")
+
+
+def residuals(data, state, key, when=True):
+    """End-of-turn effects, in Showdown's residual order.
+
+    `when=False` makes the whole thing a no-op, for a turn that was suspended
+    partway through so a self-switch could pick its replacement.
+    """
+    original = state
+    state = _residuals(data, state, key)
+    return state._replace(**{f: jnp.where(when, getattr(state, f),
+                                          getattr(original, f))
+                             for f in RESIDUAL_WRITES})
+
+
+def _residuals(data, state, key):
     order = jnp.array([0, 1])
 
     def side_residual(state, side):
@@ -358,6 +384,32 @@ def residuals(data, state, key):
     return state
 
 
+def resolve_phazing(data, state, key):
+    """Drag in a random replacement for anyone Whirlwind-style forced out.
+
+    Unlike a self-switch there is no choice to make, so this happens inline
+    rather than becoming a decision point. A side with nothing left on the bench
+    simply stays in.
+
+    Written as a `fori_loop` rather than a Python loop over the two sides: the
+    body holds a `switch_to`, which is a large piece of program (hazards, entry
+    abilities), and the loop compiles it once instead of once per side.
+    """
+    def one_side(side, st):
+        active = st.active[side].astype(jnp.int32)
+        eligible = (st.hp[side] > 0) & (jnp.arange(C.TEAM_SIZE) != active)
+        # Uniform over the eligible slots: score them randomly and take the best.
+        scores = jnp.where(eligible, jax.random.uniform(
+            jax.random.fold_in(key, side), (C.TEAM_SIZE,)), -1.0)
+        slot = jnp.argmax(scores)
+        return jax.lax.cond(st.phazed[side] & jnp.any(eligible),
+                            lambda x: switch_to(data, x, side, slot),
+                            lambda x: x, st)
+
+    state = jax.lax.fori_loop(0, C.NUM_PLAYERS, one_side, state)
+    return state._replace(phazed=jnp.zeros((C.NUM_PLAYERS,), bool))
+
+
 # --- win condition -----------------------------------------------------------
 
 def check_winner(state):
@@ -386,7 +438,9 @@ def is_attacking_action(data, state, side, action):
 def run_action(data, state, side, action, moves_first, key, target_attacking=True):
     """Execute one side's chosen action, if its Pokemon is still able to act."""
     i = act(state, side)
-    alive = state.hp[side, i] > 0
+    # A negative action is a pass: used for the opponent of a self-switch, whose
+    # locked-in move is held over until the replacement is in.
+    alive = (slot_get(state.hp, side, i) > 0) & (action >= 0)
 
     def do_switch(s):
         return switch_to(data, s, side, switch_slot(action))
@@ -407,53 +461,123 @@ def run_action(data, state, side, action, moves_first, key, target_attacking=Tru
 
 # --- the public step ---------------------------------------------------------
 
-def start_turn(state):
-    """Clear the per-turn scratch fields."""
+def start_turn(state, when=True):
+    """Clear the per-turn scratch fields. `when=False` leaves them alone.
+
+    Resuming a suspended turn must not reset these -- the first half of the turn
+    already happened.
+    """
+    pick = lambda new, old: jnp.where(when, new, old)
     return state._replace(
-        moved_this_turn=jnp.zeros((C.NUM_PLAYERS,), bool),
-        switched_this_turn=jnp.zeros((C.NUM_PLAYERS,), bool),
-        damage_taken=jnp.zeros((C.NUM_PLAYERS,), jnp.int16),
-        damage_category=jnp.full((C.NUM_PLAYERS,), -1, jnp.int8),
-        stats_lowered=jnp.zeros((C.NUM_PLAYERS,), bool),
-        turn=state.turn + 1,
+        moved_this_turn=pick(jnp.zeros((C.NUM_PLAYERS,), bool), state.moved_this_turn),
+        switched_this_turn=pick(jnp.zeros((C.NUM_PLAYERS,), bool),
+                                state.switched_this_turn),
+        damage_taken=pick(jnp.zeros((C.NUM_PLAYERS,), jnp.int16), state.damage_taken),
+        damage_category=pick(jnp.full((C.NUM_PLAYERS,), -1, jnp.int8),
+                             state.damage_category),
+        stats_lowered=pick(jnp.zeros((C.NUM_PLAYERS,), bool), state.stats_lowered),
+        turn=pick(state.turn + 1, state.turn),
     )
 
 
-def run_turn(data, state, actions, key):
-    k_order, k_a, k_b, k_res = jax.random.split(key, 4)
-    state = start_turn(state)
+def run_turn(data, state, actions, key, resuming):
+    """Resolve a turn, or the second half of one that a self-switch suspended.
+
+      fresh turn   slot A = the first mover, slot B = the second mover
+      resuming     slot A does nothing, slot B runs the move held over from
+                   before the switch
+
+    `resuming` is traced, so both readings are always built and selected between.
+
+    The two slots run through a `fori_loop` rather than two calls. `run_action`
+    contains the whole move engine -- by far the largest thing in the program --
+    and the loop puts one copy in the compiled graph instead of two. That is
+    what keeps compilation tractable; see the note in `psjax/__init__.py`.
+    """
+    k_order, k_act, k_res, k_ph = jax.random.split(key, 4)
+    state = start_turn(state, when=jnp.logical_not(resuming))
     first = turn_order(data, state, actions, k_order)
+    second = 1 - first
 
     # Sucker Punch checks whether its target is about to attack.
-    p0_attacks = is_attacking_action(data, state, 0, actions[0])
-    p1_attacks = is_attacking_action(data, state, 1, actions[1])
-    attacks = jnp.stack([p0_attacks, p1_attacks])
+    attacks = jnp.stack([is_attacking_action(data, state, 0, actions[0]),
+                         is_attacking_action(data, state, 1, actions[1])])
+    pending = resuming & (state.pending_side >= 0)
 
-    state = run_action(data, state, first, actions[first], jnp.bool_(True), k_a,
-                       attacks[1 - first])
-    state = run_action(data, state, 1 - first, actions[1 - first],
-                       jnp.bool_(False), k_b, attacks[first])
-    state = residuals(data, state, k_res)
+    def slot(i, carry):
+        st, suspend = carry
+        is_a = i == 0
 
-    # Anyone whose active fainted owes a replacement.
-    fainted = state.hp[jnp.arange(C.NUM_PLAYERS), state.active.astype(jnp.int32)] <= 0
+        # Slot B is the second mover, or the move held over from a suspension.
+        b_side = jnp.where(pending, st.pending_side.astype(jnp.int32), second)
+        b_action = jnp.where(
+            resuming,
+            jnp.where(pending, st.pending_action.astype(jnp.int32), jnp.int32(-1)),
+            jnp.where(suspend, jnp.int32(-1), actions[second]))
+        side = jnp.where(is_a, first, b_side)
+        action = jnp.where(is_a, jnp.where(resuming, jnp.int32(-1), actions[first]),
+                           b_action)
+        # Whoever holds a move over has already seen its opponent act, so from
+        # its point of view nothing is "about to attack".
+        target_attacks = jnp.where(is_a, attacks[second],
+                                   jnp.where(resuming, jnp.bool_(False), attacks[first]))
+        st = run_action(data, st, side, action, is_a, jax.random.fold_in(k_act, i),
+                        target_attacks)
+
+        # A self-switch suspends the turn: its user picks a replacement before
+        # the opponent's already-locked move resolves, so that move lands on
+        # whoever comes in rather than on the Pokemon that left. Decided after
+        # slot A has run, and read by slot B on the next iteration.
+        after_a = jnp.logical_not(resuming) & st.force_switch[first] & \
+            _has_bench(st)[first]
+        return st, jnp.where(is_a, after_a, suspend)
+
+    state, suspend = jax.lax.fori_loop(0, 2, slot, (state, jnp.bool_(False)))
+
+    # Resolved once, after both actions: every phazing move has negative
+    # priority, so its target has already moved and the ordering is the same.
+    state = resolve_phazing(data, state, k_ph)
+
+    # Residuals close out a turn: skipped when one is suspended, and skipped on a
+    # resume that was only bringing in a fainted Pokemon's replacement, since
+    # that turn already ended.
+    finishing = jnp.where(resuming, pending, jnp.logical_not(suspend))
+    state = residuals(data, state, k_res, when=finishing)
+
+    state = state._replace(
+        pending_side=jnp.where(suspend, second, -1).astype(jnp.int8),
+        pending_action=jnp.where(suspend, actions[second], 0).astype(jnp.int8))
+    return _request_replacements(state)
+
+
+def _has_bench(state):
+    """[P] bool: does this side have a healthy Pokemon that is not already out?"""
     on_bench = (state.hp > 0) & (jnp.arange(C.TEAM_SIZE)[None, :] !=
                                  state.active.astype(jnp.int32)[:, None])
-    has_bench = jnp.sum(on_bench, axis=1) > 0
-    state = state._replace(
-        force_switch=(state.force_switch | fainted) & has_bench,
+    return jnp.sum(on_bench, axis=1) > 0
+
+
+def _request_replacements(state):
+    """Ask for a replacement from anyone who needs one and can provide one."""
+    fainted = state.hp[jnp.arange(C.NUM_PLAYERS), state.active.astype(jnp.int32)] <= 0
+    return state._replace(
+        force_switch=(state.force_switch | fainted) & _has_bench(state),
         fainted_count=jnp.sum(state.hp <= 0, axis=1).astype(jnp.int8))
-    return state
 
 
 def apply_forced_switches(data, state, actions):
-    """Resolve pending replacements for whichever sides owe one."""
-    for side in range(C.NUM_PLAYERS):
-        state = jax.lax.cond(
-            state.force_switch[side],
-            lambda s: switch_to(data, s, side, switch_slot(actions[side])),
-            lambda s: s, state)
-    return state
+    """Resolve pending replacements for whichever sides owe one.
+
+    A `fori_loop` for the same reason as `resolve_phazing`: one copy of
+    `switch_to` in the compiled program rather than one per side.
+    """
+    def one_side(side, st):
+        return jax.lax.cond(
+            st.force_switch[side],
+            lambda x: switch_to(data, x, side, switch_slot(actions[side])),
+            lambda x: x, st)
+
+    return jax.lax.fori_loop(0, C.NUM_PLAYERS, one_side, state)
 
 
 def step(state: BattleState, actions, data=None) -> BattleState:
@@ -469,11 +593,13 @@ def step(state: BattleState, actions, data=None) -> BattleState:
     key, subkey = jax.random.split(state.key)
     state = state._replace(key=key)
 
-    state = jax.lax.cond(
-        state.phase == C.PHASE_SWITCH,
-        lambda s: apply_forced_switches(data, s, actions),
-        lambda s: run_turn(data, s, actions, subkey),
-        state)
+    # A switch prompt means the chosen replacements come in before anything else;
+    # `run_turn` then either finishes a suspended turn or does nothing further.
+    resuming = state.phase == C.PHASE_SWITCH
+    state = jax.lax.cond(resuming,
+                         lambda s: apply_forced_switches(data, s, actions),
+                         lambda s: s, state)
+    state = run_turn(data, state, actions, subkey, resuming)
 
     winner = check_winner(state)
     needs_switch = jnp.any(state.force_switch)

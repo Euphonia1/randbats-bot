@@ -899,7 +899,8 @@ def execute_move(data, state, user, move_slot, moves_first, key,
             bp_cb_mod=bp_cb_mod, grounded_user=cb_ctx.grounded_user,
             grounded_target=cb_ctx.grounded_target,
             analytic_ok=hit_analytic, fainted_count=hit_fainted_count,
-            target_switched_in=hit_target_switched)
+            target_switched_in=hit_target_switched,
+            technician_power=mv.base_power)
 
     dmgs = jax.vmap(damage_for_hit)(rolls, hit_index)
     dmgs = jnp.where(is_fixed, fixed, dmgs)
@@ -1147,15 +1148,19 @@ def execute_move(data, state, user, move_slot, moves_first, key,
         state.choice_slot, user, move_slot.astype(jnp.int8),
         when=choiced & can_act))
 
-    # U-turn / Volt Switch and whirlwind-style forced switches. Written as one
-    # elementwise update over the two players rather than two scatters.
-    self_switch = (data["move_self_switch"][move_id] > 0) & landed
-    force_switch = data["move_force_switch"][move_id] & landed
+    # Two different kinds of switch come out of a move, and they behave
+    # differently. A self-switch (U-turn, Volt Switch, Parting Shot) lets its
+    # user *choose* a replacement, so it suspends the turn -- `force_switch`
+    # asks the player. Being phazed (Whirlwind, Dragon Tail) drags in a *random*
+    # Pokemon with no choice, so the engine resolves it immediately.
+    # Gated on `connects`, not `landed`: `landed` excludes status moves, and
+    # Whirlwind, Roar, Parting Shot and Teleport are all status moves.
+    self_switch = (data["move_self_switch"][move_id] > 0) & connects
+    phazing = data["move_force_switch"][move_id] & connects
     players = jnp.arange(C.NUM_PLAYERS)
     state = state._replace(
-        force_switch=(state.force_switch |
-                      ((players == user) & self_switch) |
-                      ((players == target) & force_switch)))
+        force_switch=state.force_switch | ((players == user) & self_switch),
+        phazed=state.phazed | ((players == target) & phazing))
     return state
 
 

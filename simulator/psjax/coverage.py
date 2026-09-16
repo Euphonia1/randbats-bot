@@ -147,7 +147,6 @@ def report():
     add("STRUCTURAL LIMITATIONS")
     for note in (
         "singles only -- no doubles targeting, spread damage or ally effects",
-        "self-switch and forced switches resolve at end of turn, not immediately",
         "held items are assigned by set role, not by Showdown's generator logic",
         "no Dynamax, Z-moves or Mega Evolution (none appear in Gen 9 singles)",
         "happiness is fixed at 255 (Return 102 BP, Frustration 1 BP)",

@@ -314,4 +314,22 @@ A(sw("natural cure clears status on the way out",
      [dict(mon("Blissey", "Natural Cure"), status="brn"),
       mon("Clefable", "Unaware")], DOLL, ["p1.status"]))
 
+
+# --- switching out mid-turn --------------------------------------------------
+# A self-switch resolves before the opponent's already-locked move, so that move
+# lands on the replacement. Phazing drags in a random Pokemon with no choice.
+
+A({**case("u-turn: the opponent's move hits the replacement",
+          mon("Weavile", "Pressure", ["uturn"]),
+          mon("Snorlax", "Thick Fat", ["seismictoss"]), ["p1.hp", "p1.active"]),
+   "p1team": [mon("Weavile", "Pressure", ["uturn"]),
+              mon("Blissey", "Natural Cure", ["splash"])],
+   "p1switchAfter": 2})
+A({**case("parting shot also switches its user out",
+          mon("Weavile", "Pressure", ["partingshot"]),
+          mon("Snorlax", "Thick Fat", ["seismictoss"]), ["p2.boosts", "p1.active"]),
+   "p1team": [mon("Weavile", "Pressure", ["partingshot"]),
+              mon("Blissey", "Natural Cure", ["splash"])],
+   "p1switchAfter": 2})
+
 print(json.dumps(CASES, indent=1))

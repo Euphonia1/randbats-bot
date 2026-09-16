@@ -2462,5 +2462,81 @@
    }
   ],
   "p1move": "switch 2"
+ },
+ {
+  "name": "u-turn: the opponent's move hits the replacement",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "uturn"
+   ]
+  },
+  "p2": {
+   "species": "Snorlax",
+   "ability": "Thick Fat",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "check": [
+   "p1.hp",
+   "p1.active"
+  ],
+  "p1team": [
+   {
+    "species": "Weavile",
+    "ability": "Pressure",
+    "moves": [
+     "uturn"
+    ]
+   },
+   {
+    "species": "Blissey",
+    "ability": "Natural Cure",
+    "moves": [
+     "splash"
+    ]
+   }
+  ],
+  "p1switchAfter": 2
+ },
+ {
+  "name": "parting shot also switches its user out",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "partingshot"
+   ]
+  },
+  "p2": {
+   "species": "Snorlax",
+   "ability": "Thick Fat",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "check": [
+   "p2.boosts",
+   "p1.active"
+  ],
+  "p1team": [
+   {
+    "species": "Weavile",
+    "ability": "Pressure",
+    "moves": [
+     "partingshot"
+    ]
+   },
+   {
+    "species": "Blissey",
+    "ability": "Natural Cure",
+    "moves": [
+     "splash"
+    ]
+   }
+  ],
+  "p1switchAfter": 2
  }
 ]

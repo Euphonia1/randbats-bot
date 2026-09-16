@@ -40,21 +40,30 @@ class BattleEnv:
         """`keys` is `[N, 2]`; returns a `BattleState` with a leading `N` axis."""
         return jax.vmap(self.reset)(keys)
 
-    # Batching runs through `jax.vmap`. That needs the XLA backend optimisation
-    # level dropped -- see the note in `psjax/__init__.py` -- without which
-    # compiling a batched step does not finish in any practical time. With it,
-    # compilation is a one-off ~26s for any batch size and throughput is roughly
-    # an order of magnitude above stepping battles one at a time.
+    # Batching runs through `jax.vmap`. Compilation is a one-off ~15s at any
+    # batch size, and throughput is roughly fifty times that of stepping battles
+    # one at a time. Keeping it that way depends on two structural properties of
+    # the engine -- see the note in `psjax/__init__.py` before changing them.
 
     @functools.partial(jax.jit, static_argnums=0)
     def step(self, state: BattleState, actions):
-        """One decision point. Returns `(state, obs, rewards, done)`.
+        """One decision point. Returns `(state, obs, rewards, done)`."""
+        return self._step(state, actions)
+
+    def _step(self, state: BattleState, actions, data=None):
+        """The body of `step`, without the jit.
+
+        Kept separate so `step_sharded` can put it inside a `pmap`: wrapping an
+        already-jitted callable in `pmap` re-traces on every call. `data` is an
+        explicit argument for the same reason -- closed over, `pmap` re-broadcasts
+        all 88 tables to every device on every call.
 
         `rewards` is `[2]`, +1 for the winner and -1 for the loser at the end of
         the battle and 0 otherwise; a tie pays 0 to both.
         """
+        data = self.data if data is None else data
         was_over = state.phase == C.PHASE_END
-        new_state = engine_step(state, actions, self.data)
+        new_state = engine_step(state, actions, data)
         # A finished battle absorbs further steps rather than corrupting itself.
         new_state = jax.tree.map(
             lambda old, new: jnp.where(was_over, old, new), state, new_state)
@@ -67,7 +76,7 @@ class BattleEnv:
             jnp.where(winner == 2, jnp.zeros(2),
                       jnp.where(jnp.arange(2) == winner, 1.0, -1.0)),
             jnp.zeros(2))
-        return new_state, self.observe(new_state), rewards, done
+        return new_state, self._observe(new_state, data), rewards, done
 
     @functools.partial(jax.jit, static_argnums=0)
     def step_batch(self, states, actions):
@@ -91,7 +100,11 @@ class BattleEnv:
     # --- observation --------------------------------------------------------
 
     @functools.partial(jax.jit, static_argnums=0)
-    def observe(self, state: BattleState) -> jnp.ndarray:
+    def observe(self, state: BattleState, data=None) -> jnp.ndarray:
+        """`[2, OBS_DIM]` float array: each row is that player's own view."""
+        return self._observe(state, data)
+
+    def _observe(self, state: BattleState, data=None) -> jnp.ndarray:
         """A `[2, OBS_DIM]` float array: each row is that player's own view.
 
         Deliberately plain: HP fractions, statuses, boosts, types, field state and
@@ -99,6 +112,8 @@ class BattleEnv:
         (no fog of war), which suits self-play; a partially observed variant would
         mask the opponent's bench.
         """
+        data = self.data if data is None else data
+
         def one_side(me):
             you = 1 - me
             rows = []
@@ -120,11 +135,11 @@ class BattleEnv:
                 # The active Pokemon's moves: type, category, power, PP left.
                 moves = jnp.maximum(state.moves[side, i], 0)
                 valid = (state.moves[side, i] >= 0).astype(jnp.float32)
-                rows.append(jax.nn.one_hot(self.data["move_type"][moves],
+                rows.append(jax.nn.one_hot(data["move_type"][moves],
                                            C.NUM_TYPES).reshape(-1))
-                rows.append(jax.nn.one_hot(self.data["move_category"][moves], 3)
+                rows.append(jax.nn.one_hot(data["move_category"][moves], 3)
                             .reshape(-1))
-                rows.append(self.data["move_base_power"][moves].astype(jnp.float32)
+                rows.append(data["move_base_power"][moves].astype(jnp.float32)
                             / 150.0)
                 rows.append(state.pp[side, i].astype(jnp.float32) /
                             jnp.maximum(state.maxpp[side, i], 1).astype(jnp.float32))

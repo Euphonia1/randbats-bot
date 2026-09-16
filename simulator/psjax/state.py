@@ -76,6 +76,12 @@ class BattleState(NamedTuple):
     turn: jnp.ndarray               # scalar int32
     phase: jnp.ndarray              # scalar int8, PHASE_*
     force_switch: jnp.ndarray       # [P] bool, this player owes a replacement
+    phazed: jnp.ndarray             # [P] bool, forced out by the opponent this turn
+    #: A self-switch (U-turn) suspends the turn while its user picks a
+    #: replacement, so the opponent's already-locked action has to be held over
+    #: and run once the replacement is in. -1 when nothing is pending.
+    pending_side: jnp.ndarray       # scalar int8
+    pending_action: jnp.ndarray     # scalar int8
     winner: jnp.ndarray             # scalar int8, -1 ongoing, 0/1 winner, 2 tie
     key: jnp.ndarray                # PRNG key
 
@@ -135,7 +141,9 @@ def empty_state(key: jnp.ndarray) -> BattleState:
         trick_room=jnp.int8(0), gravity=jnp.int8(0),
         side_conditions=i8(P, C.NUM_SIDE_CONDITIONS),
         turn=jnp.int32(0), phase=jnp.int8(C.PHASE_MOVE),
-        force_switch=jnp.zeros((P,), bool), winner=jnp.int8(-1), key=key,
+        force_switch=jnp.zeros((P,), bool), phazed=jnp.zeros((P,), bool),
+        pending_side=jnp.int8(-1), pending_action=jnp.int8(0),
+        winner=jnp.int8(-1), key=key,
     )
 
 

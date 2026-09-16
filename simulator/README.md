@@ -146,6 +146,22 @@ Actions are a single integer per player:
 
 `env.observe` returns `[2, 524]` floats — each row is one player's view.
 
+## Leaving the field
+
+Three things can take a Pokémon off the field, and they behave differently:
+
+| | when the replacement arrives | who picks |
+| --- | --- | --- |
+| Fainting | after the turn finishes, residuals and all | the player |
+| Self-switch (U-turn, Parting Shot) | mid-turn, before the opponent's move | the player |
+| Phazing (Whirlwind, Dragon Tail) | mid-turn, immediately | random |
+
+The self-switch case is why `step` is a state machine rather than a plain
+turn function: the user picks a replacement *during* the turn, so the turn
+suspends with the opponent's already-locked move held in
+`pending_side`/`pending_action`, and that move then runs against whoever comes
+in. Phazing needs no decision point, so it is settled inline.
+
 ## Batching
 
 Battles run in parallel through `jax.vmap`, and batched results are bit-identical
@@ -162,58 +178,56 @@ final, rewards = rollout_batch(env, states, keys)         # play them all out
 
 Measured on one CPU (Apple Silicon):
 
-| batch | compile | per step | throughput |
-| --- | --- | --- | --- |
-| 1 | 25 s | 0.66 ms | 1,500 steps/s |
-| 64 | 26 s | 4.0 ms | 16,000 steps/s |
-| 256 | 27 s | 9.7 ms | 26,500 steps/s |
-| 1024 | 28 s | 27.9 ms | 36,700 steps/s |
+| batch | compile | throughput |
+| --- | --- | --- |
+| 1 | 15 s | 2,000 steps/s |
+| 64 | 18 s | 45,000 steps/s |
+| 256 | 15 s | 83,000 steps/s |
+| 1024 | 15 s | 106,000 steps/s |
 
-Compile time is a flat one-off and barely moves with batch size; throughput
-scales roughly 24x from a single battle to 1024.
+Compile time is a flat one-off and barely moves with batch size.
 
-### Why the XLA flag
+### What keeps it fast
 
-`psjax/__init__.py` sets `--xla_backend_optimization_level=0` before JAX starts.
-This is load-bearing, and worth explaining because the symptom was baffling:
-`vmap(step)` at a batch of **one** compiled in 6 seconds, and at a batch of
-**two** did not finish in 150.
+The compiled program is one enormous basic block, and XLA's cost is superlinear
+in *basic-block size*, not in operation count. For a long time this package had
+to force `--xla_backend_optimization_level=0` because `vmap(step)` would not
+finish compiling at all: a batch of two ran past 150 seconds where a batch of one
+took six. Two fixes removed that, and the engine is about five times faster for
+it. Both are easy to undo by accident:
 
-A battle step is thousands of tiny operations on six- and seven-element arrays.
-Unbatched they fold away; batched, each becomes a real vectorised op, and XLA's
-CPU backend then runs LLVM optimisation passes whose cost grows superlinearly in
-that op count. Dropping the backend optimisation level skips those passes:
-compilation becomes ~26 s at any batch size. It costs roughly 35% on
-*unbatched* per-step time, which the batching repays many times over. Set
-`PSJAX_NO_XLA_TUNING=1` to opt out, or set `xla_backend_optimization_level`
-yourself and psjax will leave it alone.
+**Copies of the big pieces.** `run_action` (the whole move engine) and
+`switch_to` (hazards, entry abilities) are large. Running them from a
+`lax.fori_loop` over the two players puts *one* copy in the compiled graph; a
+Python loop puts one per player. Collapsing the two action slots took the program
+from 99,901 HLO operations to 58,469, and compile from 28 s to 12 s. Getting this
+wrong the other way, with `switch_to`, once cost 4x throughput. The loops in
+`run_turn`, `apply_forced_switches` and `resolve_phazing` are deliberate.
 
-Getting there also needed the engine itself to stop generating pathological
-batched code. Each of these was found by bisecting compile time and is worth
-knowing about if you extend the engine:
+**Rank.** Mapping the damage calculation over a move's hits only needs the damage
+roll to vary, and `vmap` batches just the values that depend on it. But
+Technician tests `base_power <= 60`, and with a per-hit scaled power that test
+pulled the entire forty-step modifier chain up a rank along with it. That single
+comparison was the difference between compiling at optimisation level 1 and not
+compiling at all — same operation count either way. `calc_damage` now takes the
+unscaled power for that test (`technician_power`), which is exactly equivalent:
+the only moves that scale power per hit are Triple Kick and Triple Axel, and all
+of their per-hit powers are under the threshold regardless.
 
-- **Integer division by a traced divisor.** XLA's lowering is enormous; a handful
-  inside one `lax.switch` was minutes on its own. `stats.idiv` does an exact
-  float divide with a two-step correction instead.
-- **Indexing with a traced index.** `state.hp[side, slot]` is a gather over the
-  team axis, and there are dozens per move. `mechanics.slot_get` / `slot_set`
-  select over the six slots elementwise instead. Same for the stat index in
-  `damage._pick_stat`, which the move's category makes traced.
-- **`lax.cond` returning a `BattleState`.** Under `vmap` it computes both
-  branches and selects over the *entire* pytree, so gating a two-field update
-  costs as much as gating a forty-field one. Every such site now takes a `when`
-  mask and no-ops internally; `run_effect` additionally returns only the 15
-  fields any handler writes rather than all 47.
-- **Repeated calls that could be folded.** Ten `apply_boosts` calls keyed on a
-  single ability value became one accumulated vector.
+Diagnosing this was mostly a matter of measuring HLO size with
+`jax.jit(f).lower(...).as_text()`, which is cheap, rather than compile time,
+which is not.
 
-## Performance (single battle)
+### Still on the table
 
-| | |
-| --- | --- |
-| `jax.jit(step)` compile | ~11 s, once per process |
-| per decision point | 0.90 ms |
-| full random battle | ~600 ms (mean 42 turns) |
+Throughput is implementation-bound, not hardware-bound: this uses about 2.5 of 8
+cores, and per-battle cost was still falling at a batch of 2048. The remaining
+gain is in parallelism rather than codegen.
+
+Tried and rejected for that: `--xla_force_host_platform_device_count=<cores>`
+with a `pmap` over the devices. Forcing N host devices splits the CPU thread pool
+N ways, and measured end to end it came out ~10x slower than a plain `vmap` on
+one device.
 
 ## State of the implementation
 
@@ -236,9 +250,6 @@ Run `python -m psjax.coverage` for the current numbers. As of Showdown v0.11.11:
 These are deliberate and documented rather than hidden:
 
 - **Singles only.** No doubles targeting, spread damage or ally effects.
-- **Self-switch and forced switches resolve at end of turn**, not immediately.
-  After a U-turn the opponent attacks the Pokémon that used it, rather than the
-  replacement. This is the most behaviourally significant gap.
 - **Held items are assigned by set role**, not by Showdown's generator logic,
   which is full of species- and move-specific special cases. Teams are drawn
   from the real species/move/ability/Tera pools; only the item differs.

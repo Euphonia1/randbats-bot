@@ -93,6 +93,11 @@ function run(c) {
   const before = snapshot(battle);
   try {
     battle.makeChoices(c.p1move || 'move 1', c.p2move || 'move 1');
+    // A self-switch (U-turn, Parting Shot) opens a mid-turn switch request; the
+    // rest of the turn only runs once it is answered.
+    if (c.p1switchAfter && battle.requestState === 'switch') {
+      battle.makeChoices(`switch ${c.p1switchAfter}`, 'default');
+    }
   } catch (e) {
     return {...c, error: String(e.message).slice(0, 200)};
   }

@@ -263,7 +263,7 @@ def _defense_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
 def _base_power_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx,
                           terrain, has_secondary, analytic_ok, fainted_count,
                           bp_cb_mod, grounded_user, grounded_target,
-                          target_switched_in):
+                          target_switched_in, technician_power=None):
     """Ability/item multipliers applied to base power before the main formula."""
     ab, it = atk.ability, atk.item
     mod = jnp.int32(M1)
@@ -271,7 +271,11 @@ def _base_power_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx,
     def apply(mod, cond, factor):
         return jnp.where(cond, chain_modify(mod, factor), mod)
 
-    mod = apply(mod, (ab == A.TECHNICIAN) & (mv.base_power <= 60), m(1.5))
+    # Technician reads `technician_power` rather than `mv.base_power` so a
+    # per-hit scaled power does not drag this whole chain up a rank -- see the
+    # note on `calc_damage`.
+    tech_power = mv.base_power if technician_power is None else technician_power
+    mod = apply(mod, (ab == A.TECHNICIAN) & (tech_power <= 60), m(1.5))
     mod = apply(mod, (ab == A.TOUGHCLAWS) & has_flag(mv.flags, "contact"), m(1.3))
     mod = apply(mod, (ab == A.STRONGJAW) & has_flag(mv.flags, "bite"), m(1.5))
     mod = apply(mod, (ab == A.MEGALAUNCHER) & has_flag(mv.flags, "bullet"), m(1.5))
@@ -416,11 +420,21 @@ def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
                 type_exp, bp_cb_mod=4096, grounded_user=True, grounded_target=True,
                 has_secondary=False, utility_umbrella=False, analytic_ok=False,
                 fainted_count=0, target_switched_in=False,
-                defender_stats_source=None):
+                defender_stats_source=None, technician_power=None):
     """Damage for one hit. `damage_roll` is 0..15, matching Showdown's `random(16)`.
 
     `type_exp` comes from `type_effectiveness`; immunity is handled by the caller
     so that ability-based absorption can run its own side effects.
+
+    `technician_power` exists for compilation, not for the rules. When this is
+    mapped over a move's hits, only `damage_roll` and -- for Triple Kick and
+    Triple Axel -- `base_power` vary, and `vmap` batches just what depends on
+    them. Technician's `base_power <= 60` test would otherwise pull the entire
+    forty-step modifier chain up a rank along with the scaled power, which is the
+    difference between this compiling at optimisation level 1 and not compiling
+    at all. Passing the *unscaled* power keeps the chain rank-1 and is exactly
+    equivalent: those two moves are the only ones that scale, and every one of
+    their per-hit powers (10/20/30 and 20/40/60) is under the threshold anyway.
     """
     if defender_stats_source is None:
         defender_stats_source = dfn.stats
@@ -428,7 +442,7 @@ def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
     bp_mod = _base_power_modifiers(data, atk, dfn, mv, terrain, has_secondary,
                                    analytic_ok, fainted_count, bp_cb_mod,
                                    grounded_user, grounded_target,
-                                   target_switched_in)
+                                   target_switched_in, technician_power)
     power = jnp.maximum(chain_modify(mv.base_power, bp_mod), 1)
 
     attack = _attack_stat(data, atk, dfn, mv, is_crit, defender_stats_source, weather)

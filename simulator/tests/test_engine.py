@@ -268,3 +268,94 @@ def test_effect_handlers_only_write_declared_fields():
             if before.shape != after.shape or not bool(jnp.all(before == after)):
                 stray.append((name, field))
     assert not stray, f"handlers wrote fields outside EFFECT_WRITES: {stray}"
+
+
+# --- switching out mid-turn --------------------------------------------------
+
+def _two_v_one(p1_species, p1_moves, bench_species, p2_species, p2_moves):
+    """A 2-Pokemon team against a 1-Pokemon team, for switch tests."""
+    from psjax.stats import compute_all_stats
+    state = empty_state(jax.random.PRNGKey(0))
+    team = [(0, 0, p1_species, p1_moves), (0, 1, bench_species, ["splash"]),
+            (1, 0, p2_species, p2_moves)]
+    for side, slot, species, moves in team:
+        sid = N.species_id(species)
+        stats = compute_all_stats(DATA["species_base_stats"][sid][None],
+                                  jnp.array([100], jnp.int8))[0]
+        ids = [N.move_id(m) for m in moves] + [-1] * (4 - len(moves))
+        state = state._replace(
+            species=state.species.at[side, slot].set(sid),
+            level=state.level.at[side, slot].set(100),
+            hp=state.hp.at[side, slot].set(stats[C.HP]),
+            maxhp=state.maxhp.at[side, slot].set(stats[C.HP]),
+            stats=state.stats.at[side, slot].set(stats),
+            types=state.types.at[side, slot].set(DATA["species_types"][sid]),
+            moves=state.moves.at[side, slot].set(jnp.asarray(ids, jnp.int16)),
+            pp=state.pp.at[side, slot].set(jnp.full(4, 16, jnp.int8)),
+            maxpp=state.maxpp.at[side, slot].set(jnp.full(4, 16, jnp.int8)),
+        )
+    return state
+
+
+def test_self_switch_resolves_before_the_opponent_moves():
+    """U-turn's replacement arrives first, so the opponent's move hits it.
+
+    Regression: self-switches used to be deferred to the end of the turn, which
+    meant the opponent attacked the Pokemon that had just left.
+    """
+    # Weavile outspeeds Snorlax, so the U-turn resolves first.
+    state = _two_v_one("Weavile", ["uturn"], "Blissey", "Snorlax", ["bodyslam"])
+    weavile_hp = int(state.hp[0, 0])
+    blissey_hp = int(state.hp[0, 1])
+
+    after_uturn = JIT_STEP(state, jnp.array([0, 0]), DATA)
+    assert int(after_uturn.phase) == C.PHASE_SWITCH, "U-turn did not ask for a switch"
+    assert bool(after_uturn.force_switch[0])
+    assert int(after_uturn.pending_side) == 1, "the opponent's move was not held over"
+
+    resumed = JIT_STEP(after_uturn, jnp.array([C.ACTION_SWITCH_BASE + 1, 0]), DATA)
+    assert int(resumed.active[0]) == 1, "the replacement did not come in"
+    assert int(resumed.hp[0, 0]) == weavile_hp, \
+        "Body Slam hit the Pokemon that used U-turn instead of its replacement"
+    assert int(resumed.hp[0, 1]) < blissey_hp, "the replacement was never attacked"
+    assert int(resumed.phase) == C.PHASE_MOVE, "the turn did not finish"
+
+
+def test_self_switch_with_an_empty_bench_does_not_suspend():
+    """U-turn with nothing to switch to just carries on."""
+    state = _two_v_one("Weavile", ["uturn"], "Blissey", "Snorlax", ["bodyslam"])
+    state = state._replace(hp=state.hp.at[0, 1].set(jnp.int16(0)))
+    after = JIT_STEP(state, jnp.array([0, 0]), DATA)
+    assert int(after.phase) == C.PHASE_MOVE, "suspended with no replacement available"
+    assert int(after.pending_side) == -1
+    assert int(after.hp[0, 0]) < int(state.hp[0, 0]), \
+        "the opponent's move never landed"
+
+
+def test_phazing_brings_in_a_random_replacement_immediately():
+    """Whirlwind drags someone in during the turn, with no decision point."""
+    from psjax.engine import apply_entry_hazards  # noqa: F401
+    picked = set()
+    for seed in range(8):
+        state = _two_v_one("Snorlax", ["splash"], "Clefable",
+                           "Corviknight", ["whirlwind"])
+        # Hazards on the phazed side prove the arrival really switched in.
+        state = state._replace(
+            side_conditions=state.side_conditions.at[0, C.SC_STEALTHROCK].set(1),
+            key=jax.random.PRNGKey(seed))
+        after = JIT_STEP(state, jnp.array([0, 0]), DATA)
+        assert int(after.phase) != C.PHASE_SWITCH, \
+            "phazing asked for a choice; it should pick at random"
+        picked.add(int(after.active[0]))
+        assert int(after.active[0]) == 1, "nobody was dragged in"
+        assert int(after.hp[0, 1]) < int(state.hp[0, 1]), \
+            "the arrival did not take entry hazards"
+    assert picked == {1}, f"only one bench slot was available, got {picked}"
+
+
+def test_phazing_a_side_with_no_bench_does_nothing():
+    state = _two_v_one("Snorlax", ["splash"], "Clefable", "Corviknight", ["whirlwind"])
+    state = state._replace(hp=state.hp.at[0, 1].set(jnp.int16(0)))
+    after = JIT_STEP(state, jnp.array([0, 0]), DATA)
+    assert int(after.active[0]) == 0
+    assert int(after.phase) == C.PHASE_MOVE
