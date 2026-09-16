@@ -123,6 +123,9 @@ def make_cb_ctx(case, atk: Attacker, dfn: Defender, weather, terrain) -> CbCtx:
         user_ability=atk.ability,
         last_move_failed=jnp.bool_(case.get("lastMoveFailed", False)),
         stats_lowered=jnp.bool_(case.get("statsLowered", False)),
+        user_type=atk.types[0],
+        type_exp=jnp.int32(case.get("typeExp", 0)),
+        dfn_def=boosted(dfn, C.DEF), dfn_spd=boosted(dfn, C.SPD),
     )
 
 

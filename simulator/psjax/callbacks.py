@@ -62,6 +62,10 @@ class CbCtx(NamedTuple):
     user_ability: jnp.ndarray        # for the "-ate" retyping
     last_move_failed: jnp.ndarray    # Stomping Tantrum
     stats_lowered: jnp.ndarray       # Lash Out
+    user_type: jnp.ndarray           # the user's primary type, for Revelation Dance
+    type_exp: jnp.ndarray            # type effectiveness, for Collision Course
+    dfn_def: jnp.ndarray             # boosted, unmodified Defence ...
+    dfn_spd: jnp.ndarray             # ... and Sp. Def, for Shell Side Arm
 
 M1 = 4096
 
@@ -238,12 +242,17 @@ def _m_lashout(c):
     return jnp.where(c.stats_lowered, 8192, M1)
 
 
+def _m_supereffective_boost(c):
+    """Collision Course / Electro Drift: x5461/4096 on a super-effective hit."""
+    return jnp.where(c.type_exp > 0, 5461, M1)
+
+
 BP_MODIFY_FNS = {
     "none": _m_none, "facade": _m_facade, "hex": _m_hex, "venoshock": _m_venoshock,
     "brine": _m_brine, "knockoff": _m_knockoff, "expandingforce": _m_expandingforce,
     "mistyexplosion": _m_mistyexplosion, "psyblade": _m_psyblade,
     "solarbeam": _m_solarbeam, "stompingtantrum": _m_stompingtantrum,
-    "lashout": _m_lashout,
+    "lashout": _m_lashout, "supereffective_boost": _m_supereffective_boost,
 }
 
 
@@ -320,11 +329,16 @@ def _t_terablast(c):
 def _t_item_typed(c): return c.move_type
 
 
+def _t_revelationdance(c):
+    """The move becomes the user's primary type (Tera included)."""
+    return c.user_type.astype(jnp.int8)
+
+
 TYPE_FNS = {
     "none": _t_none, "weatherball": _t_weatherball, "terrainpulse": _t_terrainpulse,
     "terablast": _t_terablast, "judgment": _t_item_typed,
     "technoblast": _t_item_typed, "multiattack": _t_item_typed,
-    "revelationdance": _t_none, "ivycudgel": _t_item_typed,
+    "revelationdance": _t_revelationdance, "ivycudgel": _t_item_typed,
     "ragingbull": _t_none, "aurawheel": _t_none, "naturalgift": _t_item_typed,
 }
 

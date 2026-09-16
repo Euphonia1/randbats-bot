@@ -87,6 +87,7 @@ BP_MODIFY_HANDLERS = [
     "solarbeam",       # x0.5 in rain, sand or snow
     "stompingtantrum", # x2 if the user's previous move failed
     "lashout",         # x2 if the user had a stat lowered this turn
+    "supereffective_boost",   # x4/3 on a super-effective hit
 ]
 BP_MODIFY_MOVES = {
     "facade": ["facade"],
@@ -100,6 +101,7 @@ BP_MODIFY_MOVES = {
     "solarbeam": ["solarbeam", "solarblade"],
     "stompingtantrum": ["stompingtantrum"],
     "lashout": ["lashout"],
+    "supereffective_boost": ["collisioncourse", "electrodrift"],
 }
 
 # --- Weather-dependent accuracy ---------------------------------------------
@@ -184,6 +186,7 @@ EFFECT_HANDLERS = [
     "defog",           # clears both sides' hazards and screens
     "rest",
     "trick",           # swap items
+    "knockoff",        # remove the target's item
     "painsplit",
     "leechseed",
     "haze",            # reset all boosts
@@ -250,6 +253,7 @@ EFFECT_MOVES = {
     "defog": ["defog"],
     "rest": ["rest"],
     "trick": ["trick", "switcheroo"],
+    "knockoff": ["knockoff"],
     "painsplit": ["painsplit"],
     "leechseed": ["leechseed"],
     "haze": ["haze"],

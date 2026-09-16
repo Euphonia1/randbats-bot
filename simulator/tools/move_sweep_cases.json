@@ -1,0 +1,3499 @@
+[
+ {
+  "name": "sweep accelerock",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "accelerock",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep acrobatics",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "acrobatics",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep aeroblast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aeroblast",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep airslash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "airslash",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep alluringvoice",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "alluringvoice",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep appleacid",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "appleacid",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep aquacutter",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aquacutter",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep aquajet",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aquajet",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep aquastep",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aquastep",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep armorcannon",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "armorcannon",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep astralbarrage",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "astralbarrage",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep aurasphere",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aurasphere",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep aurawheel",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aurawheel",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep avalanche",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "avalanche",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep beakblast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "beakblast",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep beatup",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "beatup",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep behemothblade",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "behemothblade",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep bite",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bite",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep bitterblade",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bitterblade",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep bittermalice",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "bittermalice",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep bleakwindstorm",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bleakwindstorm",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep blizzard",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "blizzard",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep bloodmoon",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bloodmoon",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep blueflare",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "blueflare",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep bodypress",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bodypress",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep bodyslam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bodyslam",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep boltstrike",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "boltstrike",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep boomburst",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "boomburst",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep bravebird",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bravebird",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep brickbreak",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "brickbreak",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep bugbite",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bugbite",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep bugbuzz",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bugbuzz",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep bulletpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bulletpunch",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep bulletseed",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bulletseed",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep burningjealousy",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "burningjealousy",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep ceaselessedge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ceaselessedge",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep circlethrow",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "circlethrow",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep clangingscales",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "clangingscales",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep clearsmog",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "clearsmog",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep closecombat",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "closecombat",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep collisioncourse",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "collisioncourse",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep crabhammer",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "crabhammer",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep crunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "crunch",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep darkpulse",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "darkpulse",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep dazzlinggleam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dazzlinggleam",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep diamondstorm",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "diamondstorm",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep direclaw",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "direclaw",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep discharge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "discharge",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep doubleedge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "doubleedge",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep doubleshock",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "doubleshock",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep dracometeor",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dracometeor",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep dragonascent",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dragonascent",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep dragonclaw",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dragonclaw",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep dragondarts",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dragondarts",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep dragonenergy",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dragonenergy",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep dragonpulse",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dragonpulse",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep dragontail",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dragontail",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep drainingkiss",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "drainingkiss",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep drainpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "drainpunch",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep drillrun",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "drillrun",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep dualwingbeat",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dualwingbeat",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep dynamaxcannon",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dynamaxcannon",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep dynamicpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dynamicpunch",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep earthpower",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthpower",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep earthquake",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthquake",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep electrodrift",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "electrodrift",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep endeavor",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "endeavor",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep energyball",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "energyball",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep eruption",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "eruption",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep esperwing",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "esperwing",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep expandingforce",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "expandingforce",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep explosion",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "explosion",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep extremespeed",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "extremespeed",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep facade",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "facade",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep fakeout",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fakeout",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep ficklebeam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ficklebeam",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep fierydance",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fierydance",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep fierywrath",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fierywrath",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep fireblast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fireblast",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep firefang",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "firefang",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep firepunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "firepunch",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep firstimpression",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "firstimpression",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep flamecharge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flamecharge",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep flamethrower",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flamethrower",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep flareblitz",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flareblitz",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep flashcannon",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flashcannon",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep fleurcannon",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fleurcannon",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep flipturn",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flipturn",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep flowertrick",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flowertrick",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep focusblast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "focusblast",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep focuspunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "focuspunch",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep foulplay",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "foulplay",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep freezedry",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "freezedry",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep freezingglare",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "freezingglare",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep fusionbolt",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fusionbolt",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep fusionflare",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fusionflare",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep futuresight",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "futuresight",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep gigadrain",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "gigadrain",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep gigaimpact",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "gigaimpact",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep gigatonhammer",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "gigatonhammer",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep glaciallance",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "glaciallance",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep glaiverush",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "glaiverush",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep grassknot",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "grassknot",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep grassyglide",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "grassyglide",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep gravapple",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "gravapple",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep gunkshot",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "gunkshot",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep headbutt",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "headbutt",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep headlongrush",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "headlongrush",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep headsmash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "headsmash",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep heatcrash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "heatcrash",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep heatwave",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "heatwave",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep heavyslam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "heavyslam",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep hex",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "hex",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep highhorsepower",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "highhorsepower",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep highjumpkick",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "highjumpkick",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep hornleech",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hornleech",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep hurricane",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hurricane",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep hydropump",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hydropump",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep hydrosteam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hydrosteam",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep hyperspacefury",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hyperspacefury",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep hypervoice",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hypervoice",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep icebeam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "icebeam",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep icefang",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "icefang",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep icehammer",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "icehammer",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep icepunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "icepunch",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep iceshard",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "iceshard",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep icespinner",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "icespinner",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep iciclecrash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "iciclecrash",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep iciclespear",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "iciclespear",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep ironhead",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ironhead",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep irontail",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "irontail",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep ivycudgel",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ivycudgel",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep jetpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "jetpunch",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep judgment",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "judgment",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep knockoff",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "knockoff",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep kowtowcleave",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "kowtowcleave",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep lashout",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "lashout",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep lavaplume",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "lavaplume",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep leafblade",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "leafblade",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep leafstorm",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "leafstorm",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep leechlife",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "leechlife",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep liquidation",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "liquidation",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep lowkick",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "lowkick",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep luminacrash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "luminacrash",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep lunge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "lunge",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep lusterpurge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "lusterpurge",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep machpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "machpunch",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep magmastorm",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "magmastorm",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep makeitrain",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "makeitrain",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep malignantchain",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "malignantchain",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep matchagotcha",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "matchagotcha",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep megahorn",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "megahorn",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep meteorbeam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "meteorbeam",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep meteormash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "meteormash",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep mightycleave",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "mightycleave",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep mirrorcoat",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "mirrorcoat",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep moonblast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "moonblast",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep moongeistbeam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "moongeistbeam",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep mortalspin",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "mortalspin",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep muddywater",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "muddywater",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep mudshot",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "mudshot",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep mysticalfire",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "mysticalfire",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep nightshade",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "nightshade",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep nightslash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "nightslash",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep nuzzle",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "nuzzle",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep originpulse",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "originpulse",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep outrage",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "outrage",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep overdrive",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "overdrive",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep overheat",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "overheat",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep payback",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "payback",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep petalblizzard",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "petalblizzard",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep petaldance",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "petaldance",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep photongeyser",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "photongeyser",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep playrough",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "playrough",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep poisonfang",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "poisonfang",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep poisonjab",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "poisonjab",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep pollenpuff",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "pollenpuff",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep poltergeist",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "poltergeist",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep populationbomb",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "populationbomb",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep pounce",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "pounce",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep powergem",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "powergem",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep powertrip",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "powertrip",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep powerwhip",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "powerwhip",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep precipiceblades",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "precipiceblades",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep psyblade",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psyblade",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep psychic",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psychic",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep psychicfangs",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psychicfangs",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep psychicnoise",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psychicnoise",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep psychoboost",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psychoboost",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep psychocut",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psychocut",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep psyshock",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psyshock",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep psystrike",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psystrike",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep pyroball",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "pyroball",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep quickattack",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "quickattack",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep ragefist",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "ragefist",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep ragingbull",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ragingbull",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep rapidspin",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "rapidspin",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep razorshell",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "razorshell",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep relicsong",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "relicsong",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep revelationdance",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "revelationdance",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep rockblast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "rockblast",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep rockslide",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "rockslide",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep rocktomb",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "rocktomb",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep ruination",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ruination",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep sacredfire",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "sacredfire",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep sacredsword",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "sacredsword",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep saltcure",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "saltcure",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep scald",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "scald",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep scaleshot",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "scaleshot",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep scorchingsands",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "scorchingsands",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep secretsword",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "secretsword",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep seedbomb",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "seedbomb",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep seedflare",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "seedflare",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep seismictoss",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "seismictoss",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep shadowball",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep shadowclaw",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowclaw",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep shadowsneak",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowsneak",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep shellsidearm",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "shellsidearm",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep sludgebomb",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "sludgebomb",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep sludgewave",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "sludgewave",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep solarbeam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "solarbeam",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep spacialrend",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "spacialrend",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep sparklingaria",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "sparklingaria",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep spiritbreak",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "spiritbreak",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep spiritshackle",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "spiritshackle",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep steameruption",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "steameruption",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep stompingtantrum",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "stompingtantrum",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep stoneaxe",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "stoneaxe",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep stoneedge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "stoneedge",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep storedpower",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "storedpower",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep strangesteam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "strangesteam",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep suckerpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "suckerpunch",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep sunsteelstrike",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "sunsteelstrike",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep supercellslam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "supercellslam",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep superfang",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "superfang",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep superpower",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "superpower",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep surf",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "surf",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep surgingstrikes",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "surgingstrikes",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep tachyoncutter",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "tachyoncutter",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep tailslap",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "tailslap",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep temperflare",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "temperflare",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep terablast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "terablast",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep terastarstorm",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "terastarstorm",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep throatchop",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "throatchop",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep thunder",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "thunder",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep thunderbolt",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "thunderbolt",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep thunderclap",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "thunderclap",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep thunderpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "thunderpunch",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep torchsong",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "torchsong",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep trailblaze",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "trailblaze",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep triattack",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "triattack",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep triplearrows",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "triplearrows",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep tripleaxel",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "tripleaxel",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep uturn",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "uturn",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep vacuumwave",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "vacuumwave",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep voltswitch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "voltswitch",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep volttackle",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "volttackle",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep waterfall",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "waterfall",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep waterpulse",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "waterpulse",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep waterspout",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "waterspout",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep wavecrash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "wavecrash",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep weatherball",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "weatherball",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep whirlpool",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "whirlpool",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep wickedblow",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "wickedblow",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep wildcharge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "wildcharge",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep woodhammer",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "woodhammer",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep xscissor",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "xscissor",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep zenheadbutt",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "zenheadbutt",
+  "movesFirst": false
+ },
+ {
+  "name": "sweep zingzap",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "zingzap",
+  "movesFirst": false
+ }
+]

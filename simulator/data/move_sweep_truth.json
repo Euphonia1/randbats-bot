@@ -1,0 +1,13183 @@
+[
+ {
+  "name": "sweep accelerock",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "accelerock",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73
+  ]
+ },
+ {
+  "name": "sweep acrobatics",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "acrobatics",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   238,
+   235,
+   233,
+   230,
+   228,
+   226,
+   223,
+   221,
+   218,
+   216,
+   214,
+   211,
+   209,
+   207,
+   204,
+   202
+  ]
+ },
+ {
+  "name": "sweep aeroblast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aeroblast",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60,
+   59,
+   59,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55
+  ]
+ },
+ {
+  "name": "sweep airslash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "airslash",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44,
+   43,
+   43,
+   42,
+   42,
+   41
+  ]
+ },
+ {
+  "name": "sweep alluringvoice",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "alluringvoice",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   78,
+   76,
+   75,
+   75,
+   73,
+   73,
+   72,
+   72,
+   70,
+   70,
+   69,
+   69,
+   67,
+   67,
+   66,
+   66
+  ]
+ },
+ {
+  "name": "sweep appleacid",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "appleacid",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep aquacutter",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aquacutter",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   152,
+   150,
+   148,
+   147,
+   145,
+   144,
+   142,
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   130,
+   129
+  ]
+ },
+ {
+  "name": "sweep aquajet",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aquajet",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73
+  ]
+ },
+ {
+  "name": "sweep aquastep",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aquastep",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep armorcannon",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "armorcannon",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   78,
+   77,
+   76,
+   75,
+   74,
+   74,
+   73,
+   72,
+   71,
+   70,
+   70,
+   69,
+   68,
+   67,
+   67,
+   66
+  ]
+ },
+ {
+  "name": "sweep astralbarrage",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "astralbarrage",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   107,
+   105,
+   104,
+   103,
+   102,
+   101,
+   100,
+   99,
+   98,
+   97,
+   96,
+   95,
+   94,
+   93,
+   92,
+   90
+  ]
+ },
+ {
+  "name": "sweep aurasphere",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aurasphere",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   104,
+   102,
+   100,
+   100,
+   98,
+   98,
+   96,
+   96,
+   94,
+   94,
+   92,
+   92,
+   90,
+   90,
+   88,
+   88
+  ]
+ },
+ {
+  "name": "sweep aurawheel",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "aurawheel",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   238,
+   235,
+   233,
+   230,
+   228,
+   226,
+   223,
+   221,
+   218,
+   216,
+   214,
+   211,
+   209,
+   207,
+   204,
+   202
+  ]
+ },
+ {
+  "name": "sweep avalanche",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "avalanche",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   130,
+   128,
+   127,
+   126,
+   124,
+   123,
+   122,
+   120,
+   119,
+   118,
+   117,
+   115,
+   114,
+   113,
+   111,
+   110
+  ]
+ },
+ {
+  "name": "sweep beakblast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "beakblast",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep beatup",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "beatup",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   27,
+   26,
+   26,
+   26,
+   25,
+   25,
+   25,
+   25,
+   24,
+   24,
+   24,
+   24,
+   23,
+   23,
+   23,
+   22
+  ]
+ },
+ {
+  "name": "sweep behemothblade",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "behemothblade",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep bite",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bite",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   130,
+   128,
+   127,
+   126,
+   124,
+   123,
+   122,
+   120,
+   119,
+   118,
+   117,
+   115,
+   114,
+   113,
+   111,
+   110
+  ]
+ },
+ {
+  "name": "sweep bitterblade",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bitterblade",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   195,
+   193,
+   191,
+   189,
+   187,
+   185,
+   183,
+   181,
+   179,
+   177,
+   175,
+   173,
+   171,
+   169,
+   167,
+   165
+  ]
+ },
+ {
+  "name": "sweep bittermalice",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "bittermalice",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   67,
+   66,
+   65,
+   64,
+   64,
+   63,
+   62,
+   62,
+   61,
+   60,
+   60,
+   59,
+   58,
+   58,
+   57,
+   56
+  ]
+ },
+ {
+  "name": "sweep bleakwindstorm",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bleakwindstorm",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60,
+   59,
+   59,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55
+  ]
+ },
+ {
+  "name": "sweep blizzard",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "blizzard",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   71,
+   70,
+   69,
+   68,
+   68,
+   67,
+   66,
+   66,
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60
+  ]
+ },
+ {
+  "name": "sweep bloodmoon",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bloodmoon",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   90,
+   89,
+   88,
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   81,
+   80,
+   79,
+   78,
+   77,
+   76
+  ]
+ },
+ {
+  "name": "sweep blueflare",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "blueflare",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   84,
+   83,
+   82,
+   81,
+   80,
+   79,
+   78,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73,
+   73,
+   72,
+   71
+  ]
+ },
+ {
+  "name": "sweep bodypress",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bodypress",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   358,
+   354,
+   350,
+   346,
+   342,
+   340,
+   336,
+   332,
+   328,
+   324,
+   322,
+   318,
+   314,
+   310,
+   306,
+   304
+  ]
+ },
+ {
+  "name": "sweep bodyslam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bodyslam",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   184,
+   182,
+   180,
+   178,
+   176,
+   174,
+   172,
+   171,
+   169,
+   167,
+   165,
+   163,
+   161,
+   160,
+   158,
+   156
+  ]
+ },
+ {
+  "name": "sweep boltstrike",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "boltstrike",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   281,
+   278,
+   275,
+   272,
+   269,
+   266,
+   264,
+   261,
+   258,
+   255,
+   252,
+   250,
+   247,
+   244,
+   241,
+   238
+  ]
+ },
+ {
+  "name": "sweep boomburst",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "boomburst",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   90,
+   89,
+   88,
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   81,
+   80,
+   79,
+   78,
+   77,
+   76
+  ]
+ },
+ {
+  "name": "sweep bravebird",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bravebird",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep brickbreak",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "brickbreak",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   326,
+   322,
+   318,
+   316,
+   312,
+   308,
+   306,
+   302,
+   298,
+   296,
+   292,
+   290,
+   286,
+   282,
+   280,
+   276
+  ]
+ },
+ {
+  "name": "sweep bugbite",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bugbite",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   130,
+   128,
+   127,
+   126,
+   124,
+   123,
+   122,
+   120,
+   119,
+   118,
+   117,
+   115,
+   114,
+   113,
+   111,
+   110
+  ]
+ },
+ {
+  "name": "sweep bugbuzz",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bugbuzz",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep bulletpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bulletpunch",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73
+  ]
+ },
+ {
+  "name": "sweep bulletseed",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "bulletseed",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   55,
+   54,
+   53,
+   53,
+   52,
+   52,
+   51,
+   51,
+   50,
+   50,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46
+  ]
+ },
+ {
+  "name": "sweep burningjealousy",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "burningjealousy",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   46,
+   45,
+   45,
+   44,
+   44,
+   43,
+   43,
+   42,
+   42,
+   41,
+   41,
+   40,
+   40,
+   40,
+   39,
+   39
+  ]
+ },
+ {
+  "name": "sweep ceaselessedge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ceaselessedge",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   131,
+   129,
+   128,
+   126,
+   125,
+   124,
+   122,
+   121,
+   119
+  ]
+ },
+ {
+  "name": "sweep circlethrow",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "circlethrow",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   260,
+   256,
+   254,
+   252,
+   248,
+   246,
+   244,
+   240,
+   238,
+   236,
+   234,
+   230,
+   228,
+   226,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep clangingscales",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "clangingscales",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   71,
+   70,
+   69,
+   68,
+   68,
+   67,
+   66,
+   66,
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60
+  ]
+ },
+ {
+  "name": "sweep clearsmog",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "clearsmog",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   33,
+   32,
+   32,
+   32,
+   31,
+   31,
+   31,
+   30,
+   30,
+   30,
+   29,
+   29,
+   29,
+   28,
+   28,
+   28
+  ]
+ },
+ {
+  "name": "sweep closecombat",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "closecombat",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   518,
+   512,
+   506,
+   502,
+   496,
+   492,
+   486,
+   480,
+   476,
+   470,
+   466,
+   460,
+   454,
+   450,
+   444,
+   440
+  ]
+ },
+ {
+  "name": "sweep collisioncourse",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "collisioncourse",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   574,
+   568,
+   562,
+   556,
+   550,
+   544,
+   538,
+   532,
+   528,
+   522,
+   516,
+   510,
+   504,
+   498,
+   492,
+   486
+  ]
+ },
+ {
+  "name": "sweep crabhammer",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "crabhammer",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep crunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "crunch",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep darkpulse",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "darkpulse",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep dazzlinggleam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dazzlinggleam",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   78,
+   76,
+   75,
+   75,
+   73,
+   73,
+   72,
+   72,
+   70,
+   70,
+   69,
+   69,
+   67,
+   67,
+   66,
+   66
+  ]
+ },
+ {
+  "name": "sweep diamondstorm",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "diamondstorm",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep direclaw",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "direclaw",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep discharge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "discharge",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep doubleedge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "doubleedge",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep doubleshock",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "doubleshock",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep dracometeor",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dracometeor",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   84,
+   83,
+   82,
+   81,
+   80,
+   79,
+   78,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73,
+   73,
+   72,
+   71
+  ]
+ },
+ {
+  "name": "sweep dragonascent",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dragonascent",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep dragonclaw",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dragonclaw",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep dragondarts",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dragondarts",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   109,
+   107,
+   106,
+   105,
+   104,
+   103,
+   102,
+   101,
+   100,
+   99,
+   98,
+   97,
+   95,
+   94,
+   93,
+   92
+  ]
+ },
+ {
+  "name": "sweep dragonenergy",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dragonenergy",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   97,
+   96,
+   95,
+   94,
+   93,
+   92,
+   91,
+   90,
+   89,
+   88,
+   87,
+   86,
+   85,
+   84,
+   83,
+   82
+  ]
+ },
+ {
+  "name": "sweep dragonpulse",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dragonpulse",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   55,
+   54,
+   53,
+   53,
+   52,
+   52,
+   51,
+   51,
+   50,
+   50,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46
+  ]
+ },
+ {
+  "name": "sweep dragontail",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dragontail",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   130,
+   128,
+   127,
+   126,
+   124,
+   123,
+   122,
+   120,
+   119,
+   118,
+   117,
+   115,
+   114,
+   113,
+   111,
+   110
+  ]
+ },
+ {
+  "name": "sweep drainingkiss",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "drainingkiss",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   49,
+   48,
+   48,
+   48,
+   46,
+   46,
+   46,
+   45,
+   45,
+   45,
+   43,
+   43,
+   43,
+   42,
+   42,
+   42
+  ]
+ },
+ {
+  "name": "sweep drainpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "drainpunch",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   326,
+   322,
+   318,
+   316,
+   312,
+   308,
+   306,
+   302,
+   298,
+   296,
+   292,
+   290,
+   286,
+   282,
+   280,
+   276
+  ]
+ },
+ {
+  "name": "sweep drillrun",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "drillrun",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep dualwingbeat",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dualwingbeat",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73
+  ]
+ },
+ {
+  "name": "sweep dynamaxcannon",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dynamaxcannon",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60,
+   59,
+   59,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55
+  ]
+ },
+ {
+  "name": "sweep dynamicpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "dynamicpunch",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   432,
+   426,
+   422,
+   418,
+   414,
+   410,
+   406,
+   400,
+   396,
+   392,
+   388,
+   384,
+   380,
+   374,
+   370,
+   366
+  ]
+ },
+ {
+  "name": "sweep earthpower",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthpower",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep earthquake",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "earthquake",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep electrodrift",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "electrodrift",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60,
+   59,
+   59,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55
+  ]
+ },
+ {
+  "name": "sweep endeavor",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "endeavor",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   320,
+   320,
+   320,
+   320,
+   320,
+   320,
+   320,
+   320,
+   320,
+   320,
+   320,
+   320,
+   320,
+   320,
+   320,
+   320
+  ]
+ },
+ {
+  "name": "sweep energyball",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "energyball",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep eruption",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "eruption",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   97,
+   96,
+   95,
+   94,
+   93,
+   92,
+   91,
+   90,
+   89,
+   88,
+   87,
+   86,
+   85,
+   84,
+   83,
+   82
+  ]
+ },
+ {
+  "name": "sweep esperwing",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "esperwing",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep expandingforce",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "expandingforce",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep explosion",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "explosion",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   539,
+   533,
+   528,
+   522,
+   517,
+   512,
+   506,
+   501,
+   495,
+   490,
+   485,
+   479,
+   474,
+   468,
+   463,
+   458
+  ]
+ },
+ {
+  "name": "sweep extremespeed",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "extremespeed",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep facade",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "facade",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   152,
+   150,
+   148,
+   147,
+   145,
+   144,
+   142,
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   130,
+   129
+  ]
+ },
+ {
+  "name": "sweep fakeout",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fakeout",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73
+  ]
+ },
+ {
+  "name": "sweep ficklebeam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ficklebeam",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep fierydance",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fierydance",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep fierywrath",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fierywrath",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep fireblast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fireblast",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   71,
+   70,
+   69,
+   68,
+   68,
+   67,
+   66,
+   66,
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60
+  ]
+ },
+ {
+  "name": "sweep firefang",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "firefang",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   131,
+   129,
+   128,
+   126,
+   125,
+   124,
+   122,
+   121,
+   119
+  ]
+ },
+ {
+  "name": "sweep firepunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "firepunch",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   163,
+   161,
+   159,
+   158,
+   156,
+   154,
+   153,
+   151,
+   149,
+   148,
+   146,
+   145,
+   143,
+   141,
+   140,
+   138
+  ]
+ },
+ {
+  "name": "sweep firstimpression",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "firstimpression",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   195,
+   193,
+   191,
+   189,
+   187,
+   185,
+   183,
+   181,
+   179,
+   177,
+   175,
+   173,
+   171,
+   169,
+   167,
+   165
+  ]
+ },
+ {
+  "name": "sweep flamecharge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flamecharge",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   109,
+   107,
+   106,
+   105,
+   104,
+   103,
+   102,
+   101,
+   100,
+   99,
+   98,
+   97,
+   95,
+   94,
+   93,
+   92
+  ]
+ },
+ {
+  "name": "sweep flamethrower",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flamethrower",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep flareblitz",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flareblitz",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep flashcannon",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flashcannon",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep fleurcannon",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fleurcannon",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   126,
+   124,
+   123,
+   121,
+   120,
+   118,
+   117,
+   117,
+   115,
+   114,
+   112,
+   111,
+   109,
+   109,
+   108,
+   106
+  ]
+ },
+ {
+  "name": "sweep flipturn",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flipturn",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   130,
+   128,
+   127,
+   126,
+   124,
+   123,
+   122,
+   120,
+   119,
+   118,
+   117,
+   115,
+   114,
+   113,
+   111,
+   110
+  ]
+ },
+ {
+  "name": "sweep flowertrick",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flowertrick",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   152,
+   150,
+   148,
+   147,
+   145,
+   144,
+   142,
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   130,
+   129
+  ]
+ },
+ {
+  "name": "sweep focusblast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "focusblast",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   156,
+   154,
+   152,
+   150,
+   148,
+   148,
+   146,
+   144,
+   142,
+   140,
+   140,
+   138,
+   136,
+   134,
+   134,
+   132
+  ]
+ },
+ {
+  "name": "sweep focuspunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "focuspunch",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   648,
+   640,
+   634,
+   628,
+   622,
+   614,
+   608,
+   602,
+   596,
+   588,
+   582,
+   576,
+   570,
+   562,
+   556,
+   550
+  ]
+ },
+ {
+  "name": "sweep foulplay",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "foulplay",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   81,
+   80,
+   79,
+   78,
+   77,
+   76,
+   76,
+   75,
+   74,
+   73,
+   72,
+   72,
+   71,
+   70,
+   69,
+   68
+  ]
+ },
+ {
+  "name": "sweep freezedry",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "freezedry",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   46,
+   45,
+   45,
+   44,
+   44,
+   43,
+   43,
+   42,
+   42,
+   41,
+   41,
+   40,
+   40,
+   40,
+   39,
+   39
+  ]
+ },
+ {
+  "name": "sweep freezingglare",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "freezingglare",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep fusionbolt",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fusionbolt",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep fusionflare",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "fusionflare",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60,
+   59,
+   59,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55
+  ]
+ },
+ {
+  "name": "sweep futuresight",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "futuresight",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   78,
+   77,
+   76,
+   75,
+   74,
+   74,
+   73,
+   72,
+   71,
+   70,
+   70,
+   69,
+   68,
+   67,
+   67,
+   66
+  ]
+ },
+ {
+  "name": "sweep gigadrain",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "gigadrain",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44,
+   43,
+   43,
+   42,
+   42,
+   41
+  ]
+ },
+ {
+  "name": "sweep gigaimpact",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "gigaimpact",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   324,
+   320,
+   317,
+   314,
+   311,
+   307,
+   304,
+   301,
+   298,
+   294,
+   291,
+   288,
+   285,
+   281,
+   278,
+   275
+  ]
+ },
+ {
+  "name": "sweep gigatonhammer",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "gigatonhammer",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   345,
+   341,
+   338,
+   334,
+   331,
+   327,
+   324,
+   320,
+   317,
+   313,
+   310,
+   307,
+   303,
+   300,
+   296,
+   293
+  ]
+ },
+ {
+  "name": "sweep glaciallance",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "glaciallance",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep glaiverush",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "glaiverush",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep grassknot",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "grassknot",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   40,
+   39,
+   39,
+   38,
+   38,
+   38,
+   37,
+   37,
+   36,
+   36,
+   36,
+   35,
+   35,
+   34,
+   34,
+   34
+  ]
+ },
+ {
+  "name": "sweep grassyglide",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "grassyglide",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   120,
+   118,
+   117,
+   116,
+   115,
+   114,
+   112,
+   111,
+   110,
+   109,
+   108,
+   106,
+   105,
+   104,
+   103,
+   102
+  ]
+ },
+ {
+  "name": "sweep gravapple",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "gravapple",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep gunkshot",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "gunkshot",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep headbutt",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "headbutt",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   152,
+   150,
+   148,
+   147,
+   145,
+   144,
+   142,
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   130,
+   129
+  ]
+ },
+ {
+  "name": "sweep headlongrush",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "headlongrush",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep headsmash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "headsmash",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   324,
+   320,
+   317,
+   314,
+   311,
+   307,
+   304,
+   301,
+   298,
+   294,
+   291,
+   288,
+   285,
+   281,
+   278,
+   275
+  ]
+ },
+ {
+  "name": "sweep heatcrash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "heatcrash",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73
+  ]
+ },
+ {
+  "name": "sweep heatwave",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "heatwave",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   62,
+   61,
+   60,
+   60,
+   59,
+   58,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55,
+   54,
+   53,
+   53,
+   52
+  ]
+ },
+ {
+  "name": "sweep heavyslam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "heavyslam",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73
+  ]
+ },
+ {
+  "name": "sweep hex",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "hex",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   58,
+   57,
+   56,
+   56,
+   55,
+   55,
+   54,
+   53,
+   53,
+   52,
+   52,
+   51,
+   51,
+   50,
+   49,
+   49
+  ]
+ },
+ {
+  "name": "sweep highhorsepower",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "highhorsepower",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   206,
+   203,
+   201,
+   199,
+   197,
+   195,
+   193,
+   191,
+   189,
+   187,
+   185,
+   183,
+   181,
+   179,
+   177,
+   175
+  ]
+ },
+ {
+  "name": "sweep highjumpkick",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "highjumpkick",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   562,
+   556,
+   550,
+   544,
+   538,
+   532,
+   528,
+   522,
+   516,
+   510,
+   504,
+   500,
+   494,
+   488,
+   482,
+   476
+  ]
+ },
+ {
+  "name": "sweep hornleech",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hornleech",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   163,
+   161,
+   159,
+   158,
+   156,
+   154,
+   153,
+   151,
+   149,
+   148,
+   146,
+   145,
+   143,
+   141,
+   140,
+   138
+  ]
+ },
+ {
+  "name": "sweep hurricane",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hurricane",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   71,
+   70,
+   69,
+   68,
+   68,
+   67,
+   66,
+   66,
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60
+  ]
+ },
+ {
+  "name": "sweep hydropump",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hydropump",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   71,
+   70,
+   69,
+   68,
+   68,
+   67,
+   66,
+   66,
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60
+  ]
+ },
+ {
+  "name": "sweep hydrosteam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hydrosteam",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep hyperspacefury",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hyperspacefury",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep hypervoice",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hypervoice",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep icebeam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "icebeam",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep icefang",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "icefang",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   131,
+   129,
+   128,
+   126,
+   125,
+   124,
+   122,
+   121,
+   119
+  ]
+ },
+ {
+  "name": "sweep icehammer",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "icehammer",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep icepunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "icepunch",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   163,
+   161,
+   159,
+   158,
+   156,
+   154,
+   153,
+   151,
+   149,
+   148,
+   146,
+   145,
+   143,
+   141,
+   140,
+   138
+  ]
+ },
+ {
+  "name": "sweep iceshard",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "iceshard",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73
+  ]
+ },
+ {
+  "name": "sweep icespinner",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "icespinner",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep iciclecrash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "iciclecrash",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   184,
+   182,
+   180,
+   178,
+   176,
+   174,
+   172,
+   171,
+   169,
+   167,
+   165,
+   163,
+   161,
+   160,
+   158,
+   156
+  ]
+ },
+ {
+  "name": "sweep iciclespear",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "iciclespear",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   55,
+   54,
+   53,
+   53,
+   52,
+   52,
+   51,
+   51,
+   50,
+   50,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46
+  ]
+ },
+ {
+  "name": "sweep ironhead",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ironhead",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep irontail",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "irontail",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep ivycudgel",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ivycudgel",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep jetpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "jetpunch",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   130,
+   128,
+   127,
+   126,
+   124,
+   123,
+   122,
+   120,
+   119,
+   118,
+   117,
+   115,
+   114,
+   113,
+   111,
+   110
+  ]
+ },
+ {
+  "name": "sweep judgment",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "judgment",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60,
+   59,
+   59,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55
+  ]
+ },
+ {
+  "name": "sweep knockoff",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "knockoff",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   131,
+   129,
+   128,
+   126,
+   125,
+   124,
+   122,
+   121,
+   119
+  ]
+ },
+ {
+  "name": "sweep kowtowcleave",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "kowtowcleave",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   184,
+   182,
+   180,
+   178,
+   176,
+   174,
+   172,
+   171,
+   169,
+   167,
+   165,
+   163,
+   161,
+   160,
+   158,
+   156
+  ]
+ },
+ {
+  "name": "sweep lashout",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "lashout",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   163,
+   161,
+   159,
+   158,
+   156,
+   154,
+   153,
+   151,
+   149,
+   148,
+   146,
+   145,
+   143,
+   141,
+   140,
+   138
+  ]
+ },
+ {
+  "name": "sweep lavaplume",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "lavaplume",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep leafblade",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "leafblade",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   195,
+   193,
+   191,
+   189,
+   187,
+   185,
+   183,
+   181,
+   179,
+   177,
+   175,
+   173,
+   171,
+   169,
+   167,
+   165
+  ]
+ },
+ {
+  "name": "sweep leafstorm",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "leafstorm",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   84,
+   83,
+   82,
+   81,
+   80,
+   79,
+   78,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73,
+   73,
+   72,
+   71
+  ]
+ },
+ {
+  "name": "sweep leechlife",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "leechlife",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep liquidation",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "liquidation",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   184,
+   182,
+   180,
+   178,
+   176,
+   174,
+   172,
+   171,
+   169,
+   167,
+   165,
+   163,
+   161,
+   160,
+   158,
+   156
+  ]
+ },
+ {
+  "name": "sweep lowkick",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "lowkick",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   260,
+   256,
+   254,
+   252,
+   248,
+   246,
+   244,
+   240,
+   238,
+   236,
+   234,
+   230,
+   228,
+   226,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep luminacrash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "luminacrash",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep lunge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "lunge",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep lusterpurge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "lusterpurge",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   62,
+   61,
+   60,
+   60,
+   59,
+   58,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55,
+   54,
+   53,
+   53,
+   52
+  ]
+ },
+ {
+  "name": "sweep machpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "machpunch",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   174,
+   172,
+   170,
+   168,
+   166,
+   164,
+   162,
+   160,
+   160,
+   158,
+   156,
+   154,
+   152,
+   150,
+   148,
+   146
+  ]
+ },
+ {
+  "name": "sweep magmastorm",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "magmastorm",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60,
+   59,
+   59,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55
+  ]
+ },
+ {
+  "name": "sweep makeitrain",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "makeitrain",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   78,
+   77,
+   76,
+   75,
+   74,
+   74,
+   73,
+   72,
+   71,
+   70,
+   70,
+   69,
+   68,
+   67,
+   67,
+   66
+  ]
+ },
+ {
+  "name": "sweep malignantchain",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "malignantchain",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60,
+   59,
+   59,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55
+  ]
+ },
+ {
+  "name": "sweep matchagotcha",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "matchagotcha",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep megahorn",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "megahorn",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep meteorbeam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "meteorbeam",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   78,
+   77,
+   76,
+   75,
+   74,
+   74,
+   73,
+   72,
+   71,
+   70,
+   70,
+   69,
+   68,
+   67,
+   67,
+   66
+  ]
+ },
+ {
+  "name": "sweep meteormash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "meteormash",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   195,
+   193,
+   191,
+   189,
+   187,
+   185,
+   183,
+   181,
+   179,
+   177,
+   175,
+   173,
+   171,
+   169,
+   167,
+   165
+  ]
+ },
+ {
+  "name": "sweep mightycleave",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "mightycleave",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   206,
+   203,
+   201,
+   199,
+   197,
+   195,
+   193,
+   191,
+   189,
+   187,
+   185,
+   183,
+   181,
+   179,
+   177,
+   175
+  ]
+ },
+ {
+  "name": "sweep mirrorcoat",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "mirrorcoat",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "sweep moonblast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "moonblast",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   93,
+   91,
+   90,
+   90,
+   88,
+   87,
+   87,
+   85,
+   85,
+   84,
+   82,
+   82,
+   81,
+   79,
+   79,
+   78
+  ]
+ },
+ {
+  "name": "sweep moongeistbeam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "moongeistbeam",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   89,
+   88,
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77,
+   76,
+   75
+  ]
+ },
+ {
+  "name": "sweep mortalspin",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "mortalspin",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   66,
+   65,
+   64,
+   64,
+   63,
+   62,
+   62,
+   61,
+   60,
+   60,
+   59,
+   58,
+   58,
+   57,
+   56,
+   56
+  ]
+ },
+ {
+  "name": "sweep muddywater",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "muddywater",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep mudshot",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "mudshot",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   36,
+   35,
+   35,
+   34,
+   34,
+   34,
+   33,
+   33,
+   33,
+   32,
+   32,
+   32,
+   31,
+   31,
+   30,
+   30
+  ]
+ },
+ {
+  "name": "sweep mysticalfire",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "mysticalfire",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44,
+   43,
+   43,
+   42,
+   42,
+   41
+  ]
+ },
+ {
+  "name": "sweep nightshade",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "nightshade",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100
+  ]
+ },
+ {
+  "name": "sweep nightslash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "nightslash",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   152,
+   150,
+   148,
+   147,
+   145,
+   144,
+   142,
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   130,
+   129
+  ]
+ },
+ {
+  "name": "sweep nuzzle",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "nuzzle",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   44,
+   43,
+   43,
+   42,
+   42,
+   41,
+   41,
+   40,
+   40,
+   40,
+   39,
+   39,
+   38,
+   38,
+   37,
+   37
+  ]
+ },
+ {
+  "name": "sweep originpulse",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "originpulse",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   71,
+   70,
+   69,
+   68,
+   68,
+   67,
+   66,
+   66,
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60
+  ]
+ },
+ {
+  "name": "sweep outrage",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "outrage",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep overdrive",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "overdrive",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep overheat",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "overheat",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   84,
+   83,
+   82,
+   81,
+   80,
+   79,
+   78,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73,
+   73,
+   72,
+   71
+  ]
+ },
+ {
+  "name": "sweep payback",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "payback",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep petalblizzard",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "petalblizzard",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   195,
+   193,
+   191,
+   189,
+   187,
+   185,
+   183,
+   181,
+   179,
+   177,
+   175,
+   173,
+   171,
+   169,
+   167,
+   165
+  ]
+ },
+ {
+  "name": "sweep petaldance",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "petaldance",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   78,
+   77,
+   76,
+   75,
+   74,
+   74,
+   73,
+   72,
+   71,
+   70,
+   70,
+   69,
+   68,
+   67,
+   67,
+   66
+  ]
+ },
+ {
+  "name": "sweep photongeyser",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "photongeyser",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60,
+   59,
+   59,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55
+  ]
+ },
+ {
+  "name": "sweep playrough",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "playrough",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   292,
+   289,
+   286,
+   283,
+   280,
+   277,
+   274,
+   271,
+   268,
+   265,
+   262,
+   259,
+   256,
+   253,
+   250,
+   247
+  ]
+ },
+ {
+  "name": "sweep poisonfang",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "poisonfang",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   109,
+   107,
+   106,
+   105,
+   104,
+   103,
+   102,
+   101,
+   100,
+   99,
+   98,
+   97,
+   95,
+   94,
+   93,
+   92
+  ]
+ },
+ {
+  "name": "sweep poisonjab",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "poisonjab",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep pollenpuff",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "pollenpuff",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep poltergeist",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "poltergeist",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   91,
+   90,
+   89,
+   88,
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77
+  ]
+ },
+ {
+  "name": "sweep populationbomb",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "populationbomb",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   44,
+   43,
+   43,
+   42,
+   42,
+   41,
+   41,
+   40,
+   40,
+   40,
+   39,
+   39,
+   38,
+   38,
+   37,
+   37
+  ]
+ },
+ {
+  "name": "sweep pounce",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "pounce",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   109,
+   107,
+   106,
+   105,
+   104,
+   103,
+   102,
+   101,
+   100,
+   99,
+   98,
+   97,
+   95,
+   94,
+   93,
+   92
+  ]
+ },
+ {
+  "name": "sweep powergem",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "powergem",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep powertrip",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "powertrip",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   44,
+   43,
+   43,
+   42,
+   42,
+   41,
+   41,
+   40,
+   40,
+   40,
+   39,
+   39,
+   38,
+   38,
+   37,
+   37
+  ]
+ },
+ {
+  "name": "sweep powerwhip",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "powerwhip",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep precipiceblades",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "precipiceblades",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep psyblade",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psyblade",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep psychic",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psychic",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep psychicfangs",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psychicfangs",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   184,
+   182,
+   180,
+   178,
+   176,
+   174,
+   172,
+   171,
+   169,
+   167,
+   165,
+   163,
+   161,
+   160,
+   158,
+   156
+  ]
+ },
+ {
+  "name": "sweep psychicnoise",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psychicnoise",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44,
+   43,
+   43,
+   42,
+   42,
+   41
+  ]
+ },
+ {
+  "name": "sweep psychoboost",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psychoboost",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   90,
+   89,
+   88,
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   81,
+   80,
+   79,
+   78,
+   77,
+   76
+  ]
+ },
+ {
+  "name": "sweep psychocut",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psychocut",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   152,
+   150,
+   148,
+   147,
+   145,
+   144,
+   142,
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   130,
+   129
+  ]
+ },
+ {
+  "name": "sweep psyshock",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psyshock",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   217,
+   214,
+   212,
+   210,
+   208,
+   206,
+   203,
+   201,
+   199,
+   197,
+   195,
+   193,
+   190,
+   188,
+   186,
+   184
+  ]
+ },
+ {
+  "name": "sweep psystrike",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "psystrike",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   271,
+   268,
+   265,
+   262,
+   260,
+   257,
+   254,
+   252,
+   249,
+   246,
+   243,
+   241,
+   238,
+   235,
+   233,
+   230
+  ]
+ },
+ {
+  "name": "sweep pyroball",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "pyroball",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep quickattack",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "quickattack",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73
+  ]
+ },
+ {
+  "name": "sweep ragefist",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "ragefist",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   42,
+   41,
+   41,
+   40,
+   40,
+   39,
+   39,
+   39,
+   38,
+   38,
+   37,
+   37,
+   36,
+   36,
+   36,
+   35
+  ]
+ },
+ {
+  "name": "sweep ragingbull",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ragingbull",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   195,
+   193,
+   191,
+   189,
+   187,
+   185,
+   183,
+   181,
+   179,
+   177,
+   175,
+   173,
+   171,
+   169,
+   167,
+   165
+  ]
+ },
+ {
+  "name": "sweep rapidspin",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "rapidspin",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   109,
+   107,
+   106,
+   105,
+   104,
+   103,
+   102,
+   101,
+   100,
+   99,
+   98,
+   97,
+   95,
+   94,
+   93,
+   92
+  ]
+ },
+ {
+  "name": "sweep razorshell",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "razorshell",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   163,
+   161,
+   159,
+   158,
+   156,
+   154,
+   153,
+   151,
+   149,
+   148,
+   146,
+   145,
+   143,
+   141,
+   140,
+   138
+  ]
+ },
+ {
+  "name": "sweep relicsong",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "relicsong",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44,
+   43,
+   43,
+   42,
+   42,
+   41
+  ]
+ },
+ {
+  "name": "sweep revelationdance",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "revelationdance",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   88,
+   87,
+   85,
+   85,
+   84,
+   84,
+   82,
+   81,
+   81,
+   79,
+   79,
+   78,
+   76,
+   76,
+   75,
+   75
+  ]
+ },
+ {
+  "name": "sweep rockblast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "rockblast",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   55,
+   54,
+   53,
+   53,
+   52,
+   52,
+   51,
+   51,
+   50,
+   50,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46
+  ]
+ },
+ {
+  "name": "sweep rockslide",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "rockslide",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   163,
+   161,
+   159,
+   158,
+   156,
+   154,
+   153,
+   151,
+   149,
+   148,
+   146,
+   145,
+   143,
+   141,
+   140,
+   138
+  ]
+ },
+ {
+  "name": "sweep rocktomb",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "rocktomb",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   130,
+   128,
+   127,
+   126,
+   124,
+   123,
+   122,
+   120,
+   119,
+   118,
+   117,
+   115,
+   114,
+   113,
+   111,
+   110
+  ]
+ },
+ {
+  "name": "sweep ruination",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ruination",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336
+  ]
+ },
+ {
+  "name": "sweep sacredfire",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "sacredfire",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep sacredsword",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "sacredsword",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   390,
+   386,
+   382,
+   378,
+   374,
+   370,
+   366,
+   362,
+   358,
+   354,
+   350,
+   346,
+   342,
+   338,
+   334,
+   330
+  ]
+ },
+ {
+  "name": "sweep saltcure",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "saltcure",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   87,
+   86,
+   85,
+   84,
+   83,
+   82,
+   81,
+   80,
+   80,
+   79,
+   78,
+   77,
+   76,
+   75,
+   74,
+   73
+  ]
+ },
+ {
+  "name": "sweep scald",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "scald",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep scaleshot",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "scaleshot",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   55,
+   54,
+   53,
+   53,
+   52,
+   52,
+   51,
+   51,
+   50,
+   50,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46
+  ]
+ },
+ {
+  "name": "sweep scorchingsands",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "scorchingsands",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   46,
+   45,
+   45,
+   44,
+   44,
+   43,
+   43,
+   42,
+   42,
+   41,
+   41,
+   40,
+   40,
+   40,
+   39,
+   39
+  ]
+ },
+ {
+  "name": "sweep secretsword",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "secretsword",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   462,
+   456,
+   452,
+   448,
+   442,
+   438,
+   434,
+   428,
+   424,
+   420,
+   414,
+   410,
+   406,
+   400,
+   396,
+   392
+  ]
+ },
+ {
+  "name": "sweep seedbomb",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "seedbomb",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep seedflare",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "seedflare",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   78,
+   77,
+   76,
+   75,
+   74,
+   74,
+   73,
+   72,
+   71,
+   70,
+   70,
+   69,
+   68,
+   67,
+   67,
+   66
+  ]
+ },
+ {
+  "name": "sweep seismictoss",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "seismictoss",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100
+  ]
+ },
+ {
+  "name": "sweep shadowball",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowball",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   72,
+   71,
+   70,
+   69,
+   69,
+   68,
+   67,
+   66,
+   66,
+   65,
+   64,
+   64,
+   63,
+   62,
+   61,
+   61
+  ]
+ },
+ {
+  "name": "sweep shadowclaw",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowclaw",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep shadowsneak",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "shadowsneak",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   34,
+   33,
+   33,
+   32,
+   32,
+   32,
+   31,
+   31,
+   31,
+   30,
+   30,
+   30,
+   29,
+   29,
+   29,
+   28
+  ]
+ },
+ {
+  "name": "sweep shellsidearm",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "shellsidearm",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   195,
+   193,
+   191,
+   189,
+   187,
+   185,
+   183,
+   181,
+   179,
+   177,
+   175,
+   173,
+   171,
+   169,
+   167,
+   165
+  ]
+ },
+ {
+  "name": "sweep sludgebomb",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "sludgebomb",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep sludgewave",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "sludgewave",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   62,
+   61,
+   60,
+   60,
+   59,
+   58,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55,
+   54,
+   53,
+   53,
+   52
+  ]
+ },
+ {
+  "name": "sweep solarbeam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "solarbeam",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   78,
+   77,
+   76,
+   75,
+   74,
+   74,
+   73,
+   72,
+   71,
+   70,
+   70,
+   69,
+   68,
+   67,
+   67,
+   66
+  ]
+ },
+ {
+  "name": "sweep spacialrend",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "spacialrend",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60,
+   59,
+   59,
+   58,
+   57,
+   57,
+   56,
+   55,
+   55
+  ]
+ },
+ {
+  "name": "sweep sparklingaria",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "sparklingaria",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep spiritbreak",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "spiritbreak",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   244,
+   241,
+   238,
+   237,
+   234,
+   231,
+   229,
+   226,
+   223,
+   222,
+   219,
+   217,
+   214,
+   211,
+   210,
+   207
+  ]
+ },
+ {
+  "name": "sweep spiritshackle",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "move": "spiritshackle",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 352,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   67,
+   66,
+   65,
+   64,
+   64,
+   63,
+   62,
+   62,
+   61,
+   60,
+   60,
+   59,
+   58,
+   58,
+   57,
+   56
+  ]
+ },
+ {
+  "name": "sweep steameruption",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "steameruption",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   71,
+   70,
+   69,
+   68,
+   68,
+   67,
+   66,
+   66,
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60
+  ]
+ },
+ {
+  "name": "sweep stompingtantrum",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "stompingtantrum",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   163,
+   161,
+   159,
+   158,
+   156,
+   154,
+   153,
+   151,
+   149,
+   148,
+   146,
+   145,
+   143,
+   141,
+   140,
+   138
+  ]
+ },
+ {
+  "name": "sweep stoneaxe",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "stoneaxe",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   131,
+   129,
+   128,
+   126,
+   125,
+   124,
+   122,
+   121,
+   119
+  ]
+ },
+ {
+  "name": "sweep stoneedge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "stoneedge",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep storedpower",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "storedpower",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   14,
+   13,
+   13,
+   13,
+   13,
+   13,
+   13,
+   13,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   12,
+   11
+  ]
+ },
+ {
+  "name": "sweep strangesteam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "strangesteam",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   88,
+   87,
+   85,
+   85,
+   84,
+   84,
+   82,
+   81,
+   81,
+   79,
+   79,
+   78,
+   76,
+   76,
+   75,
+   75
+  ]
+ },
+ {
+  "name": "sweep suckerpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "suckerpunch",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   152,
+   150,
+   148,
+   147,
+   145,
+   144,
+   142,
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   130,
+   129
+  ]
+ },
+ {
+  "name": "sweep sunsteelstrike",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "sunsteelstrike",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep supercellslam",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "supercellslam",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   216,
+   213,
+   211,
+   209,
+   207,
+   205,
+   203,
+   200,
+   198,
+   196,
+   194,
+   192,
+   190,
+   187,
+   185,
+   183
+  ]
+ },
+ {
+  "name": "sweep superfang",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "superfang",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336,
+   336
+  ]
+ },
+ {
+  "name": "sweep superpower",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "superpower",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   518,
+   512,
+   506,
+   502,
+   496,
+   492,
+   486,
+   480,
+   476,
+   470,
+   466,
+   460,
+   454,
+   450,
+   444,
+   440
+  ]
+ },
+ {
+  "name": "sweep surf",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "surf",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep surgingstrikes",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "surgingstrikes",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   55,
+   54,
+   53,
+   53,
+   52,
+   52,
+   51,
+   51,
+   50,
+   50,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46
+  ]
+ },
+ {
+  "name": "sweep tachyoncutter",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "tachyoncutter",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   33,
+   32,
+   32,
+   32,
+   31,
+   31,
+   31,
+   30,
+   30,
+   30,
+   29,
+   29,
+   29,
+   28,
+   28,
+   28
+  ]
+ },
+ {
+  "name": "sweep tailslap",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "tailslap",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   55,
+   54,
+   53,
+   53,
+   52,
+   52,
+   51,
+   51,
+   50,
+   50,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46
+  ]
+ },
+ {
+  "name": "sweep temperflare",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "temperflare",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   163,
+   161,
+   159,
+   158,
+   156,
+   154,
+   153,
+   151,
+   149,
+   148,
+   146,
+   145,
+   143,
+   141,
+   140,
+   138
+  ]
+ },
+ {
+  "name": "sweep terablast",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "terablast",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep terastarstorm",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "terastarstorm",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   78,
+   77,
+   76,
+   75,
+   74,
+   74,
+   73,
+   72,
+   71,
+   70,
+   70,
+   69,
+   68,
+   67,
+   67,
+   66
+  ]
+ },
+ {
+  "name": "sweep throatchop",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "throatchop",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep thunder",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "thunder",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   71,
+   70,
+   69,
+   68,
+   68,
+   67,
+   66,
+   66,
+   65,
+   64,
+   63,
+   63,
+   62,
+   61,
+   61,
+   60
+  ]
+ },
+ {
+  "name": "sweep thunderbolt",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "thunderbolt",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   59,
+   58,
+   57,
+   57,
+   56,
+   56,
+   55,
+   54,
+   54,
+   53,
+   53,
+   52,
+   51,
+   51,
+   50,
+   50
+  ]
+ },
+ {
+  "name": "sweep thunderclap",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "thunderclap",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   46,
+   45,
+   45,
+   44,
+   44,
+   43,
+   43,
+   42,
+   42,
+   41,
+   41,
+   40,
+   40,
+   40,
+   39,
+   39
+  ]
+ },
+ {
+  "name": "sweep thunderpunch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "thunderpunch",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   163,
+   161,
+   159,
+   158,
+   156,
+   154,
+   153,
+   151,
+   149,
+   148,
+   146,
+   145,
+   143,
+   141,
+   140,
+   138
+  ]
+ },
+ {
+  "name": "sweep torchsong",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "torchsong",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep trailblaze",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "trailblaze",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   109,
+   107,
+   106,
+   105,
+   104,
+   103,
+   102,
+   101,
+   100,
+   99,
+   98,
+   97,
+   95,
+   94,
+   93,
+   92
+  ]
+ },
+ {
+  "name": "sweep triattack",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "triattack",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   52,
+   51,
+   50,
+   50,
+   49,
+   49,
+   48,
+   48,
+   47,
+   47,
+   46,
+   46,
+   45,
+   45,
+   44,
+   44
+  ]
+ },
+ {
+  "name": "sweep triplearrows",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "triplearrows",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   390,
+   386,
+   382,
+   378,
+   374,
+   370,
+   366,
+   362,
+   358,
+   354,
+   350,
+   346,
+   342,
+   338,
+   334,
+   330
+  ]
+ },
+ {
+  "name": "sweep tripleaxel",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "tripleaxel",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "sweep uturn",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "uturn",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   152,
+   150,
+   148,
+   147,
+   145,
+   144,
+   142,
+   141,
+   139,
+   138,
+   136,
+   135,
+   133,
+   132,
+   130,
+   129
+  ]
+ },
+ {
+  "name": "sweep vacuumwave",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "vacuumwave",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   54,
+   52,
+   52,
+   52,
+   50,
+   50,
+   50,
+   50,
+   48,
+   48,
+   48,
+   48,
+   46,
+   46,
+   46,
+   44
+  ]
+ },
+ {
+  "name": "sweep voltswitch",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "voltswitch",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   46,
+   45,
+   45,
+   44,
+   44,
+   43,
+   43,
+   42,
+   42,
+   41,
+   41,
+   40,
+   40,
+   40,
+   39,
+   39
+  ]
+ },
+ {
+  "name": "sweep volttackle",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "volttackle",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep waterfall",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "waterfall",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep waterpulse",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "waterpulse",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   40,
+   39,
+   39,
+   38,
+   38,
+   38,
+   37,
+   37,
+   36,
+   36,
+   36,
+   35,
+   35,
+   34,
+   34,
+   34
+  ]
+ },
+ {
+  "name": "sweep waterspout",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "waterspout",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   97,
+   96,
+   95,
+   94,
+   93,
+   92,
+   91,
+   90,
+   89,
+   88,
+   87,
+   86,
+   85,
+   84,
+   83,
+   82
+  ]
+ },
+ {
+  "name": "sweep wavecrash",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "wavecrash",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep weatherball",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "weatherball",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   33,
+   32,
+   32,
+   32,
+   31,
+   31,
+   31,
+   30,
+   30,
+   30,
+   29,
+   29,
+   29,
+   28,
+   28,
+   28
+  ]
+ },
+ {
+  "name": "sweep whirlpool",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "whirlpool",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   24,
+   23,
+   23,
+   23,
+   23,
+   22,
+   22,
+   22,
+   22,
+   21,
+   21,
+   21,
+   21,
+   20,
+   20,
+   20
+  ]
+ },
+ {
+  "name": "sweep wickedblow",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "wickedblow",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   163,
+   161,
+   159,
+   158,
+   156,
+   154,
+   153,
+   151,
+   149,
+   148,
+   146,
+   145,
+   143,
+   141,
+   140,
+   138
+  ]
+ },
+ {
+  "name": "sweep wildcharge",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "wildcharge",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   195,
+   193,
+   191,
+   189,
+   187,
+   185,
+   183,
+   181,
+   179,
+   177,
+   175,
+   173,
+   171,
+   169,
+   167,
+   165
+  ]
+ },
+ {
+  "name": "sweep woodhammer",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "woodhammer",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   259,
+   256,
+   253,
+   251,
+   248,
+   246,
+   243,
+   240,
+   238,
+   235,
+   233,
+   230,
+   227,
+   225,
+   222,
+   220
+  ]
+ },
+ {
+  "name": "sweep xscissor",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "xscissor",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep zenheadbutt",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "zenheadbutt",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ },
+ {
+  "name": "sweep zingzap",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "zingzap",
+  "movesFirst": false,
+  "attackerStats": {
+   "atk": 197,
+   "def": 203,
+   "spa": 247,
+   "spd": 237,
+   "spe": 177
+  },
+  "defenderStats": {
+   "atk": 77,
+   "def": 77,
+   "spa": 207,
+   "spd": 327,
+   "spe": 167
+  },
+  "attackerMaxHP": 352,
+  "defenderMaxHP": 672,
+  "actualWeather": null,
+  "actualTerrain": null,
+  "damages": [
+   173,
+   171,
+   169,
+   167,
+   166,
+   164,
+   162,
+   160,
+   159,
+   157,
+   155,
+   153,
+   152,
+   150,
+   148,
+   147
+  ]
+ }
+]

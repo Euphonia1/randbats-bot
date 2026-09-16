@@ -28,7 +28,7 @@ from .mechanics import (act, active_types, apply_boosts, cure_status, get_indexe
                         damage_pokemon, effective_speed, effective_weather,
                         fraction_of_max, heal_pokemon, is_grounded, set_status,
                         set_volatile)
-from .stats import boost_multiply, idiv
+from .stats import boost_multiply, chain_modify, idiv
 
 
 # --- building the calculation contexts ---------------------------------------
@@ -96,6 +96,11 @@ def build_cb_ctx(data, state, user, target, moves_first, pp_left, hit_number=1):
         user_ability=slot_get(state.ability, user, ui),
         last_move_failed=state.last_move_failed[user],
         stats_lowered=state.stats_lowered[user],
+        user_type=active_types(state, user)[0],
+        # Filled in once the real effectiveness is known (see execute_move).
+        type_exp=jnp.int32(0),
+        dfn_def=boosted(d_stats, state.boosts[target], C.DEF),
+        dfn_spd=boosted(d_stats, state.boosts[target], C.SPD),
     )
 
 
@@ -282,12 +287,15 @@ def _eff_haze(data, state, user, target, key):
 
 
 def _eff_leechseed(data, state, user, target, key):
-    types = active_types(state, target)
-    ok = jnp.logical_not(jnp.any(types == C.GRASS)) & \
-         (state.volatiles[target, C.V_LEECHSEED] == 0)
+    """Grass types cannot be seeded.
+
+    The volatile itself is declarative and has already been applied by the time
+    this runs, so the handler's job is to take it back off a Grass type.
+    """
+    grass = jnp.any(active_types(state, target) == C.GRASS)
     return state._replace(
         volatiles=state.volatiles.at[target, C.V_LEECHSEED].set(
-            jnp.where(ok, jnp.int8(1), state.volatiles[target, C.V_LEECHSEED])))
+            jnp.where(grass, jnp.int8(0), state.volatiles[target, C.V_LEECHSEED])))
 
 
 def _eff_painsplit(data, state, user, target, key):
@@ -318,11 +326,11 @@ def _remove_hazards(state, side):
 
 
 def _eff_rapidspin(data, state, user, target, key):
+    # The Speed boost is a 100%-chance secondary in the move data, so it is
+    # already applied by `_apply_secondaries`; doing it here too doubled it.
     state = _remove_hazards(state, user)
-    state = state._replace(
+    return state._replace(
         volatiles=state.volatiles.at[user, C.V_PARTIALLYTRAPPED].set(jnp.int8(0)))
-    state, _ = apply_boosts(state, user, jnp.zeros(7, jnp.int32).at[C.B_SPE].set(1))
-    return state
 
 
 def _eff_mortalspin(data, state, user, target, key):
@@ -365,23 +373,29 @@ def _eff_roost(data, state, user, target, key):
 
 
 def _eff_weather_heal(data, state, user, target, key):
-    """Synthesis / Moonlight / Morning Sun: 2/3 in sun, 1/4 in other weather."""
+    """Synthesis / Moonlight / Morning Sun: 2/3 in sun, 1/4 in other weather.
+
+    Showdown heals `modify(maxhp, factor)`, which quantises the factor to
+    4096ths -- 0.667 becomes 2731/4096, not exactly two thirds -- so a plain
+    fraction is off by a point.
+    """
     ui = act(state, user)
     w = effective_weather(state)
     sun = (w == C.SUN) | (w == C.HARSH_SUN)
     other = (w != C.WEATHER_NONE) & jnp.logical_not(sun)
-    num = jnp.where(sun, 2, jnp.where(other, 1, 1))
-    den = jnp.where(sun, 3, jnp.where(other, 4, 2))
-    state, _ = heal_pokemon(state, user, ui, fraction_of_max(state, user, ui, num, den))
+    factor = jnp.where(sun, 2731, jnp.where(other, 1024, 2048))
+    maxhp = slot_get(state.maxhp, user, ui).astype(jnp.int32)
+    state, _ = heal_pokemon(state, user, ui, chain_modify(maxhp, factor))
     return state
 
 
 def _eff_shoreup(data, state, user, target, key):
+    """Two thirds in sand, half otherwise -- same 4096ths rounding as above."""
     ui = act(state, user)
     sand = effective_weather(state) == C.SAND
-    num = jnp.where(sand, 2, 1)
-    den = jnp.where(sand, 3, 2)
-    state, _ = heal_pokemon(state, user, ui, fraction_of_max(state, user, ui, num, den))
+    factor = jnp.where(sand, 2731, 2048)
+    maxhp = slot_get(state.maxhp, user, ui).astype(jnp.int32)
+    state, _ = heal_pokemon(state, user, ui, chain_modify(maxhp, factor))
     return state
 
 
@@ -596,7 +610,7 @@ EFFECT_FNS = {
     "protectvariant": _eff_protect, "rest": _eff_rest, "haze": _eff_haze,
     "leechseed": _eff_leechseed, "painsplit": _eff_painsplit, "defog": _eff_defog,
     "rapidspin": _eff_rapidspin, "mortalspin": _eff_mortalspin, "trick": _eff_trick,
-    "bellydrum": _eff_bellydrum, "roost": _eff_roost,
+    "knockoff": _eff_knockoff, "bellydrum": _eff_bellydrum, "roost": _eff_roost,
     "sunnyday_heal": _eff_weather_heal, "shoreup": _eff_shoreup,
     "strengthsap": _eff_strengthsap, "curse": _eff_curse,
     "clearsmog": _eff_clearsmog, "topsyturvy": _eff_topsyturvy,
@@ -669,7 +683,7 @@ def run_effect(effect_id, data, state, user, target, key, when=True):
 # `UNIMPLEMENTED_EFFECTS` would be misleading.
 HANDLED_ELSEWHERE = frozenset({
     "freezedry", "flyingpress",   # damage.type_effectiveness
-    "photongeyser",               # damage.resolve_move_ctx (category switch)
+    "photongeyser", "shellsidearm",   # resolve_move_ctx (category switch)
     "taunt", "encore", "disable", "yawn", "perishsong", "destinybond",
     "poltergeist",                # applied through the declarative volatile column
     "suckerpunch",                # the fail check lives in execute_move
@@ -733,7 +747,7 @@ def _apply_secondaries(data, state, user, target, move_id, key, landed=True):
             (slot_get(state.ability, target, ti) == A.OWNTEMPO))
         state = state._replace(volatiles=state.volatiles.at[target].set(
             set_indexed(state.volatiles[target], vol, jnp.int8(1),
-                        when=fires & (vol > 0) & jnp.logical_not(flinch_blocked))))
+                        when=fires & (vol >= 0) & jnp.logical_not(flinch_blocked))))
 
         tgt_boosts = data["move_sec_boosts"][move_id, k].astype(jnp.int32)
         state, _ = apply_boosts(state, target, jnp.where(fires, tgt_boosts, 0),
@@ -773,9 +787,6 @@ def execute_move(data, state, user, move_slot, moves_first, key,
     cb_ctx = build_cb_ctx(data, state, user, target, moves_first,
                           state.pp[user, ui, move_slot])
     mv = resolve_move_ctx(data, move_id, cb_ctx)
-    # Resolved once here rather than per hit: only the hit-number scaling below
-    # varies within a multi-hit move, and the switches are expensive to trace.
-    bp_cb_mod = cb.base_power_modify(data["move_bp_modify"][move_id], cb_ctx)
     atk = build_attacker(state, user)
     dfn = build_defender(data, state, target)
 
@@ -808,7 +819,12 @@ def execute_move(data, state, user, move_slot, moves_first, key,
         data, mv.type, def_types, mv, data["move_ignore_immunity"][move_id],
         dfn.ability, scrappy)
     is_status = mv.category == C.CAT_STATUS
-    type_immune = type_immune & jnp.logical_not(is_status)
+
+    # Collision Course and friends key off the effectiveness, so the base-power
+    # callback is resolved now that it is known. Resolved once rather than per
+    # hit: only the hit-number scaling varies, and the switch is costly to trace.
+    cb_ctx = cb_ctx._replace(type_exp=type_exp)
+    bp_cb_mod = cb.base_power_modify(data["move_bp_modify"][move_id], cb_ctx)
 
     absorbs, absorb_heal, (absorb_stat, absorb_amt) = ability_absorbs(
         data, state, target, mv.type, mv.category)
@@ -925,7 +941,7 @@ def execute_move(data, state, user, move_slot, moves_first, key,
 
     # --- drain, recoil, self-destruct ---
     drain = data["move_drain"][move_id].astype(jnp.int32)
-    drained = jnp.where((drain[1] > 0) & landed,
+    drained = jnp.where((drain[0] > 0) & landed,
                         idiv(total_damage * drain[0], drain[1]), 0)
     # Liquid Ooze makes draining moves hurt the user instead.
     ooze = slot_get(state.ability, target, ti) == A.LIQUIDOOZE
@@ -937,7 +953,7 @@ def execute_move(data, state, user, move_slot, moves_first, key,
     magic_guard = no_recoil
     state, _ = damage_pokemon(
         state, user, ui,
-        jnp.where((recoil[1] > 0) & landed & jnp.logical_not(magic_guard),
+        jnp.where((recoil[0] > 0) & landed & jnp.logical_not(magic_guard),
                   jnp.maximum(idiv(total_damage * recoil[0], recoil[1]), 1),
                   0))
     # High Jump Kick and friends: half the user's max HP on a miss.
@@ -966,11 +982,11 @@ def execute_move(data, state, user, move_slot, moves_first, key,
     duration = jnp.maximum(data["move_duration"][move_id], 1)
     state = state._replace(volatiles=state.volatiles.at[target].set(
         set_indexed(state.volatiles[target], vol, duration,
-                    when=applied & (vol > 0))))
+                    when=applied & (vol >= 0))))
     self_vol = data["move_self_volatile"][move_id]
     state = state._replace(volatiles=state.volatiles.at[user].set(
         set_indexed(state.volatiles[user], self_vol, duration,
-                    when=can_act & (self_vol > 0))))
+                    when=can_act & (self_vol >= 0))))
 
     tgt_boosts = data["move_boosts"][move_id].astype(jnp.int32)
     self_targeting = data["move_target"][move_id] == C.TGT_SELF
@@ -978,8 +994,19 @@ def execute_move(data, state, user, move_slot, moves_first, key,
     state, lowered = apply_boosts(
         state, target, jnp.where(applied & jnp.logical_not(self_targeting), tgt_boosts, 0),
         from_opponent=True)
+    dropped = jnp.any(lowered < 0)
     state = state._replace(stats_lowered=state.stats_lowered.at[target].set(
-        state.stats_lowered[target] | jnp.any(lowered < 0)))
+        state.stats_lowered[target] | dropped))
+
+    # Defiant and Competitive answer any stat the opponent lowered. (The
+    # switch-in path in engine.py handles Intimidate; this covers moves.)
+    t_ab = slot_get(state.ability, target, ti)
+    answer = jnp.zeros(7, jnp.int32)
+    answer = jnp.where(dropped & (t_ab == A.DEFIANT),
+                       jnp.zeros(7, jnp.int32).at[C.B_ATK].set(2), answer)
+    answer = jnp.where(dropped & (t_ab == A.COMPETITIVE),
+                       jnp.zeros(7, jnp.int32).at[C.B_SPA].set(2), answer)
+    state, _ = apply_boosts(state, target, answer)
     state, _ = apply_boosts(state, user,
                             jnp.where(can_act, data["move_self_boosts"][move_id].astype(jnp.int32), 0))
 
@@ -1004,7 +1031,7 @@ def execute_move(data, state, user, move_slot, moves_first, key,
     # --- healing moves ---
     heal = data["move_heal"][move_id].astype(jnp.int32)
     state, _ = heal_pokemon(state, user, ui,
-                            jnp.where(can_act & (heal[1] > 0),
+                            jnp.where(can_act & (heal[0] > 0),
                                       fraction_of_max(state, user, ui, heal[0], heal[1]), 0))
 
     # --- contact and on-damage abilities ---
@@ -1013,11 +1040,14 @@ def execute_move(data, state, user, move_slot, moves_first, key,
     d_it = slot_get(state.item, target, ti)
     attacker_guarded = slot_get(state.ability, user, ui) == A.MAGICGUARD
 
-    # Rough Skin / Iron Barbs / Rocky Helmet chip the attacker on contact.
-    spiky = contact & jnp.logical_not(attacker_guarded) & (
-        (d_ab == A.ROUGHSKIN) | (d_ab == A.IRONBARBS) | (d_it == I.ROCKYHELMET))
+    # Rough Skin and Iron Barbs take an eighth; Rocky Helmet takes a sixth.
+    barbed = contact & jnp.logical_not(attacker_guarded) & (
+        (d_ab == A.ROUGHSKIN) | (d_ab == A.IRONBARBS))
+    helmeted = contact & jnp.logical_not(attacker_guarded) & (d_it == I.ROCKYHELMET)
     state, _ = damage_pokemon(state, user, ui,
-                              jnp.where(spiky, fraction_of_max(state, user, ui, 1, 6), 0))
+                              jnp.where(barbed, fraction_of_max(state, user, ui, 1, 8), 0))
+    state, _ = damage_pokemon(state, user, ui,
+                              jnp.where(helmeted, fraction_of_max(state, user, ui, 1, 6), 0))
 
     # Aftermath: fainting to a contact move takes a quarter off the attacker.
     # (`now_hp` is computed below, so this uses the post-damage HP directly.)

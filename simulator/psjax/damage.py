@@ -536,11 +536,22 @@ def resolve_move_ctx(data, move_id, cb_ctx: "cb.CbCtx") -> MoveCtx:
 
     # Tera Blast and Photon Geyser become physical when the user's Attack is
     # higher than its Sp. Atk (boosts counted, ability/item modifiers not).
-    from .effects import BP_REPLACE_HANDLERS, EFFECT_HANDLERS
+    from .effects import BP_REPLACE_HANDLERS, EFFECT_HANDLERS  # noqa: F401
     is_terablast = data["move_bp_replace"][move_id] == BP_REPLACE_HANDLERS.index("terablast")
     is_photon = data["move_effect_cb"][move_id] == EFFECT_HANDLERS.index("photongeyser")
     physical_switch = ((is_terablast & cb_ctx.terastallized) | is_photon) & \
                       (cb_ctx.off_atk > cb_ctx.off_spa)
+
+    # Shell Side Arm compares the two base damages rather than the raw stats,
+    # transcribed from Showdown including the truncation at each step. A tie
+    # there is a coin flip; we take Physical, which is what a zero roll gives.
+    is_ssa = data["move_effect_cb"][move_id] == EFFECT_HANDLERS.index("shellsidearm")
+    lvl = cb_ctx.level.astype(jnp.int32)
+    step = (2 * lvl) // 5 + 2
+    phys_dmg = ((step * 90 * cb_ctx.off_atk) // jnp.maximum(cb_ctx.dfn_def, 1)) // 50
+    spec_dmg = ((step * 90 * cb_ctx.off_spa) // jnp.maximum(cb_ctx.dfn_spd, 1)) // 50
+    physical_switch = physical_switch | (is_ssa & (phys_dmg >= spec_dmg))
+
     category = jnp.where(physical_switch, C.CAT_PHYSICAL, category)
 
     return MoveCtx(

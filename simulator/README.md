@@ -24,28 +24,65 @@ cannot cross into JAX. Rather than reimplement mechanics from a wiki, this repo:
 3. **Ports the callbacks explicitly.** Each JS callback we support is transcribed
    from Showdown's source into a `lax.switch` branch in `psjax/callbacks.py`,
    including its integer rounding.
-4. **Verifies against Showdown itself.** `tools/showdown_damage.js` runs each
-   test case inside a real Showdown battle and records the damage for all 16
-   damage rolls. `tests/test_damage.py` asserts our numbers match exactly.
+4. **Verifies against Showdown itself.** Two differential harnesses run
+   scenarios inside a real Showdown battle and record the result, which the
+   Python tests then have to reproduce:
+   - `tools/showdown_damage.js` records damage for all 16 damage rolls.
+   - `tools/showdown_effects.js` runs a full turn and records the resulting
+     state — status, boosts, hazards, residual chip and healing, item swaps,
+     switch-in abilities.
 
 ```
 $ pytest -q
-203 passed
+570 passed, 3 skipped
 ```
 
-176 of those are damage checks: 88 scenarios × 16 rolls, matching Showdown's
-`getDamage` exactly — crits, weather, screens, Tera, Adaptability, Unaware, Low
-Kick's weight steps, Wring Out's fixed-point rounding, and so on. The remaining
-27 cover the turn engine and batching: battles terminate with a consistent winner, HP, PP and
-boosts stay in range, rewards are zero-sum and paid once, priority beats Speed,
-Trick Room inverts it, Choice locks hold, Stealth Rock scales with the Rock
-matchup, and a batched step matches a sequential one field for field.
+**442 damage checks.** 88 hand-written scenarios × 16 rolls probe specific
+mechanics — crits, weather, screens, Tera, Adaptability, Unaware, Low Kick's
+weight steps, Wring Out's fixed-point rounding. On top of that, a sweep runs
+**every one of the 269 damaging moves in the Random Battle pool** against a live
+Showdown, so each compiled row — base power, type, category, base-power callback
+— is verified. All of them match exactly except Beat Up, which is skipped with
+its reason attached (see below).
 
-Four real bugs were caught this way and fixed: Thick Fat, Heatproof, Water Bubble
-and Purifying Salt were on the wrong hook (Showdown reduces the *attacking stat*,
-not final damage, and the rounding differs); Ice Scales was the reverse; Low Kick
-used kilograms where Showdown uses hectograms; and Adaptability was missing
-entirely.
+**101 effect checks** — one real Showdown turn each, comparing the fields the
+scenario is about. Because Showdown's RNG is pinned and psjax's is not, each
+scenario runs under several keys and the most common psjax outcome must be
+Showdown's; for the many that cannot miss, that is every run agreeing.
+
+**27 engine and batching checks** — battles terminate with a consistent winner,
+HP/PP/boosts stay in range, rewards are zero-sum and paid once, priority beats
+Speed, Trick Room inverts it, Choice locks hold, and a batched step matches a
+sequential one field for field.
+
+### Bugs this caught
+
+The damage harness caught four: Thick Fat, Heatproof, Water Bubble and Purifying
+Salt were on the wrong hook (Showdown reduces the *attacking stat*, not final
+damage, and the rounding differs); Ice Scales was the reverse; Low Kick used
+kilograms where Showdown uses hectograms; and Adaptability was missing entirely.
+
+The effects harness caught eight more, several of them serious:
+
+- **Every move healed its user 1 HP and dealt 1 recoil.** An absent fraction is
+  compiled as `0/1`, and the guards tested the *denominator*, so they were always
+  true; `fraction_of_max` then floors at 1. This quietly skewed every battle.
+- **Enum index 0 collided with "absent".** `move_side_condition` and
+  `move_volatile` defaulted to `0`, which *is* Stealth Rock and Confusion. Every
+  move set Stealth Rock on its own side, and no move could ever confuse, because
+  the guard `> 0` excluded the real index 0.
+- **Status moves ignored type immunity**, so Thunder Wave paralysed Ground types.
+  Showdown defaults `ignoreImmunity` to true for status moves but individual
+  moves override it; the compiled mask already had this right.
+- **Knock Off never removed the item** — the handler existed but no move was
+  mapped to it, so only the base-power bonus applied.
+- **Rapid Spin boosted Speed twice**, once declaratively and once in its handler.
+- **Leech Seed could seed Grass types**: the declarative volatile was applied
+  before the handler's immunity check.
+- **Rough Skin and Iron Barbs used 1/6** instead of 1/8 (Rocky Helmet's fraction).
+- **Defiant and Competitive only answered Intimidate**, not stat drops from moves.
+- Weather-scaled recovery (Synthesis, Shore Up) used a plain fraction where
+  Showdown quantises the factor to 4096ths, so it was a point off.
 
 ## Layout
 
@@ -67,6 +104,9 @@ entirely.
 | `psjax/env.py` | batched RL environment wrapper |
 | `psjax/coverage.py` | what is and is not modelled |
 | `tests/test_batching.py` | batched execution == sequential, field by field |
+| `tools/showdown_effects.js` | ground-truth turn results from a real Showdown battle |
+| `tools/effect_cases.py` | the effect scenarios, as readable Python |
+| `tools/move_sweep.py` | generates a damage case for every damaging move |
 
 ## Setup
 
@@ -76,6 +116,8 @@ python -m venv .venv && .venv/bin/pip install -e 'simulator[dev]'
 cd simulator/tools && npm install pokemon-showdown    # data source
 cd .. && node tools/dump_data.js && python -m psjax.build
 node tools/showdown_damage.js tools/damage_cases.json data/damage_truth.json
+python tools/effect_cases.py > tools/effect_cases.json
+node tools/showdown_effects.js tools/effect_cases.json data/effect_truth.json
 pytest -q
 ```
 
@@ -177,9 +219,10 @@ knowing about if you extend the engine:
 
 Run `python -m psjax.coverage` for the current numbers. As of Showdown v0.11.11:
 
-- **Moves.** 321/349 of the Random Battle movepool is fully modelled; weighted by
-  how often moves appear in sets, **98.6%** of usage is covered. The rest run as
-  ordinary moves with their special behaviour skipped.
+- **Moves.** 324/349 of the Random Battle movepool is fully modelled; weighted by
+  how often moves appear in sets, **98.7%** of usage is covered. Every damaging
+  move is verified against Showdown by the sweep. The rest run as ordinary moves
+  with their special behaviour skipped.
 - **Abilities.** All 203 Random Battle abilities have an id, and **138 of them
   (81.9% by set usage)** are wired to actual behaviour. The rest are inert: they
   do not error, they simply have no effect. `python -m psjax.coverage` lists
@@ -200,5 +243,8 @@ These are deliberate and documented rather than hidden:
   which is full of species- and move-specific special cases. Teams are drawn
   from the real species/move/ability/Tera pools; only the item differs.
 - **Happiness is fixed at 255**, pinning Return at 102 BP and Frustration at 1.
+- **Beat Up is not modelled.** Its power and hit count come from the whole
+  party's base Attack, which would need party data threaded into the per-hit
+  damage path. It appears in 1 of 4336 Random Battle sets.
 - No Dynamax, Z-moves or Mega Evolution — none exist in Gen 9 singles.
 

@@ -13,7 +13,7 @@ import jax.numpy as jnp
 import pytest
 
 from psjax import consts as C
-from psjax.callbacks import base_power_modify
+from psjax.callbacks import base_power_modify, fixed_damage
 from psjax.damage import calc_damage, current_types, type_effectiveness
 from psjax.data import load_data, names
 from helpers import make_attacker, make_cb_ctx, make_defender, make_move
@@ -50,9 +50,19 @@ def _run_case(case):
     exp, immune = type_effectiveness(
         data, mv.type, def_types, mv, data["move_ignore_immunity"][mv.id],
         dfn.ability, jnp.bool_(False))
+    # Collision Course and friends key off the effectiveness, so the callback
+    # context only becomes complete once it is known -- as in `execute_move`.
+    cb_ctx = cb_ctx._replace(type_exp=exp)
 
     if bool(immune):
         return ["immune"] * 16
+
+    # Moves with a `damageCallback` (Seismic Toss, Super Fang, Endeavor, ...)
+    # bypass the damage formula entirely, exactly as `execute_move` does.
+    fixed = fixed_damage(data["move_dmg_cb"][mv.id], cb_ctx)
+    if int(fixed) >= 0:
+        return [int(fixed)] * 16
+
     return [int(calc_damage(
         data, atk, dfn, mv, is_crit=jnp.bool_(case.get("crit", False)),
         damage_roll=jnp.int32(roll), weather=weather, terrain=terrain,
@@ -85,3 +95,40 @@ def test_stats_match_showdown(case):
         assert int(got[C.SPD]) == want["spd"], f"{role} {spec['species']} spd"
         assert int(got[C.SPE]) == want["spe"], f"{role} {spec['species']} spe"
         assert int(got[C.HP]) == case[f"{role}MaxHP"], f"{role} {spec['species']} hp"
+
+
+# --- whole-movepool sweep ----------------------------------------------------
+
+SWEEP_TRUTH = (pathlib.Path(__file__).resolve().parent.parent / "data"
+               / "move_sweep_truth.json")
+SWEEP = json.load(open(SWEEP_TRUTH)) if SWEEP_TRUTH.exists() else []
+
+#: Moves this engine knowingly does not model, and why. Skipped rather than
+#: deleted so the gap stays visible in the test report; `psjax.coverage` lists
+#: them too. Anything not named here must match Showdown exactly.
+KNOWN_UNMODELLED = {
+    "beatup": "Beat Up's power and hit count come from the whole party's base "
+              "Attack, which would need party data in the per-hit damage path. "
+              "It appears in 1 of 4336 Random Battle sets (Fezandipiti only), "
+              "so the hot-path cost is not worth it.",
+}
+
+
+@pytest.mark.skipif(not SWEEP, reason="run tools/move_sweep.py to build sweep data")
+@pytest.mark.parametrize("case", SWEEP, ids=[c["name"] for c in SWEEP])
+def test_every_randbats_move_matches_showdown(case):
+    """Every damaging move in the Random Battle pool, against a live Showdown.
+
+    The hand-written cases above probe particular mechanics; this checks that
+    each compiled move row -- base power, type, category, base-power callback --
+    is right for all 269 damaging moves the format can actually roll.
+    """
+    want = case["damages"]
+    if all(d == 0 for d in want):
+        pytest.skip("needs battle context a bare getDamage call cannot supply "
+                    "(Counter/Mirror Coat read a prior hit; Triple Axel reads the "
+                    "hit number) -- covered by the hand-written cases instead")
+    if case["move"] in KNOWN_UNMODELLED:
+        pytest.skip(KNOWN_UNMODELLED[case["move"]])
+    got = _run_case(case)
+    assert got == want, f"\n  showdown: {want}\n  psjax:    {got}"
