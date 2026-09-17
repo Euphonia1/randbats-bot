@@ -38,6 +38,15 @@ function setup(c) {
   // Abilities are resolved from the set; overwrite so we can test any pairing.
   if (c.attacker.ability) src.setAbility(c.attacker.ability, null, true);
   if (c.defender.ability) tgt.setAbility(c.defender.ability, null, true);
+  // Setting an ability runs its switch-in effect -- Intimidate drops the foe's
+  // Attack, Intrepid Sword raises its own. Those belong to the effects harness;
+  // here they would silently contaminate a pure damage comparison, so clear the
+  // boosts again before the case applies its own.
+  for (const mon of [src, tgt]) {
+    for (const stat of Object.keys(mon.boosts)) mon.boosts[stat] = 0;
+    // Stakeout keys off a freshly switched-in target; switchIn leaves it at 0.
+    mon.activeTurns = 1;
+  }
   if (c.attacker.status) src.status = c.attacker.status;
   if (c.defender.status) tgt.status = c.defender.status;
   if (c.attacker.boosts) Object.assign(src.boosts, c.attacker.boosts);

@@ -46,6 +46,7 @@ class Attacker(NamedTuple):
     terastallized: jnp.ndarray
     tera_type: jnp.ndarray
     boosted_stat: jnp.ndarray   # Protosynthesis / Quark Drive; -1 when inactive
+    slow_start: jnp.ndarray     # Slow Start still counting down
 
 
 class Defender(NamedTuple):
@@ -156,7 +157,7 @@ def _pick_stat(stats, boosts, stat_idx):
 
 
 def _attack_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
-                 defender_stats_source, weather):
+                 defender_stats_source, weather, terrain):
     """The attacking stat after boosts and ability/item modifiers.
 
     A critical hit ignores the attacker's *negative* offensive boosts.
@@ -192,6 +193,13 @@ def _attack_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
     mod = apply(mod, (ab == A.FLAREBOOST) & ~phys & (atk.status == C.BRN), m(1.5))
     sun = (weather == C.SUN) | (weather == C.HARSH_SUN)
     mod = apply(mod, (ab == A.SOLARPOWER) & ~phys & sun, m(1.5))
+    # Orichalcum Pulse and Hadron Engine are 5461/4096, not the 1.3 they are
+    # usually quoted as.
+    mod = apply(mod, (ab == A.ORICHALCUMPULSE) & phys & sun, 5461)
+    mod = apply(mod, (ab == A.HADRONENGINE) & ~phys &
+                (terrain == C.ELECTRIC_TERRAIN), 5461)
+    # Slow Start halves Attack as well as Speed while it is counting down.
+    mod = apply(mod, atk.slow_start & phys, m(0.5))
     mod = apply(mod, (ab == A.DEFEATIST) & (atk.hp * 2 <= atk.maxhp), m(0.5))
     mod = apply(mod, (ab == A.WATERBUBBLE) & (mv.type == C.WATER), m(2.0))
     # Type-specialist abilities.
@@ -445,7 +453,8 @@ def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
                                    target_switched_in, technician_power)
     power = jnp.maximum(chain_modify(mv.base_power, bp_mod), 1)
 
-    attack = _attack_stat(data, atk, dfn, mv, is_crit, defender_stats_source, weather)
+    attack = _attack_stat(data, atk, dfn, mv, is_crit, defender_stats_source,
+                          weather, terrain)
     defense = _defense_stat(data, atk, dfn, mv, is_crit, weather, terrain)
 
     level = atk.level.astype(jnp.int32)

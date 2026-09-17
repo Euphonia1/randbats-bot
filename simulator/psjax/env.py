@@ -177,11 +177,19 @@ def rollout(env: BattleEnv, state: BattleState, key, max_steps: int = 300):
     return final, jnp.sum(rewards, axis=0)
 
 
+@functools.partial(jax.jit, static_argnums=(0, 3),
+                   static_argnames=("max_steps",))
 def rollout_batch(env: BattleEnv, states: BattleState, keys, max_steps: int = 300):
     """Play out a batch of battles in parallel.
 
     `states` and `keys` carry a leading `N` axis. Every battle runs the full
     `max_steps` scan; finished ones absorb further steps (see `BattleEnv.step`),
     so the result is the same as stopping each at its own end.
+
+    The `jit` is what makes this reusable rather than merely correct. A bare
+    `vmap` of the scan is an eager XLA call: it compiles the entire unrolled
+    rollout on *every* invocation, which for this engine is about fifteen
+    seconds a call and swamps the microseconds of actual work. Jitted, the
+    compile is cached against `(env, shapes, max_steps)` and paid once.
     """
     return jax.vmap(lambda s, k: rollout(env, s, k, max_steps))(states, keys)

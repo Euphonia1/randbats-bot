@@ -40,6 +40,14 @@ def _run_case(case):
                                    C.WEATHER_NONE))
     terrain = jnp.int8(TERRAIN.get(case.get("actualTerrain") or case.get("terrain"),
                                    C.TERRAIN_NONE))
+    # Air Lock and Cloud Nine switch the weather off for everyone. The engine
+    # does this in `mechanics.effective_weather`; the harness has to match, or a
+    # weather-boosted move looks boosted when it should not be.
+    from psjax.hooks import A as _A
+    suppressed = jnp.any(jnp.stack([atk.ability, dfn.ability]) == _A.AIRLOCK) | \
+        jnp.any(jnp.stack([atk.ability, dfn.ability]) == _A.CLOUDNINE)
+    weather = jnp.where(suppressed, jnp.int8(C.WEATHER_NONE), weather)
+
     cb_ctx = make_cb_ctx(case, atk, dfn, weather, terrain)
     mv = make_move(case["move"], cb_ctx)
     side = jnp.zeros(C.NUM_SIDE_CONDITIONS, jnp.int8)
@@ -69,7 +77,11 @@ def _run_case(case):
         side_conditions=side, type_exp=exp,
         bp_cb_mod=base_power_modify(data["move_bp_modify"][mv.id], cb_ctx),
         grounded_user=cb_ctx.grounded_user,
-        grounded_target=cb_ctx.grounded_target)) for roll in range(16)]
+        grounded_target=cb_ctx.grounded_target,
+        # Analytic keys off moving last, which is what a bare getDamage call
+        # looks like to Showdown (there is no move queue to consult).
+        analytic_ok=jnp.logical_not(cb_ctx.moves_first),
+        technician_power=mv.base_power)) for roll in range(16)]
 
 
 @pytest.mark.skipif(not CASES, reason="run tools/showdown_damage.js to build truth data")
@@ -130,5 +142,26 @@ def test_every_randbats_move_matches_showdown(case):
                     "hit number) -- covered by the hand-written cases instead")
     if case["move"] in KNOWN_UNMODELLED:
         pytest.skip(KNOWN_UNMODELLED[case["move"]])
+    got = _run_case(case)
+    assert got == want, f"\n  showdown: {want}\n  psjax:    {got}"
+
+
+# --- ability sweep -----------------------------------------------------------
+
+ABILITY_TRUTH = (pathlib.Path(__file__).resolve().parent.parent / "data"
+                 / "ability_sweep_truth.json")
+ABILITIES = json.load(open(ABILITY_TRUTH)) if ABILITY_TRUTH.exists() else []
+
+
+@pytest.mark.skipif(not ABILITIES, reason="run tools/ability_sweep.py to build data")
+@pytest.mark.parametrize("case", ABILITIES, ids=[c["name"] for c in ABILITIES])
+def test_every_wired_ability_matches_showdown(case):
+    """Every ability the engine wires up, on both sides, against a live Showdown.
+
+    Catches an ability applying when it should not, or on the wrong hook -- which
+    is how Thick Fat, Heatproof, Water Bubble and Purifying Salt were found to be
+    reducing final damage rather than the attacking stat.
+    """
+    want = case["damages"]
     got = _run_case(case)
     assert got == want, f"\n  showdown: {want}\n  psjax:    {got}"

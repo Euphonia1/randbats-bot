@@ -65,6 +65,11 @@ def make_attacker(spec) -> Attacker:
         hp=hp, maxhp=maxhp,
         terastallized=jnp.bool_(bool(tera)), tera_type=tera_type,
         boosted_stat=jnp.int8(_boosted_stat(spec, stats)),
+        # Slow Start starts counting the moment the Pokemon is out, and the
+        # reference harness sets the ability by switching it in, so holding it
+        # means it is active unless the case says otherwise.
+        slow_start=jnp.bool_(spec.get(
+            "slowStart", n.to_id(spec.get("ability", "")) == "slowstart")),
     )
 
 

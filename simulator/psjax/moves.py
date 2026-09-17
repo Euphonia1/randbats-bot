@@ -44,6 +44,7 @@ def build_attacker(state, side) -> Attacker:
         terastallized=slot_get(state.terastallized, side, i),
         tera_type=slot_get(state.tera_type, side, i),
         boosted_stat=state.boosted_stat[side],
+        slow_start=state.volatiles[side, C.V_SLOWSTART] > 0,
     )
 
 
