@@ -313,11 +313,21 @@ GIL while XLA runs -- the threads genuinely overlap:
 | 8192 battles | battles/s | turns/s | cores | compile | total wall |
 | --- | --- | --- | --- | --- | --- |
 | one `vmap` of 8192 | 191.3 | 12,174 | 3.68 | 16.7 s | 61.6 s |
+| 2 threads x 4096 | 246.4 | 15,451 | 5.30 | 16.7 s | 52.0 s |
+| 4 threads x 2048 | 298.3 | 18,813 | 6.67 | 16.8 s | 46.3 s |
 | 8 threads x 1024 | **355.9** | **22,699** | 7.49 | 16.8 s | **42.0 s** |
 | 8 processes x 1024 | 281.3 | 18,623 | ~7.8 | 56-62 s | 98.8 s |
 
 Threads are the win: 1.9x the single-batch throughput, and
 `tools/psjax_bench.py --shards 8 8192` is the whole change.
+
+Throughput tracks the core count almost exactly -- 52.0, 46.5, 44.7 and 47.5
+battles per second per busy core at one, two, four and eight shards, which is
+flat within run-to-run noise. The threads are not buying concurrency so much as
+collecting cores the single `vmap` never asked for, and the shrinking gain per
+doubling (1.29x, 1.21x, 1.19x) is the core count running out rather than
+coordination overhead setting in. Four to eight still pays despite the second
+four being the M1's efficiency cores.
 
 Processes pin the cores marginally harder and are still a quarter slower, which
 is the interesting part. Each one carries its own copy of the data tables and its
@@ -332,6 +342,76 @@ Also tried and rejected: `--xla_force_host_platform_device_count=<cores>` with a
 and measured end to end it came out ~10x slower than a plain `vmap` on one
 device. Threads get the parallelism that approach was reaching for without
 partitioning the pool.
+
+## Teams
+
+Teams come from Showdown's own generator, not from a reimplementation of it.
+`Teams.generate('gen9randombattle')` is a few thousand lines of sequential
+logic -- per-species move enforcement, team-level state that accumulates as the
+team is built, item rules keyed on the set's role and its final move list -- and
+none of it is expressible as a fixed-shape traced computation. It also does not
+need to be: team generation happens once, before the battle starts, so it can be
+ordinary host-side code.
+
+```
+node tools/dump_teams.js 50000 > data/team_pool.jsonl
+python tools/build_team_pool.py data/team_pool.jsonl     # -> data/team_pool.npz
+```
+
+`reset` then samples a team from the compiled pool, which makes items and
+movesets exact rather than plausible. The pool is loaded separately from
+`GameData` on purpose: the engine closes over `data` as a compile-time constant,
+so folding fifty thousand teams into it would embed the lot in every compiled
+module, `step` included. Only `reset` carries it.
+
+`tools/build_team_pool.py` reports anything the engine cannot represent rather
+than quietly zeroing it. Closing the gap it found added 40 items -- the seventeen
+type plates, their pre-plate equivalents, and the forme items (Rusted Sword,
+the Ogerpon masks, the creation orbs), which need to exist even though the forme
+they force is already baked into the species the generator picked, because
+holding one is not the same as holding nothing. Coverage is now complete: no
+item, move or ability the generator produces is dropped.
+
+Without a pool built, `new_battle` falls back to the procedural generator that
+preceded this; `new_battle(key, data, pool=False)` forces it.
+
+## Partial observability
+
+`BattleEnv.observe` is full-information by design, which suits self-play but
+trains a policy that could never be deployed against a real opponent.
+`psjax.fog.FogOfWarEnv` wraps it and shows each player only what Showdown would:
+
+```python
+from psjax.fog import FogOfWarEnv
+
+env = FogOfWarEnv()
+fs = env.reset(key)                        # a FogState, not a BattleState
+fs, obs, rewards, done = env.step(fs, actions)
+```
+
+`FogState` carries the battle plus `revealed[2,6]` and `revealed_moves[2,6,4]`,
+and disclosure is read off public state rather than instrumented into the engine:
+a Pokemon is revealed when it takes the field, and a move is revealed when its PP
+falls. The observation layout is unchanged, so a policy trains under fog and
+loads against the plain environment.
+
+Less needed hiding than it first appears, and the reasoning is worth recording
+because it is easy to hide too much:
+
+- **The active Pokemon's moveset** is the leak worth closing. The encoder writes
+  all four moves' type, category, power and PP from the moment it appears; a real
+  opponent learns them one at a time.
+- **Exact HP** becomes a whole percent over a denominator of 100, which also
+  conceals the total -- 50% of 300 and 50% of 180 censor to the same reading.
+- **The per-slot bench figures are not a leak.** A Pokemon that has never been
+  active in singles has never been hit and never been statused, so its HP is full
+  and its status clear by construction. The encoder is reporting what the opponent
+  could already infer, and masking it would be theatre. The alive bits are public
+  too -- Showdown shows the fainted count -- and bench species and movesets never
+  enter the observation at all.
+
+One approximation is left in place and noted rather than fixed: the opponent's
+effective speed is exposed exactly, where a real player infers it from turn order.
 
 ## State of the implementation
 
@@ -354,15 +434,22 @@ Run `python -m psjax.coverage` for the current numbers. As of Showdown v0.11.11:
 These are deliberate and documented rather than hidden:
 
 - **Singles only.** No doubles targeting, spread damage or ally effects.
-- **Held items are assigned by set role**, not by Showdown's generator logic,
-  which is full of species- and move-specific special cases. Teams are drawn
-  from the real species/move/ability/Tera pools; only the item differs.
+- **Cosmetic formes are folded into their base.** Florges-Blue, the Sawsbuck
+  seasons and Alcremie's creams are indexed as Florges, Sawsbuck and Alcremie.
+  They share every mechanical property with the base, so this affects nothing
+  but the name (47 slots in 12,000).
 - **Happiness is fixed at 255**, pinning Return at 102 BP and Frustration at 1.
 - **No Endless Battle Clause**, so a stalemate never resolves itself. Showdown
   ends games that neither side can win; here they run until the caller's step
   cap. Under uniformly random play this catches 43 battles in 8192 (0.5%) at a
   cap of 1000 steps, and it lengthens the mean game from Showdown's 58.6 turns
-  to 63.6. Rollouts need a cap for this reason, which `rollout_batch` takes as
+  to 63.6. The shape of it is always the same: `tests/test_engine.py` seed 7
+  ends up with Toxapex (Recover, and Poison-typed so Toxic cannot touch it)
+  against Umbreon (Wish, Protect), both at full HP and still there five thousand
+  steps later. Real Showdown sets make this likelier than the procedural
+  generator did, because they assemble coherent stall cores. Anything driving
+  this engine needs a step cap, and an RL loop needs one that terminates the
+  episode rather than leaving it hanging. Rollouts need a cap for this reason, which `rollout_batch` takes as
   `max_steps`.
 - **Beat Up is not modelled.** Its power and hit count come from the whole
   party's base Attack, which would need party data threaded into the per-hit

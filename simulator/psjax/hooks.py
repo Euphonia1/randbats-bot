@@ -96,6 +96,22 @@ ITEM_NAMES = [
     "babiriberry", "roseliberry", "shucaberry", "payapaberry", "tangaberry",
     "chilanberry", "custapberry", "salacberry", "petayaberry", "liechiberry", "metronome", "punchingglove", "abilityshield",
     "mirrorherb", "leek", "thickclub", "stick",
+    # Type-boosting plates and their pre-plate equivalents. Showdown's team
+    # generator hands these out (Arceus and Silvally take a plate for their
+    # forme, and several attackers take the classic 1.2x booster), so leaving
+    # them out silently downgraded those sets to no item.
+    "dracoplate", "dreadplate", "earthplate", "fistplate", "flameplate",
+    "icicleplate", "insectplate", "ironplate", "meadowplate", "mindplate",
+    "pixieplate", "skyplate", "splashplate", "spookyplate", "stoneplate",
+    "toxicplate", "zapplate",
+    "blackbelt", "blackglasses", "charcoal", "dragonfang", "fairyfeather",
+    "hardstone", "metalcoat", "miracleseed", "nevermeltice", "poisonbarb",
+    "sharpbeak", "silverpowder", "softsand", "spelltag", "twistedspoon",
+    # Forme items. The forme they force is already baked into the species the
+    # generator picked, so in battle these only need to exist -- holding one is
+    # not the same as holding nothing (Knock Off, Trick and Fling all care).
+    "rustedsword", "rustedshield", "adamantcrystal", "lustrousglobe",
+    "griseouscore", "wellspringmask", "hearthflamemask", "cornerstonemask",
 ]
 
 ABILITY_IDX = {n: i for i, n in enumerate(ABILITY_NAMES)}
@@ -182,6 +198,24 @@ RESIST_BERRY = {
 TYPE_BOOST_ITEM = {
     "magnet": ("electric", 4915), "mysticwater": ("water", 4915),
     "silkscarf": ("normal", 4915), "souldew": ("psychic", 4915),
+    # Plates, and the older items that boost the same type by the same 20%.
+    "dracoplate": ("dragon", 4915), "dragonfang": ("dragon", 4915),
+    "dreadplate": ("dark", 4915), "blackglasses": ("dark", 4915),
+    "earthplate": ("ground", 4915), "softsand": ("ground", 4915),
+    "fistplate": ("fighting", 4915), "blackbelt": ("fighting", 4915),
+    "flameplate": ("fire", 4915), "charcoal": ("fire", 4915),
+    "icicleplate": ("ice", 4915), "nevermeltice": ("ice", 4915),
+    "insectplate": ("bug", 4915), "silverpowder": ("bug", 4915),
+    "ironplate": ("steel", 4915), "metalcoat": ("steel", 4915),
+    "meadowplate": ("grass", 4915), "miracleseed": ("grass", 4915),
+    "mindplate": ("psychic", 4915), "twistedspoon": ("psychic", 4915),
+    "pixieplate": ("fairy", 4915), "fairyfeather": ("fairy", 4915),
+    "skyplate": ("flying", 4915), "sharpbeak": ("flying", 4915),
+    "splashplate": ("water", 4915),
+    "spookyplate": ("ghost", 4915), "spelltag": ("ghost", 4915),
+    "stoneplate": ("rock", 4915), "hardstone": ("rock", 4915),
+    "toxicplate": ("poison", 4915), "poisonbarb": ("poison", 4915),
+    "zapplate": ("electric", 4915),
 }
 
 CHOICE_ITEMS = {"choicescarf", "choiceband", "choicespecs"}

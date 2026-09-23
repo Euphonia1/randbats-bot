@@ -1,0 +1,5 @@
+# Intermediate from `node tools/dump_teams.js`; `data/team_pool.npz` is the
+# compiled artifact worth keeping, and it is two orders of magnitude smaller.
+data/team_pool.jsonl
+__pycache__/
+*.pyc

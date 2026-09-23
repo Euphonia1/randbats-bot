@@ -15,9 +15,10 @@ import functools
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from . import consts as C
-from .data import load_data
+from .data import load_data, load_team_pool
 from .hooks import I
 from .state import empty_state
 from .stats import compute_all_stats
@@ -37,9 +38,18 @@ ITEM_BY_ROLE = {
 }
 
 
-@functools.lru_cache(maxsize=1)
+# Numpy, and built at import rather than on first use. A `jnp` array created
+# inside a jit trace and then cached across traces stays bound to the trace that
+# made it, so the second distinct trace to read the cache raises
+# UnexpectedTracerError -- which is what happens the moment a process builds two
+# `BattleEnv` instances. A numpy constant is trace-agnostic; the `jnp.asarray`
+# at the call site is a fresh constant per trace and XLA folds the duplicates.
+_ROLE_ITEMS = np.asarray(
+    [ITEM_BY_ROLE.get(r, I.LEFTOVERS) for r in C.ROLES], np.int16)
+
+
 def _role_items():
-    return jnp.asarray([ITEM_BY_ROLE.get(r, I.LEFTOVERS) for r in C.ROLES], jnp.int16)
+    return jnp.asarray(_ROLE_ITEMS)
 
 
 def _choose_moves(key, movepool, pool_len):
@@ -96,8 +106,32 @@ def build_pokemon(data, key, entry):
                 pp=pp, item=item, ability=ability, tera_type=tera)
 
 
-def random_team(data, key):
-    """Six distinct species drawn from the Random Battle pool."""
+def team_from_pool(pool, key):
+    """Draw one team that Showdown's own generator produced.
+
+    Team generation is not a JAX problem. Showdown's generator runs to a few
+    thousand lines of sequential logic -- per-species move enforcement, state
+    that accumulates as the team is built, item rules keyed on the set's role
+    and its final move list -- and is not expressible as a fixed-shape traced
+    computation. Rather than approximate it, `tools/dump_teams.js` calls the
+    real thing and this samples the result, which makes items and movesets
+    exact rather than merely plausible.
+    """
+    n = pool["pool_species"].shape[0]
+    i = jax.random.randint(key, (), 0, n)
+    return {name: pool[f"pool_{name}"][i] for name in (
+        "species", "level", "stats", "types", "moves", "pp",
+        "item", "ability", "tera_type")}
+
+
+def random_team(data, key, pool=None):
+    """Six distinct species drawn from the Random Battle pool.
+
+    Uses the Showdown-generated pool when one is available; the procedural
+    generator below is the fallback for a checkout that has not built one.
+    """
+    if pool:
+        return team_from_pool(pool, key)
     n_entries = data["rb_species"].shape[0]
     k_species, k_mons = jax.random.split(key)
     entries = jax.random.choice(k_species, n_entries, (C.TEAM_SIZE,), replace=False)
@@ -105,14 +139,20 @@ def random_team(data, key):
     return jax.vmap(build_pokemon, in_axes=(None, 0, 0))(data, keys, entries)
 
 
-def new_battle(key, data=None):
-    """A fresh Gen 9 Random Battle with both teams rolled and both leads sent out."""
+def new_battle(key, data=None, pool=None):
+    """A fresh Gen 9 Random Battle with both teams rolled and both leads sent out.
+
+    `pool` defaults to the Showdown-generated team pool if one has been built.
+    Pass `False` to force the procedural generator.
+    """
     from .engine import apply_switch_in_ability, apply_entry_hazards
     if data is None:
         data = load_data()
+    if pool is None:
+        pool = load_team_pool()
     k_p0, k_p1, k_state = jax.random.split(key, 3)
-    t0 = random_team(data, k_p0)
-    t1 = random_team(data, k_p1)
+    t0 = random_team(data, k_p0, pool)
+    t1 = random_team(data, k_p1, pool)
     team = jax.tree.map(lambda a, b: jnp.stack([a, b]), t0, t1)
 
     state = empty_state(k_state)
