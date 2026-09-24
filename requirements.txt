@@ -1,0 +1,10 @@
+# Python >= 3.11. Install with: pip install -r requirements.txt
+
+# The simulator package (psjax), editable so changes under simulator/ take effect.
+-e ./simulator
+
+jax>=0.4.30
+numpy>=1.26
+
+# Tests
+pytest>=8

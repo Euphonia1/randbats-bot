@@ -183,7 +183,7 @@ def legal_action_mask(data, state):
     may use any move with PP left (respecting a Choice lock) or switch to any
     healthy benched Pokemon.
     """
-    mask = jnp.zeros((C.NUM_PLAYERS, C.NUM_ACTIONS), bool)
+    rows = []
     for side in range(C.NUM_PLAYERS):
         i = state.active[side].astype(jnp.int32)
         has_move = (state.moves[side, i] >= 0) & (state.pp[side, i] > 0)
@@ -207,8 +207,8 @@ def legal_action_mask(data, state):
         # A player with nothing to do still needs one legal action. While being
         # asked for a replacement that fallback has to decode to a switch, not to
         # move slot 0 -- action 0 would decode as switch-to-slot-minus-eight.
-        stuck = jnp.zeros(C.NUM_ACTIONS, bool).at[C.ACTION_SWITCH_BASE].set(True)
-        idle = jnp.zeros(C.NUM_ACTIONS, bool).at[0].set(True)
+        stuck = np.arange(C.NUM_ACTIONS) == C.ACTION_SWITCH_BASE
+        idle = np.arange(C.NUM_ACTIONS) == 0
         row = jnp.where(jnp.any(row), row, jnp.where(forced, stuck, idle))
-        mask = mask.at[side].set(row)
-    return mask
+        rows.append(row)
+    return jnp.stack(rows)

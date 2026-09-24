@@ -31,6 +31,32 @@ honest account of what is and is not modelled.
 #
 # If a change here ever makes compilation hang again, those are the two things to
 # look at first, in that order.
+#
+# --- and on XLA:GPU ------------------------------------------------------------
+# On GPU the time goes mostly to XLA's priority-fusion pass, whose cost grows
+# with how many consumers the busiest values have, and then to LLVM on each fused
+# kernel. Fusion decisions depend on the batch size: at 1024 they once produced
+# kernels of 2,409 operations, mostly Threefry rounds and division corrections,
+# and a compile that ran past fifteen minutes on an RTX 4070. It is now about
+# eight seconds at every batch size tried. Three things keep it there:
+#
+#   * Randomness drawn in bulk (`mechanics.random_words`). Each `jax.random` call
+#     is a Threefry hash of ~100 operations; one per decision put ~56 of them in
+#     the move loop, 40% of it.
+#   * No `lax.switch` over the effect handlers (`moves.run_effect`). Batched, a
+#     switch evaluates every branch at the batch shape and selects every output
+#     across all 43 of them; that was a quarter of the traced program.
+#   * Shifts and plain truncating division rather than `//` on signed integers
+#     (`stats.chain_modify`, `stats.floordiv`), which adds a sign correction to
+#     each of a few hundred divisions.
+#
+# Two more rules keep the step itself fast on GPU, where it was half as fast
+# before them (see "Running on GPU" in the README):
+#
+#   * No scatters: state is written with `state.set_at`, never `.at[].set`. Each
+#     scatter is a kernel of its own behind a copy of its operand.
+#   * No `lax.cond` or `lax.switch` on a batched value: `state.select_state`.
+#     Batched, they broadcast every table their branches read to the whole batch.
 
 from .data import load_data, names
 from .state import BattleState

@@ -19,7 +19,7 @@ import jax.numpy as jnp
 from . import callbacks as cb
 from . import consts as C
 from .hooks import A, I
-from .stats import boost_multiply, chain_modify, idiv, modify
+from .stats import boost_multiply, chain_modify, floordiv, idiv, modify
 
 # Multipliers are carried in 4096ths, as Showdown does, so that chained
 # modifiers quantise identically.
@@ -457,15 +457,16 @@ def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
                           weather, terrain)
     defense = _defense_stat(data, atk, dfn, mv, is_crit, weather, terrain)
 
+    # Every quantity here is non-negative, so the divisions are `floordiv`.
     level = atk.level.astype(jnp.int32)
-    base = ((2 * level) // 5) + 2
+    base = floordiv(2 * level, 5) + 2
     base = idiv(base * power * attack, defense)
-    base = base // 50 + 2
+    base = floordiv(base, 50) + 2
 
     base = chain_modify(base, weather_modifier(weather, mv.type, utility_umbrella))
-    base = jnp.where(is_crit, (base * 3) // 2, base)
+    base = jnp.where(is_crit, floordiv(base * 3, 2), base)
     # Showdown: tr(tr(damage * (100 - random(16))) / 100)
-    base = (base * (100 - damage_roll)) // 100
+    base = floordiv(base * (100 - damage_roll), 100)
     base = chain_modify(base, stab_modifier(atk, mv.type))
 
     # Type effectiveness. Showdown doubles or floor-halves one step at a time;
@@ -570,9 +571,9 @@ def resolve_move_ctx(data, move_id, cb_ctx: "cb.CbCtx") -> MoveCtx:
     # there is a coin flip; we take Physical, which is what a zero roll gives.
     is_ssa = data["move_effect_cb"][move_id] == EFFECT_HANDLERS.index("shellsidearm")
     lvl = cb_ctx.level.astype(jnp.int32)
-    step = (2 * lvl) // 5 + 2
-    phys_dmg = ((step * 90 * cb_ctx.off_atk) // jnp.maximum(cb_ctx.dfn_def, 1)) // 50
-    spec_dmg = ((step * 90 * cb_ctx.off_spa) // jnp.maximum(cb_ctx.dfn_spd, 1)) // 50
+    step = floordiv(2 * lvl, 5) + 2
+    phys_dmg = floordiv(idiv(step * 90 * cb_ctx.off_atk, cb_ctx.dfn_def), 50)
+    spec_dmg = floordiv(idiv(step * 90 * cb_ctx.off_spa, cb_ctx.dfn_spd), 50)
     physical_switch = physical_switch | (is_ssa & (phys_dmg >= spec_dmg))
 
     category = jnp.where(physical_switch, C.CAT_PHYSICAL, category)

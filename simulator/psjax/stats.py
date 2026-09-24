@@ -7,6 +7,7 @@ often enough to flip KO ranges. Everything here mirrors `sim/battle.ts`.
 from __future__ import annotations
 
 import jax.numpy as jnp
+from jax import lax
 
 from . import consts as C
 
@@ -22,9 +23,10 @@ def idiv(a, b):
     XLA's lowering of integer division by a non-constant divisor is very large,
     and several of them inside one `lax.switch` makes `vmap` compilation blow up
     (8 branches was already minutes on CPU). A float divide plus a two-step
-    correction is exact for the magnitudes here -- the largest numerator is
-    `4096 * maxhp`, around 2.9e6, well inside float32's exact integer range of
-    2^24 -- and compiles to a handful of ops.
+    correction is exact for the magnitudes here -- the largest numerators are
+    `4096 * maxhp`, around 2.9e6, and Shell Side Arm's `90 * 42 * attack`, under
+    9e6 even at +6 Attack, both inside float32's exact integer range of 2^24 --
+    and compiles to a handful of ops.
     """
     a = jnp.asarray(a, jnp.int32)
     b = jnp.maximum(jnp.asarray(b, jnp.int32), 1)
@@ -32,6 +34,16 @@ def idiv(a, b):
     q = q - (a < q * b).astype(jnp.int32)          # float rounded up
     q = q + ((q + 1) * b <= a).astype(jnp.int32)   # float rounded down
     return q
+
+
+def floordiv(a, b: int):
+    """`a // b` for a non-negative `a` and a positive constant `b`.
+
+    A plain truncating divide, which is the floor when `a >= 0`. Python's `//`
+    on signed integers also emits a sign and remainder correction for negative
+    operands, several operations per division that the engine never needs.
+    """
+    return lax.div(jnp.asarray(a, jnp.int32), jnp.int32(b))
 
 
 def boost_multiply(stat, stage, denom=2):
@@ -57,8 +69,15 @@ def modify(value, numerator, denominator=1):
 
 
 def chain_modify(value, mod4096):
-    """`modify` for a multiplier already expressed in 4096ths (4096 == x1)."""
-    return (value.astype(jnp.int32) * jnp.asarray(mod4096, jnp.int32) + 2047) // 4096
+    """`modify` for a multiplier already expressed in 4096ths (4096 == x1).
+
+    The division is an arithmetic shift, which is exactly `// 4096` for every
+    int32, negatives included. Written as `//` it is a truncating divide plus a
+    sign/remainder correction, several operations where one will do -- and this
+    runs on the order of a hundred times per move.
+    """
+    return jnp.right_shift(
+        value.astype(jnp.int32) * jnp.asarray(mod4096, jnp.int32) + 2047, 12)
 
 
 def compute_hp(base, level, iv=31, ev=85):

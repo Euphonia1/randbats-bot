@@ -286,7 +286,8 @@ it. Both are easy to undo by accident:
 Python loop puts one per player. Collapsing the two action slots took the program
 from 99,901 HLO operations to 58,469, and compile from 28 s to 12 s. Getting this
 wrong the other way, with `switch_to`, once cost 4x throughput. The loops in
-`run_turn`, `apply_forced_switches` and `resolve_phazing` are deliberate.
+`run_turn` (one for switch-ins, one for the two action slots) and in
+`resolve_phazing` are deliberate.
 
 **Rank.** Mapping the damage calculation over a move's hits only needs the damage
 roll to vary, and `vmap` batches just the values that depend on it. But
@@ -301,6 +302,113 @@ of their per-hit powers are under the threshold regardless.
 Diagnosing this was mostly a matter of measuring HLO size with
 `jax.jit(f).lower(...).as_text()`, which is cheap, rather than compile time,
 which is not.
+
+### Compiling for GPU
+
+XLA:GPU spends its time in different places from XLA:CPU: mostly the
+priority-fusion pass, whose cost grows with how many consumers the busiest
+values have, then LLVM on each fused kernel. Fusion decisions depend on the
+batch size, so compile time used to jump around with it. XLA compile of
+`jit(vmap(env._step))` on an RTX 4070 (JAX 0.11.2, CUDA 13, WSL2), the faster
+of two runs on an otherwise idle machine; tracing and lowering on top of it
+went from 4.1 s to 2.5 s:
+
+| batch | before | after |
+| --- | --- | --- |
+| 64 | 15.7 s | 8.0 s |
+| 256 | 15.3 s | 7.8 s |
+| 1024 | over 15 min | 7.8 s |
+| 4096 | 15.4 s | 8.0 s |
+| 8192 | 15.5 s | 8.3 s |
+
+At 1024 fusion built two kernels of 2,409 operations, mostly Threefry rounds and
+division corrections, and one compiler thread spent over thirteen minutes on a
+single kernel before the run was stopped. The changes below, with the ones in
+the next section, took the program from 23,309 HLO operations to 11,752 (from
+15,017 to 5,907 in the move loop):
+
+- **Randomness is drawn in bulk.** Each `jax.random` call inlines a Threefry
+  hash of about a hundred operations, and a key per decision put ~56 of them in
+  the move loop -- 40% of it. `run_turn` now draws every random word a turn can
+  need from a handful of hashes, outside the loops, and consumers take a
+  `uint32` word (`mechanics.random_words`, `moves.MOVE_WORDS`).
+- **No `lax.switch` over effect handlers.** With a batched index, a switch runs
+  every branch at the batch shape and selects each of its 15 outputs across all
+  43 branches. `run_effect` runs the handlers directly and each field selects
+  only among the handlers that write it. That removed a quarter of the traced
+  program.
+- **No `//` on signed integers.** Python semantics make every floor division a
+  truncating divide plus a sign correction. Showdown's modifier chain divides by
+  4096, which is exactly an arithmetic shift; the other divisions are of values
+  that cannot be negative (`stats.floordiv`).
+
+Order mattered for scatters, which were most of the kernels (225 of 400).
+Rewriting them as selects made compile half again *slower* at first, because the
+scatters were fusion barriers keeping kernels small; after the changes above it
+costs nothing, and it is the largest part of the runtime gains in the next
+section. No XLA flag helped. `--xla_backend_optimization_level=0`,
+`--xla_llvm_disable_expensive_passes` and `--xla_gpu_autotune_level=0` were all
+within noise of the default, and `--xla_gpu_disable_gpuasm_optimizations` and
+disabling command buffers made the step two and three times slower.
+
+What does help is not compiling at all. JAX's persistent cache stores the
+executable on disk, and a later process loads it in about a second instead of
+recompiling; tracing and lowering are still paid. Set the directory before
+starting Python:
+
+```bash
+export JAX_COMPILATION_CACHE_DIR=~/.cache/jax
+```
+
+### Running on GPU
+
+On the same RTX 4070, one step of the benchmark (action sampling plus
+`env.step`) and the rate of complete games when finished battles are replaced
+every 16 steps and stalemates are cut at 500 turns -- the rate an RL actor loop
+sees. Measured on an otherwise idle GPU; before is the engine prior to the
+changes below:
+
+| battles in flight | step, before -> after | complete games/s, before -> after | peak memory, after |
+| --- | --- | --- | --- |
+| 1,024 | 1.95 -> 1.12 ms | | 129 MB |
+| 4,096 | 1.91 -> 1.10 ms | | 244 MB |
+| 16,384 | 2.22 -> 1.21 ms | 87,400 -> 165,000 | 334 MB |
+| 65,536 | 6.89 -> 3.11 ms | 128,900 -> **304,500** | 250 MB |
+| 262,144 | 31.6 -> 15.7 ms | 109,300 -> 221,100 | 521 MB |
+| 1,048,576 | fails -> 73.3 ms | fails -> 187,900 | 2.1 GB |
+| 1,572,864 | not run -> 111 ms | | 3.1 GB |
+
+Up to about 16k battles a step is bound by kernel launches, not arithmetic, so it
+costs the same whatever the batch; past about 32k the GPU is busy and the step
+grows with the batch. Complete games per second peak at around 65k in flight
+(17.4 million turns a second) and fall off beyond it. The two versions play
+exactly the same games: the steady-state runs completed 221,324, 885,832 and
+3,543,583 games before and after alike.
+
+Four things halved the step, and each is easy to undo by accident:
+
+- **No scatters.** `x.at[i].set(v)` with a traced index is a scatter, and on GPU
+  each one is a kernel of its own with a copy of its operand in front of it.
+  They were half the GPU time and most of the 1,308 kernel launches per step.
+  State is written with `state.set_at`, an elementwise select, and a step now
+  launches about a quarter as many kernels.
+- **No batched `lax.cond` or `lax.switch`.** With a batched predicate a cond
+  runs both branches and selects, which is fine, but it first broadcasts every
+  operand of its branches to the batch -- including the data tables they read.
+  At 262k battles the type chart alone went out as a 378 MB array on every step.
+  `state.select_state` writes the select out, and peak memory halved with it.
+- **Switches resolve once.** A switch outranks every move, so the switch-ins
+  (and, on a resume, the owed replacements) run in one loop ahead of the move
+  slots, instead of `switch_to` being evaluated inside each slot as well.
+- **The multi-hit loop is unrolled.** It was ten GPU iterations per move, each
+  launching kernels to update three integers.
+
+The limit on batch size here is WSL2 rather than the GPU: a single CUDA
+allocation there fails from about 4.3 GiB up, which caps XLA's default memory
+pool, so 1.5M battles (3.1 GB) run and 2M do not.
+`XLA_PYTHON_CLIENT_ALLOCATOR=platform` allocates buffer by buffer instead and
+runs 2M battles at 211 ms a step, but it makes every step about 70% slower (1M
+battles: 123 ms against 73).
 
 ### Filling the machine
 

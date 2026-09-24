@@ -1,9 +1,9 @@
 """Implementations of Showdown's per-move JS callbacks.
 
 Each family (`basePowerCallback`, `onBasePower`, `damageCallback`,
-`onModifyType`) becomes a `lax.switch` over handlers indexed by the compiled
+`onModifyType`) becomes a selection among handlers indexed by the compiled
 `move_bp_replace` / `move_bp_modify` / `move_dmg_cb` / `move_type_cb` columns.
-Every handler takes the same `CbCtx` and returns a scalar, so the switch is
+Every handler takes the same `CbCtx` and returns a scalar, so the dispatch is
 uniform and cheap to trace.
 
 Formulas are transcribed from `data/moves.ts`, including the integer rounding:
@@ -19,7 +19,7 @@ import jax.numpy as jnp
 
 from . import consts as C
 from . import effects as E
-from .stats import chain_modify, idiv
+from .stats import chain_modify, floordiv, idiv
 
 
 class CbCtx(NamedTuple):
@@ -132,7 +132,7 @@ def _bp_eruption(c):
 def _hp_fraction_power(base, hp, maxhp):
     """Showdown's Wring Out / Hard Press rounding, transcribed literally."""
     frac = idiv(hp.astype(jnp.int32) * 4096, maxhp)
-    bp = (((base * (100 * frac)) + 2048 - 1) // 4096) // 100
+    bp = floordiv(jnp.right_shift((base * (100 * frac)) + 2048 - 1, 12), 100)
     return jnp.maximum(bp, 1)
 
 
@@ -262,14 +262,14 @@ def _d_none(c): return jnp.int32(-1)          # -1 == "use the damage formula"
 def _d_level(c): return c.level.astype(jnp.int32)
 def _d_fixed20(c): return jnp.int32(20)
 def _d_fixed40(c): return jnp.int32(40)
-def _d_halftarget(c): return jnp.maximum(c.dfn_hp.astype(jnp.int32) // 2, 1)
+def _d_halftarget(c): return jnp.maximum(floordiv(c.dfn_hp, 2), 1)
 def _d_endeavor(c): return jnp.maximum(c.dfn_hp.astype(jnp.int32) - c.atk_hp.astype(jnp.int32), 0)
 def _d_finalgambit(c): return c.atk_hp.astype(jnp.int32)
 
 
 def _d_psywave(c):
     # Showdown: level * (random(0..100) + 50) / 100; we take the mean roll.
-    return jnp.maximum((c.level.astype(jnp.int32) * 100) // 100, 1)
+    return jnp.maximum(floordiv(c.level.astype(jnp.int32) * 100, 100), 1)
 
 
 def _d_counter(c):
@@ -284,7 +284,7 @@ def _d_mirrorcoat(c):
 
 def _d_metalburst(c):
     ok = c.last_damage_category >= 0
-    return jnp.where(ok, (c.last_damage.astype(jnp.int32) * 3) // 2, -2)
+    return jnp.where(ok, floordiv(c.last_damage.astype(jnp.int32) * 3, 2), -2)
 
 
 DMG_FNS = {
@@ -374,8 +374,12 @@ def _make_switch(handler_names, fns, name):
     branches = tuple(branches)
 
     def dispatch(index, ctx):
-        return jax.lax.switch(jnp.clip(index.astype(jnp.int32), 0, len(branches) - 1),
-                              branches, ctx)
+        # Every handler runs and the result is selected -- what a batched
+        # `lax.switch` does anyway, minus broadcasting the constants the handlers
+        # read to the whole batch (see `state.select_state`).
+        outs = [jnp.asarray(fn(ctx)) for fn in branches]
+        index = jnp.clip(index.astype(jnp.int32), 0, len(branches) - 1)
+        return jax.lax.select_n(index, *[o.astype(outs[0].dtype) for o in outs])
 
     return dispatch
 

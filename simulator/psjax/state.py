@@ -96,6 +96,52 @@ class BattleState(NamedTuple):
         return jnp.arange(P), self.active.astype(jnp.int32)
 
 
+# --- writing without a scatter -----------------------------------------------
+# `x.at[i].set(v)` is a scatter, and on GPU every scatter is a kernel of its own:
+# nothing fuses through it, and XLA usually copies the operand first so the write
+# can happen in place. The engine did a few hundred of them per step, and they
+# and their copies were half the GPU time and most of the kernel launches. A
+# select against an index mask is elementwise, so it fuses with its neighbours,
+# and it touches a handful of bytes per battle either way.
+
+def set_at(field, index, value, when=True):
+    """`field.at[index].set(value)`, as an elementwise select rather than a scatter.
+
+    `index` addresses leading axes: one index or a tuple, each entry an int, a
+    traced scalar, or `slice(None)` for a whole axis. `value` broadcasts against
+    the axes that are not indexed. Nothing is written where `when` is false, nor
+    for an index outside `[0, size)` -- unlike `.at[]`, a negative index does not
+    wrap, so the engine's `-1` for "none" writes nothing.
+    """
+    index = index if isinstance(index, tuple) else (index,)
+    mask = jnp.asarray(when, bool)
+    for axis, i in enumerate(index):
+        if isinstance(i, slice):
+            assert i == slice(None), "only whole-axis slices are supported"
+            continue
+        shape = [1] * field.ndim
+        shape[axis] = field.shape[axis]
+        mask = mask & (jnp.arange(field.shape[axis]).reshape(shape) == i)
+    return jnp.where(mask, jnp.asarray(value, field.dtype), field)
+
+
+def add_at(field, index, amount, when=True):
+    """`field.at[index].add(amount)`, as `set_at` does `.set`."""
+    return set_at(field, index, field + jnp.asarray(amount, field.dtype), when)
+
+
+def select_state(pred, if_true, if_false):
+    """`if_true` where `pred`, else `if_false`, field by field.
+
+    This is what `lax.cond` becomes under `vmap` anyway -- both branches run and
+    the results are selected -- but written out. A batched `lax.cond` broadcasts
+    every operand of its branches to the batch first, and those operands include
+    the data tables the branches read: the type chart went out as a
+    `[batch, 19, 19]` array on every step.
+    """
+    return jax.tree.map(lambda a, b: jnp.where(pred, a, b), if_true, if_false)
+
+
 def gather_active(field: jnp.ndarray, active: jnp.ndarray) -> jnp.ndarray:
     """Take the active slot out of a `[P,T,...]` field, giving `[P,...]`."""
     return jnp.take_along_axis(
@@ -155,10 +201,9 @@ def reset_slot_state(state: BattleState, player: jnp.ndarray) -> BattleState:
     parts it carries afterwards.
     """
     p = player
-    z = lambda a, v=0: a.at[p].set(jnp.asarray(v, a.dtype))
-    zv = lambda a, v=0: a.at[p].set(jnp.full(a.shape[1:], v, a.dtype))
+    z = lambda a, v=0: set_at(a, p, v)
     return state._replace(
-        boosts=zv(state.boosts), volatiles=zv(state.volatiles),
+        boosts=z(state.boosts), volatiles=z(state.volatiles),
         sub_hp=z(state.sub_hp), disabled_slot=z(state.disabled_slot, -1),
         encore_slot=z(state.encore_slot, -1), locked_slot=z(state.locked_slot, -1),
         choice_slot=z(state.choice_slot, -1), last_move=z(state.last_move, -1),

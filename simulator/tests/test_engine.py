@@ -294,7 +294,7 @@ def test_effect_handlers_only_write_declared_fields():
     state = new_battle(jax.random.PRNGKey(0), DATA)
     stray = []
     for name, fn in EFFECT_FNS.items():
-        out = fn(DATA, state, 0, 1, jax.random.PRNGKey(0))
+        out = fn(DATA, state, 0, 1, jnp.uint32(0))
         for field in state._fields:
             if field in EFFECT_WRITES or field == "key":
                 continue

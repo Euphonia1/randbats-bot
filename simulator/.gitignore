@@ -3,3 +3,5 @@
 data/team_pool.jsonl
 __pycache__/
 *.pyc
+.venv/
+*.egg-info/

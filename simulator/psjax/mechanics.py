@@ -8,17 +8,42 @@ from __future__ import annotations
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from . import consts as C
 from .damage import current_types
 from .hooks import A, I
-from .stats import boost_multiply, chain_modify, idiv
+from .state import set_at
+from .stats import boost_multiply, chain_modify, floordiv, idiv
 
 M1 = 4096
 
 
 def m(x: float) -> int:
     return int(x * 4096)
+
+
+# --- randomness --------------------------------------------------------------
+# Every `jax.random` call is a Threefry hash inlined into the program, about a
+# hundred XLA operations each, and `randint` is three of them. Drawing a key per
+# decision put ~56 hashes inside the move loop -- 40% of its operations, and the
+# largest single thing XLA:GPU's fusion pass had to wade through. So randomness
+# is drawn in bulk instead: `run_turn` hashes once for all the words a turn can
+# need, and each consumer takes a `uint32` word rather than a key.
+
+def random_words(key, shape):
+    """Independent uniform `uint32` words, all from a single hash of `key`."""
+    return jax.random.bits(key, shape, jnp.uint32)
+
+
+def uniform(word):
+    """A float uniform in [0, 1), from the top 24 bits of a random word."""
+    return (word >> 8).astype(jnp.float32) * (1.0 / (1 << 24))
+
+
+def below(word, n: int):
+    """An integer uniform in [0, n), from a random word (bias under n / 2**32)."""
+    return (word % jnp.uint32(n)).astype(jnp.int32)
 
 
 # --- lookups on the active Pokemon -------------------------------------------
@@ -89,7 +114,7 @@ def effective_speed(state, side) -> jnp.ndarray:
     spe = chain_modify(spe, mod)
 
     # Paralysis halves Speed from Gen 7 on, and Quick Feet ignores it.
-    spe = jnp.where((status == C.PAR) & (ab != A.QUICKFEET), spe // 2, spe)
+    spe = jnp.where((status == C.PAR) & (ab != A.QUICKFEET), floordiv(spe, 2), spe)
     return jnp.maximum(spe, 1)
 
 
@@ -109,12 +134,8 @@ def slot_get(field, side, slot):
 
 
 def slot_set(field, side, slot, value, when=True):
-    """`field.at[side, slot].set(value)` without a scatter."""
-    row = field[side]
-    mask = (jnp.arange(C.TEAM_SIZE) == slot) & when
-    if row.ndim > 1:
-        mask = mask.reshape(-1, *([1] * (row.ndim - 1)))
-    return field.at[side].set(jnp.where(mask, jnp.asarray(value, field.dtype), row))
+    """`field.at[side, slot].set(value)` without a scatter (see `state.set_at`)."""
+    return set_at(field, (side, slot), value, when)
 
 
 # --- HP ----------------------------------------------------------------------
@@ -143,6 +164,14 @@ def fraction_of_max(state, side, slot, num, den):
 
 
 # --- boosts ------------------------------------------------------------------
+
+def boost_delta(*changes):
+    """A constant `[7]` boost delta from `(stage, amount)` pairs."""
+    delta = np.zeros(C.NUM_BOOSTS, np.int32)
+    for stage, amount in changes:
+        delta[stage] = amount
+    return delta
+
 
 def boost_immune(state, side, lowering):
     """Abilities that block stat drops from an opponent."""
@@ -179,12 +208,12 @@ def apply_boosts(state, side, delta, from_opponent=False):
     old = state.boosts[side].astype(jnp.int32)
     new = jnp.clip(old + delta, -6, 6)
     applied = new - old
-    return state._replace(boosts=state.boosts.at[side].set(new.astype(jnp.int8))), applied
+    return state._replace(boosts=set_at(state.boosts, side, new)), applied
 
 
 # --- status ------------------------------------------------------------------
 
-def status_immune(data, state, side, status, key, source_ability=None):
+def status_immune(data, state, side, status, source_ability=None):
     """True if `side`'s active cannot be given `status` right now.
 
     `source_ability` is the ability of whoever is inflicting it, so Corrosion can
@@ -220,18 +249,22 @@ def status_immune(data, state, side, status, key, source_ability=None):
             freeze_immune | misty | electric_sleep | safeguard | sun_freeze)
 
 
-def set_status(data, state, side, status, key, source_ability=None):
-    """Try to inflict a major status. Returns `(state, applied)`."""
+def set_status(data, state, side, status, word, source_ability=None):
+    """Try to inflict a major status. Returns `(state, applied)`.
+
+    `word` is a random `uint32` (see `random_words`); only sleep reads it.
+    """
     i = act(state, side)
-    blocked = status_immune(data, state, side, status, key, source_ability)
+    blocked = status_immune(data, state, side, status, source_ability)
     ok = jnp.logical_not(blocked) & (status != C.STATUS_NONE) & \
         (slot_get(state.hp, side, i) > 0)
 
     # Sleep lasts 1-3 turns in Gen 5+; Toxic starts its counter at 1.
-    sleep_turns = jax.random.randint(key, (), 2, 5).astype(jnp.int8)
+    sleep_turns = (2 + below(word, 3)).astype(jnp.int8)
     # Early Bird sleeps for half as long (rounded down, minimum one turn).
     sleep_turns = jnp.where(slot_get(state.ability, side, i) == A.EARLYBIRD,
-                            jnp.maximum(sleep_turns // 2, 1), sleep_turns)
+                            jnp.maximum(floordiv(sleep_turns, 2), 1).astype(jnp.int8),
+                            sleep_turns)
     turns = jnp.where(status == C.SLP, sleep_turns,
                       jnp.where(status == C.TOX, jnp.int8(1), jnp.int8(0)))
 
@@ -245,19 +278,19 @@ def set_status(data, state, side, status, key, source_ability=None):
     ), ok
 
 
-def synchronize(data, state, side, status, key, when=True):
+def synchronize(data, state, side, status, when=True):
     """Synchronize passes a burn, paralysis or poison back to whoever caused it.
 
     `when` additionally gates this (e.g. on whether the status actually landed);
     folded into the mask rather than an outer `lax.cond` for the same reason as
-    `cure_status`.
+    `cure_status`. Sleep never passes back, so no randomness is involved.
     """
     i = act(state, side)
     other = 1 - side
     passes_back = when & (slot_get(state.ability, side, i) == A.SYNCHRONIZE) & (
         (status == C.BRN) | (status == C.PAR) | (status == C.PSN) | (status == C.TOX))
     masked_status = jnp.where(passes_back, status, jnp.int8(C.STATUS_NONE))
-    state, _ = set_status(data, state, other, masked_status, key)
+    state, _ = set_status(data, state, other, masked_status, jnp.uint32(0))
     return state
 
 
@@ -300,8 +333,7 @@ def get_indexed(vector, index):
 # --- volatiles ---------------------------------------------------------------
 
 def set_volatile(state, side, volatile, turns=1):
-    return state._replace(
-        volatiles=state.volatiles.at[side, volatile].set(jnp.asarray(turns, jnp.int8)))
+    return state._replace(volatiles=set_at(state.volatiles, (side, volatile), turns))
 
 
 def has_volatile(state, side, volatile):
@@ -309,4 +341,4 @@ def has_volatile(state, side, volatile):
 
 
 def clear_volatile(state, side, volatile):
-    return state._replace(volatiles=state.volatiles.at[side, volatile].set(jnp.int8(0)))
+    return state._replace(volatiles=set_at(state.volatiles, (side, volatile), 0))

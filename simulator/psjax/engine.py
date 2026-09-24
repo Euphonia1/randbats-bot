@@ -23,15 +23,17 @@ from __future__ import annotations
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from . import consts as C
 from .data import load_data
 from .hooks import A, I
-from .mechanics import (act, active_types, apply_boosts, cure_status, slot_get,
-                        damage_pokemon, effective_speed, effective_weather,
-                        fraction_of_max, heal_pokemon, is_grounded, set_status)
-from .moves import execute_move
-from .state import BattleState, reset_slot_state
+from .mechanics import (act, active_types, apply_boosts, boost_delta, cure_status,
+                        slot_get, damage_pokemon, effective_speed,
+                        effective_weather, fraction_of_max, heal_pokemon,
+                        is_grounded, random_words, set_status, uniform)
+from .moves import MOVE_WORDS, execute_move
+from .state import BattleState, reset_slot_state, select_state, set_at
 
 
 # --- action decoding ---------------------------------------------------------
@@ -122,20 +124,19 @@ def apply_entry_hazards(data, state, side):
     tspikes = sc[C.SC_TOXICSPIKES].astype(jnp.int32)
     is_poison = jnp.any(types == C.POISON)
     absorb = (tspikes > 0) & grounded & is_poison
-    state = state._replace(side_conditions=state.side_conditions.at[
-        side, C.SC_TOXICSPIKES].set(jnp.where(absorb, jnp.int8(0), sc[C.SC_TOXICSPIKES])))
+    state = state._replace(side_conditions=set_at(
+        state.side_conditions, (side, C.SC_TOXICSPIKES), 0, when=absorb))
     poison_status = jnp.where(tspikes >= 2, jnp.int8(C.TOX), jnp.int8(C.PSN))
     should_poison = (tspikes > 0) & grounded & jnp.logical_not(is_poison) & \
                     jnp.logical_not(boots)
-    state, _ = jax.lax.cond(
-        should_poison,
-        lambda s: set_status(data, s, side, poison_status, jax.random.PRNGKey(0)),
-        lambda s: (s, jnp.bool_(False)), state)
+    state, _ = set_status(
+        data, state, side,
+        jnp.where(should_poison, poison_status, jnp.int8(C.STATUS_NONE)), jnp.uint32(0))
 
     # Sticky Web drops Speed on a grounded arrival.
     web = (sc[C.SC_STICKYWEB] > 0) & grounded & jnp.logical_not(boots)
     state, _ = apply_boosts(state, side,
-                            jnp.where(web, jnp.zeros(7, jnp.int32).at[C.B_SPE].set(-1), 0),
+                            jnp.where(web, boost_delta((C.B_SPE, -1)), 0),
                             from_opponent=True)
     return state
 
@@ -160,7 +161,7 @@ def apply_switch_in_ability(data, state, side):
     intimidate = (ab == A.INTIMIDATE) & (state.hp[other, oi] > 0)
     state, applied = apply_boosts(
         state, other,
-        jnp.where(intimidate, jnp.zeros(7, jnp.int32).at[C.B_ATK].set(-1), 0),
+        jnp.where(intimidate, boost_delta((C.B_ATK, -1)), 0),
         from_opponent=True)
 
     # Defiant and Competitive answer any stat drop from the opponent.
@@ -168,12 +169,10 @@ def apply_switch_in_ability(data, state, side):
     dropped = jnp.any(applied < 0)
     state, _ = apply_boosts(
         state, other,
-        jnp.where(dropped & (o_ab == A.DEFIANT),
-                  jnp.zeros(7, jnp.int32).at[C.B_ATK].set(2), 0))
+        jnp.where(dropped & (o_ab == A.DEFIANT), boost_delta((C.B_ATK, 2)), 0))
     state, _ = apply_boosts(
         state, other,
-        jnp.where(dropped & (o_ab == A.COMPETITIVE),
-                  jnp.zeros(7, jnp.int32).at[C.B_SPA].set(2), 0))
+        jnp.where(dropped & (o_ab == A.COMPETITIVE), boost_delta((C.B_SPA, 2)), 0))
 
     # Protosynthesis (sun) and Quark Drive (Electric Terrain) raise whichever of
     # the arriving Pokemon's stats is highest, ignoring stage boosts. Booster
@@ -187,16 +186,14 @@ def apply_switch_in_ability(data, state, side):
     # Ties go to the earlier stat, matching Showdown's scan order.
     stats = slot_get(state.stats, side, i)[1:]
     best = (jnp.argmax(stats) + 1).astype(jnp.int8)
-    state = state._replace(boosted_stat=state.boosted_stat.at[side].set(
-        jnp.where(active_boost, best, jnp.int8(-1))))
+    state = state._replace(boosted_stat=set_at(
+        state.boosted_stat, side, jnp.where(active_boost, best, jnp.int8(-1))))
 
     # Intrepid Sword / Dauntless Shield boost the arriving Pokemon once.
     state, _ = apply_boosts(
-        state, side,
-        jnp.where(ab == A.INTREPIDSWORD, jnp.zeros(7, jnp.int32).at[C.B_ATK].set(1), 0))
+        state, side, jnp.where(ab == A.INTREPIDSWORD, boost_delta((C.B_ATK, 1)), 0))
     state, _ = apply_boosts(
-        state, side,
-        jnp.where(ab == A.DAUNTLESSSHIELD, jnp.zeros(7, jnp.int32).at[C.B_DEF].set(1), 0))
+        state, side, jnp.where(ab == A.DAUNTLESSSHIELD, boost_delta((C.B_DEF, 1)), 0))
     return state
 
 
@@ -216,14 +213,13 @@ def switch_to(data, state, side, slot):
                                       fraction_of_max(state, side, old, 1, 3), 0))
     # Natural Cure clears status on the way out.
     natural = state.ability[side, old] == A.NATURALCURE
-    state = jax.lax.cond(natural & valid,
-                         lambda s: cure_status(s, side, old), lambda s: s, state)
+    state = cure_status(state, side, old, when=natural & valid)
 
     state = reset_slot_state(state, side)
     state = state._replace(
-        active=state.active.at[side].set(slot.astype(jnp.int8)),
-        switched_this_turn=state.switched_this_turn.at[side].set(True),
-        force_switch=state.force_switch.at[side].set(False))
+        active=set_at(state.active, side, slot),
+        switched_this_turn=set_at(state.switched_this_turn, side, True),
+        force_switch=set_at(state.force_switch, side, False))
     state = apply_entry_hazards(data, state, side)
     state = apply_switch_in_ability(data, state, side)
     return state
@@ -253,7 +249,7 @@ def residuals(data, state, key, when=True):
 
 
 def _residuals(data, state, key):
-    order = jnp.array([0, 1])
+    shed_skin_words = random_words(key, (C.NUM_PLAYERS,))
 
     def side_residual(state, side):
         i = act(state, side)
@@ -317,9 +313,8 @@ def _residuals(data, state, key):
             state, side, i,
             jnp.where(poison_heal & ((status == C.PSN) | (status == C.TOX)) & alive,
                       fraction_of_max(state, side, i, 1, 8), 0))
-        state = state._replace(status_turns=state.status_turns.at[side, i].set(
-            jnp.where(tox, jnp.minimum(counter + 1, 15).astype(jnp.int8),
-                      state.status_turns[side, i])))
+        state = state._replace(status_turns=set_at(
+            state.status_turns, (side, i), jnp.minimum(counter + 1, 15), when=tox))
 
         # 7. Salt Cure: 1/4 against Water and Steel, else 1/8.
         salted = (state.volatiles[side, C.V_SALTCURE] > 0) & alive & \
@@ -331,7 +326,7 @@ def _residuals(data, state, key):
 
         # 8. Shed Skin / Hydration shake off status at the end of the turn.
         shed = (ab == A.SHEDSKIN) & alive & (slot_get(state.status, side, i) != 0) & \
-            (jax.random.uniform(jax.random.fold_in(key, side)) < (1.0 / 3.0))
+            (uniform(shed_skin_words[side]) < (1.0 / 3.0))
         hydrated = (ab == A.HYDRATION) & alive & \
             ((w == C.RAIN) | (w == C.HEAVY_RAIN))
         state = cure_status(state, side, i, when=shed | hydrated)
@@ -341,7 +336,7 @@ def _residuals(data, state, key):
             state, side,
             jnp.where((ab == A.SPEEDBOOST) & alive & jnp.logical_not(
                 state.switched_this_turn[side]),
-                jnp.zeros(7, jnp.int32).at[C.B_SPE].set(1), 0))
+                boost_delta((C.B_SPE, 1)), 0))
 
         # 10. Curse.
         cursed = (state.volatiles[side, C.V_CURSE] > 0) & alive & \
@@ -369,16 +364,14 @@ def _residuals(data, state, key):
     )
 
     # Volatiles that count down on their own; Protect and Flinch last one turn.
-    timed = jnp.zeros(C.NUM_VOLATILES, bool)
-    for v in (C.V_TAUNT, C.V_ENCORE, C.V_DISABLE, C.V_YAWN, C.V_MAGNETRISE,
-              C.V_THROATCHOP, C.V_TORMENT, C.V_SLOWSTART, C.V_PERISHSONG,
-              C.V_PARTIALLYTRAPPED, C.V_LOCKEDMOVE):
-        timed = timed.at[v].set(True)
+    timed = np.zeros(C.NUM_VOLATILES, bool)
+    timed[[C.V_TAUNT, C.V_ENCORE, C.V_DISABLE, C.V_YAWN, C.V_MAGNETRISE,
+           C.V_THROATCHOP, C.V_TORMENT, C.V_SLOWSTART, C.V_PERISHSONG,
+           C.V_PARTIALLYTRAPPED, C.V_LOCKEDMOVE]] = True
     state = state._replace(volatiles=jnp.where(timed, dec(state.volatiles),
                                                state.volatiles))
-    single_turn = jnp.zeros(C.NUM_VOLATILES, bool)
-    for v in (C.V_PROTECT, C.V_FLINCH, C.V_ROOST, C.V_HELPINGHAND, C.V_ENDURE):
-        single_turn = single_turn.at[v].set(True)
+    single_turn = np.zeros(C.NUM_VOLATILES, bool)
+    single_turn[[C.V_PROTECT, C.V_FLINCH, C.V_ROOST, C.V_HELPINGHAND, C.V_ENDURE]] = True
     state = state._replace(volatiles=jnp.where(single_turn, jnp.int8(0),
                                                state.volatiles))
     return state
@@ -393,18 +386,19 @@ def resolve_phazing(data, state, key):
 
     Written as a `fori_loop` rather than a Python loop over the two sides: the
     body holds a `switch_to`, which is a large piece of program (hazards, entry
-    abilities), and the loop compiles it once instead of once per side.
+    abilities), and the loop compiles it once instead of once per side. The
+    random scores are drawn before the loop so that no hash sits inside it.
     """
+    all_scores = jax.random.uniform(key, (C.NUM_PLAYERS, C.TEAM_SIZE))
+
     def one_side(side, st):
         active = st.active[side].astype(jnp.int32)
         eligible = (st.hp[side] > 0) & (jnp.arange(C.TEAM_SIZE) != active)
         # Uniform over the eligible slots: score them randomly and take the best.
-        scores = jnp.where(eligible, jax.random.uniform(
-            jax.random.fold_in(key, side), (C.TEAM_SIZE,)), -1.0)
+        scores = jnp.where(eligible, all_scores[side], -1.0)
         slot = jnp.argmax(scores)
-        return jax.lax.cond(st.phazed[side] & jnp.any(eligible),
-                            lambda x: switch_to(data, x, side, slot),
-                            lambda x: x, st)
+        return select_state(st.phazed[side] & jnp.any(eligible),
+                            switch_to(data, st, side, slot), st)
 
     state = jax.lax.fori_loop(0, C.NUM_PLAYERS, one_side, state)
     return state._replace(phazed=jnp.zeros((C.NUM_PLAYERS,), bool))
@@ -435,28 +429,29 @@ def is_attacking_action(data, state, side, action):
         (data["move_category"][mid] != C.CAT_STATUS)
 
 
-def run_action(data, state, side, action, moves_first, key, target_attacking=True):
-    """Execute one side's chosen action, if its Pokemon is still able to act."""
+def run_action(data, state, side, action, moves_first, words, target_attacking=True):
+    """Use one side's chosen move, if its Pokemon is still able to act.
+
+    Switches are not actions here: they all resolve before any move, in the
+    switch-in loop of `run_turn`, and a switch action is a pass. So is a negative
+    one -- used for the opponent of a self-switch, whose locked-in move is held
+    over until the replacement is in. `words` is the move's `[MOVE_WORDS]` random
+    words (see `execute_move`).
+    """
     i = act(state, side)
-    # A negative action is a pass: used for the opponent of a self-switch, whose
-    # locked-in move is held over until the replacement is in.
-    alive = (slot_get(state.hp, side, i) > 0) & (action >= 0)
+    able = (slot_get(state.hp, side, i) > 0) & (action >= 0) & \
+        jnp.logical_not(is_switch(action))
 
-    def do_switch(s):
-        return switch_to(data, s, side, switch_slot(action))
+    # Terastallize first: it changes the type line before the move resolves.
+    tera = wants_tera(action) & jnp.logical_not(state.terastallized[side, i])
+    moved = state._replace(terastallized=set_at(state.terastallized, (side, i), True,
+                                                when=tera))
+    moved = execute_move(data, moved, side, move_slot(action), moves_first, words,
+                         target_attacking)
 
-    def do_move(s):
-        # Terastallize first: it changes the type line before the move resolves.
-        tera = wants_tera(action) & jnp.logical_not(s.terastallized[side, i])
-        ai = act(s, side)
-        s = s._replace(terastallized=s.terastallized.at[side, ai].set(
-            s.terastallized[side, ai] | tera))
-        return execute_move(data, s, side, move_slot(action), moves_first, key,
-                            target_attacking)
-
-    return jax.lax.cond(alive,
-                        lambda s: jax.lax.cond(is_switch(action), do_switch, do_move, s),
-                        lambda s: s, state)
+    # Computed either way and selected, as a batched `lax.cond` would do; see
+    # `state.select_state` for why it is not one.
+    return select_state(able, moved, state)
 
 
 # --- the public step ---------------------------------------------------------
@@ -489,12 +484,17 @@ def run_turn(data, state, actions, key, resuming):
 
     `resuming` is traced, so both readings are always built and selected between.
 
-    The two slots run through a `fori_loop` rather than two calls. `run_action`
+    Switching comes first. A switch outranks every move, so the switchers go in
+    turn order ahead of both slots, and on a resume the replacements that were
+    owed come in before the held-over move; one loop covers both. The two slots
+    then run through a second `fori_loop` rather than two calls. `run_action`
     contains the whole move engine -- by far the largest thing in the program --
     and the loop puts one copy in the compiled graph instead of two. That is
     what keeps compilation tractable; see the note in `psjax/__init__.py`.
     """
     k_order, k_act, k_res, k_ph = jax.random.split(key, 4)
+    # Both slots' random words in one hash, drawn outside the loop.
+    move_words = random_words(k_act, (2, MOVE_WORDS))
     state = start_turn(state, when=jnp.logical_not(resuming))
     first = turn_order(data, state, actions, k_order)
     second = 1 - first
@@ -504,11 +504,25 @@ def run_turn(data, state, actions, key, resuming):
                          is_attacking_action(data, state, 1, actions[1])])
     pending = resuming & (state.pending_side >= 0)
 
+    def switch_in(j, st):
+        # A replacement owed from last step (side order), or a switch chosen as
+        # this turn's action (turn order).
+        side = jnp.where(resuming, j, jnp.where(j == 0, first, second))
+        action = actions[side]
+        owed = resuming & st.force_switch[side]
+        chosen = jnp.logical_not(resuming) & is_switch(action) & \
+            (slot_get(st.hp, side, act(st, side)) > 0)
+        return select_state(owed | chosen,
+                            switch_to(data, st, side, switch_slot(action)), st)
+
+    state = jax.lax.fori_loop(0, C.NUM_PLAYERS, switch_in, state)
+
     def slot(i, carry):
         st, suspend = carry
         is_a = i == 0
 
         # Slot B is the second mover, or the move held over from a suspension.
+        # A switch already happened above, so it is a pass here.
         b_side = jnp.where(pending, st.pending_side.astype(jnp.int32), second)
         b_action = jnp.where(
             resuming,
@@ -521,8 +535,7 @@ def run_turn(data, state, actions, key, resuming):
         # its point of view nothing is "about to attack".
         target_attacks = jnp.where(is_a, attacks[second],
                                    jnp.where(resuming, jnp.bool_(False), attacks[first]))
-        st = run_action(data, st, side, action, is_a, jax.random.fold_in(k_act, i),
-                        target_attacks)
+        st = run_action(data, st, side, action, is_a, move_words[i], target_attacks)
 
         # A self-switch suspends the turn: its user picks a replacement before
         # the opponent's already-locked move resolves, so that move lands on
@@ -565,21 +578,6 @@ def _request_replacements(state):
         fainted_count=jnp.sum(state.hp <= 0, axis=1).astype(jnp.int8))
 
 
-def apply_forced_switches(data, state, actions):
-    """Resolve pending replacements for whichever sides owe one.
-
-    A `fori_loop` for the same reason as `resolve_phazing`: one copy of
-    `switch_to` in the compiled program rather than one per side.
-    """
-    def one_side(side, st):
-        return jax.lax.cond(
-            st.force_switch[side],
-            lambda x: switch_to(data, x, side, switch_slot(actions[side])),
-            lambda x: x, st)
-
-    return jax.lax.fori_loop(0, C.NUM_PLAYERS, one_side, state)
-
-
 def step(state: BattleState, actions, data=None) -> BattleState:
     """Advance the battle by one decision point.
 
@@ -596,9 +594,6 @@ def step(state: BattleState, actions, data=None) -> BattleState:
     # A switch prompt means the chosen replacements come in before anything else;
     # `run_turn` then either finishes a suspended turn or does nothing further.
     resuming = state.phase == C.PHASE_SWITCH
-    state = jax.lax.cond(resuming,
-                         lambda s: apply_forced_switches(data, s, actions),
-                         lambda s: s, state)
     state = run_turn(data, state, actions, subkey, resuming)
 
     winner = check_winner(state)

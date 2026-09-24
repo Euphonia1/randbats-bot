@@ -47,7 +47,7 @@ import jax.numpy as jnp
 
 from . import consts as C
 from .env import BattleEnv
-from .state import BattleState
+from .state import BattleState, set_at
 
 
 class FogState(NamedTuple):
@@ -139,10 +139,10 @@ class FogOfWarEnv:
         pct = jnp.ceil(st.hp[you].astype(jnp.float32) * 100.0 / maxhp)
 
         return st._replace(
-            moves=st.moves.at[you].set(moves),
-            pp=st.pp.at[you].set(pp),
-            hp=st.hp.at[you].set(pct.astype(st.hp.dtype)),
-            maxhp=st.maxhp.at[you].set(jnp.full_like(st.maxhp[you], 100)))
+            moves=set_at(st.moves, you, moves),
+            pp=set_at(st.pp, you, pp),
+            hp=set_at(st.hp, you, pct),
+            maxhp=set_at(st.maxhp, you, 100))
 
     @functools.partial(jax.jit, static_argnums=0)
     def observe(self, fs: FogState) -> jnp.ndarray:
