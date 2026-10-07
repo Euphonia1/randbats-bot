@@ -56,11 +56,16 @@ def _run_case(case):
         side = side.at[SCREENS[s]].set(5)
 
     def_types = current_types(dfn.types, dfn.terastallized, dfn.tera_type)
+    # On the ground unless the case says otherwise or the defender has wings,
+    # Levitate or an Air Balloon -- as `mechanics.is_grounded` works it out.
+    from psjax.hooks import I as _I
+    airborne = jnp.any(def_types == C.FLYING) | (dfn.ability == _A.LEVITATE) | \
+        (dfn.item == _I.AIRBALLOON)
+    grounded = case.get("groundedTarget", not bool(airborne))
     exp, immune = type_effectiveness(
         data, mv.type, def_types, mv, data["move_ignore_immunity"][mv.id],
         dfn.ability, jnp.bool_(False), def_terastallized=dfn.terastallized,
-        def_grounded=jnp.bool_(case.get("groundedTarget", True)),
-        def_full_hp=dfn.hp >= dfn.maxhp)
+        def_grounded=jnp.bool_(grounded), def_full_hp=dfn.hp >= dfn.maxhp)
     # Collision Course and friends key off the effectiveness, so the callback
     # context only becomes complete once it is known -- as in `execute_move`.
     cb_ctx = cb_ctx._replace(type_exp=exp)

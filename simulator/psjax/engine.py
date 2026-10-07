@@ -30,13 +30,14 @@ from . import effects as E
 from .damage import (Attacker, MoveCtx, CRIT_RATES, calc_damage, current_types,
                      type_effectiveness)
 from .data import load_data, species_index
-from .hooks import A, I
+from .hooks import A, ABILITY_IDX, I
 from .mechanics import (act, active_types, actives_alive, apply_boosts, below,
                         berry_update, berry_wants, boost_delta, cure_status, eat_berry,
                         forme_change, revert_on_switch_out, slot_get, slot_set,
                         soul_heart, damage_pokemon, effective_speed,
                         effective_weather, fraction_of_max, heal_pokemon,
-                        is_grounded, random_words, set_status, uniform)
+                        is_grounded, random_words, set_status, set_terrain,
+                        set_weather, uniform, paradox_update, usable_moves, white_herb)
 from .moves import (MOVE_WORDS, build_defender, execute_move, move_priority,
                     transform_into)
 from .stats import boost_multiply
@@ -102,6 +103,14 @@ def turn_order(data, state, actions, key):
 
 
 # --- switching ---------------------------------------------------------------
+
+def speed_order(state):
+    """The side whose active goes first by Speed alone (Trick Room reverses
+    it), p1 on a tie: the order of entry effects after simultaneous switches."""
+    s0, s1 = effective_speed(state, 0), effective_speed(state, 1)
+    faster0 = jnp.where(state.trick_room > 0, s0 < s1, s0 > s1)
+    return jnp.where(faster0 | (s0 == s1), 0, 1).astype(jnp.int32)
+
 
 def apply_entry_hazards(data, state, side):
     """Stealth Rock, Spikes, Toxic Spikes and Sticky Web on the incoming Pokemon."""
@@ -187,77 +196,77 @@ def apply_switch_in_ability(data, state, side):
     state, _ = transform_into(data, state, side, when=ab == A.IMPOSTER)
     ab = slot_get(state.ability, side, i)
 
-    weather = data["ability_weather"][ab]
-    state = state._replace(
-        weather=jnp.where(weather > 0, weather, state.weather),
-        weather_turns=jnp.where(weather > 0, jnp.int8(5), state.weather_turns))
-    terrain = data["ability_terrain"][ab]
-    state = state._replace(
-        terrain=jnp.where(terrain > 0, terrain, state.terrain),
-        terrain_turns=jnp.where(terrain > 0, jnp.int8(5), state.terrain_turns))
+    state = set_weather(state, data["ability_weather"][ab])
+    state = set_terrain(state, data["ability_terrain"][ab])
 
     # Intimidate drops the opponent's Attack -- except, from Gen 8, the Attack of
     # an Oblivious, Own Tempo, Inner Focus or Scrappy Pokemon.
     shrugs = (o_ab == A.OBLIVIOUS) | (o_ab == A.OWNTEMPO) | (o_ab == A.INNERFOCUS) | \
         (o_ab == A.SCRAPPY)
-    intimidate = (ab == A.INTIMIDATE) & foe_out & jnp.logical_not(shrugs)
+    # A Substitute keeps Intimidate out altogether.
+    intimidate = (ab == A.INTIMIDATE) & foe_out & jnp.logical_not(shrugs) & \
+        (state.volatiles[other, C.V_SUBSTITUTE] <= 0)
     state, applied = apply_boosts(
         state, other,
         jnp.where(intimidate, boost_delta((C.B_ATK, -1)), 0),
         from_opponent=True)
+    # Rattled answers Intimidate with +1 Speed (Gen 9); Defiant and Competitive
+    # answer it inside `apply_boosts`, as they do any drop.
+    rattled = (applied[C.B_ATK] != 0) & (state.ability[other, oi] == A.RATTLED)
+    state, _ = apply_boosts(state, other, jnp.where(rattled, boost_delta((C.B_SPE, 1)), 0))
 
-    # Defiant and Competitive answer any stat drop from the opponent.
-    o_ab = state.ability[other, oi]
-    dropped = jnp.any(applied < 0)
-    state, _ = apply_boosts(
-        state, other,
-        jnp.where(dropped & (o_ab == A.DEFIANT), boost_delta((C.B_ATK, 2)), 0))
-    state, _ = apply_boosts(
-        state, other,
-        jnp.where(dropped & (o_ab == A.COMPETITIVE), boost_delta((C.B_SPA, 2)), 0))
-
-    # Protosynthesis (sun) and Quark Drive (Electric Terrain) raise whichever of
-    # the arriving Pokemon's stats is highest, ignoring stage boosts. Booster
-    # Energy triggers them with no weather or terrain at all.
-    weather_now = effective_weather(state)
-    booster = slot_get(state.item, side, i) == I.BOOSTERENERGY
-    proto = (ab == A.PROTOSYNTHESIS) & (
-        (weather_now == C.SUN) | (weather_now == C.HARSH_SUN) | booster)
-    quark = (ab == A.QUARKDRIVE) & ((state.terrain == C.ELECTRIC_TERRAIN) | booster)
-    active_boost = proto | quark
-    # Ties go to the earlier stat, matching Showdown's scan order.
-    stats = slot_get(state.stats, side, i)[1:]
-    best = (jnp.argmax(stats) + 1).astype(jnp.int8)
-    state = state._replace(boosted_stat=set_at(
-        state.boosted_stat, side, jnp.where(active_boost, best, jnp.int8(-1))))
+    # Slow Start halves Attack and Speed for five turns; the residuals count
+    # them down, skipping a turn the holder switched in on.
+    state = state._replace(volatiles=set_at(
+        state.volatiles, (side, C.V_SLOWSTART), 5, ab == A.SLOWSTART))
 
     # Intrepid Sword / Dauntless Shield boost the arriving Pokemon once, and so
-    # do Download (whichever attacking stat the foe's defences leave open) and
-    # Wind Rider (a Tailwind already blowing on its side). One boost at most.
+    # do Download (whichever attacking stat the foe's defences leave open),
+    # Wind Rider (a Tailwind already blowing on its side) and a Terastallized
+    # Ogerpon's Embody Aspect, which boosts again on every entry. One boost at
+    # most.
     o_stats = slot_get(state.stats, other, oi)
     o_def = boost_multiply(o_stats[C.DEF], state.boosts[other, C.B_DEF])
     o_spd = boost_multiply(o_stats[C.SPD], state.boosts[other, C.B_SPD])
     entry = jnp.zeros(C.NUM_BOOSTS, jnp.int32)
+    # Since Gen 9 Intrepid Sword and Dauntless Shield work once a battle.
+    sword = ((ab == A.INTREPIDSWORD) | (ab == A.DAUNTLESSSHIELD)) & \
+        jnp.logical_not(slot_get(state.bond_used, side, i))
+    state = state._replace(bond_used=slot_set(state.bond_used, side, i, True, sword))
     for cond, delta in (
-            (ab == A.INTREPIDSWORD, boost_delta((C.B_ATK, 1))),
-            (ab == A.DAUNTLESSSHIELD, boost_delta((C.B_DEF, 1))),
+            (sword & (ab == A.INTREPIDSWORD), boost_delta((C.B_ATK, 1))),
+            (sword & (ab == A.DAUNTLESSSHIELD), boost_delta((C.B_DEF, 1))),
             ((ab == A.DOWNLOAD) & foe_out & (o_def >= o_spd), boost_delta((C.B_SPA, 1))),
             ((ab == A.DOWNLOAD) & foe_out & (o_def < o_spd), boost_delta((C.B_ATK, 1))),
             ((ab == A.WINDRIDER) & (state.side_conditions[side, C.SC_TAILWIND] > 0),
-             boost_delta((C.B_ATK, 1)))):
+             boost_delta((C.B_ATK, 1)))) + tuple(
+            ((ab == ABILITY_IDX[aspect]) & slot_get(state.terastallized, side, i),
+             boost_delta((stage, 1))) for _, _, aspect, stage in _OGERPON_TERA):
         entry = jnp.where(cond, jnp.asarray(delta), entry)
     state, _ = apply_boosts(state, side, entry)
-    return state
+    # The arrival may have brought sun or Electric Terrain (or Booster Energy).
+    return paradox_update(state)
 
 
 _BATON_PASS_MASK = np.isin(np.arange(C.NUM_VOLATILES), C.BATON_PASS_VOLATILES)
 _SHED_TAIL_MASK = np.arange(C.NUM_VOLATILES) == C.V_SUBSTITUTE
 _SOURCE_BOUND_MASK = np.isin(np.arange(C.NUM_VOLATILES),
-                             [C.V_ATTRACT, C.V_SYRUPBOMB, C.V_PARTIALLYTRAPPED])
+                             [C.V_ATTRACT, C.V_SYRUPBOMB, C.V_PARTIALLYTRAPPED, C.V_TRAPPED])
 
 
 def switch_to(data, state, side, slot):
     """Bring `slot` in for `side`, clearing slot state and running entry effects."""
+    state, valid = swap_in(data, state, side, slot)
+    return arrive(data, state, side, valid)
+
+
+def swap_in(data, state, side, slot):
+    """The switch itself: the old Pokemon leaves and `slot` takes its place.
+
+    Returns `(state, valid)`. Entry effects -- hazards, abilities -- are
+    `arrive`'s: when both sides switch at once, Showdown makes both switches
+    before either newcomer's entry effects run.
+    """
     requested = slot.astype(jnp.int32)
     slot = jnp.clip(requested, 0, C.TEAM_SIZE - 1)
     valid = ((requested == slot) & (slot_get(state.hp, side, slot) > 0) &
@@ -270,7 +279,8 @@ def switch_to(data, state, side, slot):
     regen = state.ability[side, old] == A.REGENERATOR
     state, _ = heal_pokemon(state, side, old,
                             jnp.where(regen & valid,
-                                      fraction_of_max(state, side, old, 1, 3), 0))
+                                      fraction_of_max(state, side, old, 1, 3), 0),
+                            blockable=False)
     # Natural Cure clears status on the way out.
     natural = state.ability[side, old] == A.NATURALCURE
     state = cure_status(state, side, old, when=natural & valid)
@@ -301,7 +311,7 @@ def switch_to(data, state, side, slot):
         pass_mode=set_at(state.pass_mode, side, 0))
 
     # Whatever the departing Pokemon was holding the foe with lets go: Attract,
-    # Syrup Bomb and binding moves all end with their source.
+    # Syrup Bomb, binding moves and Mean Look's trap all end with their source.
     other = 1 - side
     state = state._replace(volatiles=set_at(
         state.volatiles, other,
@@ -316,17 +326,55 @@ def switch_to(data, state, side, slot):
     pos = jnp.where(jnp.arange(C.TEAM_SIZE) == slot, old_pos,
                     jnp.where(jnp.arange(C.TEAM_SIZE) == old, new_pos, pos))
 
+    # Toxic's count starts over each time its holder comes in.
+    entering_tox = valid & (slot_get(state.status, side, slot) == C.TOX)
     state = state._replace(
+        status_turns=slot_set(state.status_turns, side, slot, jnp.int8(1), entering_tox),
         active=set_at(state.active, side, slot),
         switched_this_turn=set_at(state.switched_this_turn, side, True),
         force_switch=set_at(state.force_switch, side, False),
         party_pos=set_at(state.party_pos, side, pos, valid),
         illusion=set_at(state.illusion, side, disguise,
                         slot_get(state.ability, side, slot) == A.ILLUSION))
+    return state, valid
+
+
+def arrive(data, state, side, when=True):
+    """A newcomer's entry effects: Healing Wish, hazards, its ability, berries.
+
+    `when=False` leaves the state alone.
+    """
+    alive_before = actives_alive(state)
+    arrived = _arrive(data, state, side, when)
+    return select_state(when, soul_heart(arrived, alive_before), state)
+
+
+def _arrive(data, state, side, valid):
+    # A Healing Wish waiting on this side restores the newcomer in full if it
+    # is hurt or statused -- before the hazards, as Showdown runs slot
+    # conditions ahead of side conditions. Lunar Dance restores its PP too,
+    # and waits for one that is hurt, statused or short of PP.
+    i = act(state, side)
+    lunar = state.healing_wish[side] == 2
+    short_of_pp = jnp.any(state.pp[side, i] < state.maxpp[side, i])
+    restores = valid & (state.healing_wish[side] > 0) & (
+        (state.hp[side, i] < state.maxhp[side, i]) | (state.status[side, i] != C.STATUS_NONE) |
+        (lunar & short_of_pp))
+    state = state._replace(
+        hp=set_at(state.hp, (side, i), state.maxhp[side, i], restores),
+        status=set_at(state.status, (side, i), jnp.int8(C.STATUS_NONE), restores),
+        pp=set_at(state.pp, (side, i), state.maxpp[side, i], restores & lunar),
+        healing_wish=set_at(state.healing_wish, side, 0, restores))
     state = apply_entry_hazards(data, state, side)
-    state = apply_switch_in_ability(data, state, side)
+    # A newcomer the hazards knocked out does nothing on arrival (no Intimidate).
+    state = select_state(state.hp[side, i] > 0,
+                         apply_switch_in_ability(data, state, side), state)
+    # Supreme Overlord counts the allies down as its holder comes in.
+    state = state._replace(overlord_count=set_at(
+        state.overlord_count, side, jnp.sum(state.hp[side] <= 0).astype(jnp.int8)))
     state = berry_update(data, state, side)
-    return soul_heart(state, alive_before)
+    # White Herb answers a drop from the arrival (Intimidate, Sticky Web).
+    return white_herb(state)
 
 
 # --- residuals ---------------------------------------------------------------
@@ -334,12 +382,13 @@ def switch_to(data, state, side, slot):
 #: Every field `residuals` writes. A suspended turn runs them with `when=False`,
 #: which selects the old value back for each -- cheaper than branching around the
 #: whole function, which under vmap would select over the entire BattleState.
-RESIDUAL_WRITES = ("hp", "status", "status_turns", "volatiles", "boosts",
+RESIDUAL_WRITES = ("hp", "last_faint", "status", "status_turns", "sleep_attempts", "rest_sleep",
+                   "volatiles", "boosts", "stats_raised", "stats_lowered",
                    "weather", "weather_turns", "terrain", "terrain_turns",
                    "trick_room", "gravity", "side_conditions", "item",
                    "last_item", "cud_berry", "cud_turns", "future_turns",
                    "wish_turns", "sub_hp", "species", "types", "stats", "pp",
-                   "encore_slot")
+                   "encore_slot", "locked_slot")
 
 
 def residuals(data, state, key, when=True):
@@ -381,7 +430,8 @@ def future_hit(data, state, side, when, words):
         terastallized=slot_get(state.terastallized, src_side, src),
         tera_type=slot_get(state.tera_type, src_side, src),
         boosted_stat=jnp.where(src_out, state.boosted_stat[src_side], jnp.int8(-1)),
-        slow_start=jnp.bool_(False))
+        slow_start=jnp.bool_(False),
+        species_num=data["species_num"][slot_get(state.species, src_side, src)])
     dfn = build_defender(data, state, side)
     mv = MoveCtx(id=move, type=data["move_type"][move], category=data["move_category"][move],
                  base_power=data["move_base_power"][move].astype(jnp.int32),
@@ -423,6 +473,14 @@ def _residuals(data, state, key):
     # Per side: Shed Skin, Harvest, and Future Sight's crit and damage roll.
     residual_words = random_words(key, (C.NUM_PLAYERS, 4))
     alive_before = actives_alive(state)
+    dec = lambda v: jnp.maximum(v.astype(jnp.int32) - 1, 0).astype(v.dtype)
+
+    # The weather counts down first, at its own residual step: on its last turn
+    # it ends there, before it chips anyone or heals Rain Dish and friends.
+    weather_turns = dec(state.weather_turns)
+    state = state._replace(
+        weather=jnp.where(weather_turns <= 0, jnp.int8(C.WEATHER_NONE), state.weather),
+        weather_turns=weather_turns)
 
     def side_residual(side, state):
         i = act(state, side)
@@ -492,7 +550,10 @@ def _residuals(data, state, key):
                  jnp.logical_not(magic_guard) & (state.hp[other, oi] > 0)
         drain = jnp.where(seeded, fraction_of_max(state, side, i, 1, 8), 0)
         state, dealt = damage_pokemon(state, side, i, drain)
-        state, _ = heal_pokemon(state, other, oi, dealt)
+        # Liquid Ooze turns the seeder's healing into damage.
+        ooze = ab == A.LIQUIDOOZE
+        state, _ = heal_pokemon(state, other, oi, jnp.where(ooze, 0, dealt))
+        state, _ = damage_pokemon(state, other, oi, jnp.where(ooze, dealt, 0))
 
         # 6. Burn and poison damage. Toxic ramps by 1/16 per turn.
         status = state.status[side, i]
@@ -505,16 +566,19 @@ def _residuals(data, state, key):
               jnp.logical_not(poison_heal)
         burn_dmg = jnp.where(burn, fraction_of_max(state, side, i, 1, 16), 0)
         psn_dmg = jnp.where(psn, fraction_of_max(state, side, i, 1, 8), 0)
-        tox_dmg = jnp.where(tox, fraction_of_max(state, side, i,
-                                                 jnp.clip(counter, 1, 15), 16), 0)
+        # Showdown floors the sixteenth first and then multiplies by the stage.
+        tox_dmg = jnp.where(tox, fraction_of_max(state, side, i, 1, 16) *
+                            jnp.clip(counter, 1, 15), 0)
         state, _ = damage_pokemon(state, side, i, burn_dmg + psn_dmg + tox_dmg)
         # Poison Heal turns poison into recovery.
         state, _ = heal_pokemon(
             state, side, i,
             jnp.where(poison_heal & ((status == C.PSN) | (status == C.TOX)) & alive,
                       fraction_of_max(state, side, i, 1, 8), 0))
+        # The count climbs even when Poison Heal or Magic Guard takes the damage.
         state = state._replace(status_turns=set_at(
-            state.status_turns, (side, i), jnp.minimum(counter + 1, 15), when=tox))
+            state.status_turns, (side, i), jnp.minimum(counter + 1, 16),
+            when=(status == C.TOX) & alive))
 
         # 7. Salt Cure: 1/4 against Water and Steel, else 1/8.
         salted = (state.volatiles[side, C.V_SALTCURE] > 0) & alive & \
@@ -544,6 +608,13 @@ def _residuals(data, state, key):
         state, _ = damage_pokemon(state, side, i,
                                   jnp.where(cursed, fraction_of_max(state, side, i, 1, 4), 0))
 
+
+        # Binding moves chip an eighth each residual -- Showdown counts the
+        # turn down first and ends it there, so not on the last.
+        bound = (state.volatiles[side, C.V_PARTIALLYTRAPPED] > 1) & alive & \
+            jnp.logical_not(magic_guard)
+        state, _ = damage_pokemon(state, side, i,
+                                  jnp.where(bound, fraction_of_max(state, side, i, 1, 8), 0))
 
         # 11. Syrup Bomb takes a stage of Speed each residual it has left.
         syrup = (state.volatiles[side, C.V_SYRUPBOMB] > 1) & alive
@@ -595,6 +666,16 @@ def _residuals(data, state, key):
                           when=chewed | berry_wants(state, side),
                           consume=jnp.logical_not(chewed), cud=jnp.where(chewed, 0, 1))
 
+        # Flame Orb and Toxic Orb, late in the residuals -- after the burn and
+        # poison damage, so the holder takes none until the next turn. Safeguard
+        # does not stop a status the holder gives itself.
+        held = state.item[side, i]
+        orb = jnp.where(held == I.FLAMEORB, jnp.int8(C.BRN),
+                        jnp.where(held == I.TOXICORB, jnp.int8(C.TOX), jnp.int8(C.STATUS_NONE)))
+        state, _ = set_status(data, state, side,
+                              jnp.where(state.hp[side, i] > 0, orb, jnp.int8(C.STATUS_NONE)),
+                              words[1], self_inflicted=True)
+
         # 16. Formes that follow the turn: Morpeko's Hunger Switch flips between
         # Full Belly and Hangry (not once Terastallized); Minior's Shields Down
         # drops its shell at half HP and grows it back above.
@@ -614,13 +695,10 @@ def _residuals(data, state, key):
     # One copy of the per-side residuals in the compiled program, not two.
     state = jax.lax.fori_loop(0, C.NUM_PLAYERS, side_residual, state)
 
-    # Tick down timed field effects and per-slot volatiles.
-    dec = lambda v: jnp.maximum(v.astype(jnp.int32) - 1, 0).astype(v.dtype)
-    weather_turns = dec(state.weather_turns)
+    # Tick down timed field effects and per-slot volatiles. Terrain, unlike the
+    # weather, ends after its last turn's Grassy Terrain healing.
     terrain_turns = dec(state.terrain_turns)
     state = state._replace(
-        weather=jnp.where(weather_turns <= 0, jnp.int8(C.WEATHER_NONE), state.weather),
-        weather_turns=weather_turns,
         terrain=jnp.where(terrain_turns <= 0, jnp.int8(C.TERRAIN_NONE), state.terrain),
         terrain_turns=terrain_turns,
         trick_room=dec(state.trick_room), gravity=dec(state.gravity),
@@ -631,16 +709,38 @@ def _residuals(data, state, key):
 
     # Volatiles that count down on their own; Protect and Flinch last one turn.
     timed = np.zeros(C.NUM_VOLATILES, bool)
+    # (A rampage's lock counts uses, not turns: `execute_move` keeps it.)
     timed[[C.V_TAUNT, C.V_ENCORE, C.V_DISABLE, C.V_YAWN, C.V_MAGNETRISE,
-           C.V_THROATCHOP, C.V_TORMENT, C.V_SLOWSTART, C.V_PERISHSONG,
-           C.V_PARTIALLYTRAPPED, C.V_LOCKEDMOVE, C.V_SYRUPBOMB]] = True
+           C.V_THROATCHOP, C.V_TORMENT, C.V_PERISHSONG,
+           C.V_PARTIALLYTRAPPED, C.V_SYRUPBOMB, C.V_HEALBLOCK]] = True
     state = state._replace(volatiles=jnp.where(timed, dec(state.volatiles),
+                                               state.volatiles))
+    # Slow Start counts only turns its holder began on the field (Showdown's
+    # `activeTurns`): not the turn it switched in on, but a lead's first turn
+    # and a replacement's first full turn both count.
+    counting = (jnp.arange(C.NUM_VOLATILES) == C.V_SLOWSTART)[None, :] & \
+        jnp.logical_not(state.switched_this_turn)[:, None]
+    state = state._replace(volatiles=jnp.where(counting, dec(state.volatiles),
                                                state.volatiles))
     single_turn = np.zeros(C.NUM_VOLATILES, bool)
     single_turn[[C.V_PROTECT, C.V_FLINCH, C.V_ROOST, C.V_HELPINGHAND, C.V_ENDURE,
                  C.V_FOCUSPUNCH, C.V_BEAKBLAST, C.V_MATBLOCK]] = True
     state = state._replace(volatiles=jnp.where(single_turn, jnp.int8(0),
                                                state.volatiles))
+    # A rampage ends at any residual its user is asleep for (Showdown's
+    # `lockedmove`), with no fatigue: Yawn mid-Outrage frees the moves.
+    asleep = jnp.stack([slot_get(state.status, s, act(state, s)) == C.SLP
+                        for s in range(C.NUM_PLAYERS)])
+    raging_asleep = asleep & (state.volatiles[:, C.V_LOCKEDMOVE] > 0)
+    state = state._replace(
+        volatiles=jnp.where((jnp.arange(C.NUM_VOLATILES) == C.V_LOCKEDMOVE)[None, :] &
+                            raging_asleep[:, None], jnp.int8(0), state.volatiles),
+        locked_slot=jnp.where(raging_asleep, jnp.int8(-1), state.locked_slot))
+
+    # White Herb checks once more at the end of the turn (a Syrup Bomb drop),
+    # and the sun or terrain may have ended.
+    state = white_herb(state)
+    state = paradox_update(state)
 
     # Soul-Heart counts whatever fainted during the residuals.
     return soul_heart(state, alive_before)
@@ -679,7 +779,9 @@ def check_winner(state):
     alive = jnp.sum(state.hp > 0, axis=1)
     p0_out = alive[0] == 0
     p1_out = alive[1] == 0
-    winner = jnp.where(p0_out & p1_out, jnp.int8(2),
+    # Both out at once: Showdown (Gen 5+) gives it to the side that fainted last.
+    winner = jnp.where(p0_out & p1_out,
+                       jnp.where(state.last_faint >= 0, state.last_faint, 2).astype(jnp.int8),
                        jnp.where(p1_out, jnp.int8(0),
                                  jnp.where(p0_out, jnp.int8(1), jnp.int8(-1))))
     return winner
@@ -690,15 +792,17 @@ def check_winner(state):
 def is_attacking_action(data, state, side, action):
     """True if `side` is about to use a damaging move (not a switch or status move).
 
-    Sucker Punch needs this about its target.
+    Sucker Punch needs this about its target. A Pokemon recharging is not.
     """
     ai = act(state, side)
     mid = jnp.maximum(state.moves[side, ai, move_slot(action)], 0)
     return jnp.logical_not(is_switch(action)) & \
-        (data["move_category"][mid] != C.CAT_STATUS)
+        (data["move_category"][mid] != C.CAT_STATUS) & \
+        (state.volatiles[side, C.V_RECHARGE] <= 0)
 
 
-def run_action(data, state, side, action, moves_first, words, target_attacking=True):
+def run_action(data, state, side, action, moves_first, words, target_attacking=True,
+               target_acting=True, struggling=None):
     """Use one side's chosen move, if its Pokemon is still able to act.
 
     Switches are not actions here: they all resolve before any move, in the
@@ -710,27 +814,66 @@ def run_action(data, state, side, action, moves_first, words, target_attacking=T
     i = act(state, side)
     able = (slot_get(state.hp, side, i) > 0) & (action >= 0) & \
         jnp.logical_not(is_switch(action))
-
-    # Terastallize first: it changes the type line before the move resolves.
-    tera = wants_tera(action) & jnp.logical_not(state.terastallized[side, i])
-    moved = state._replace(terastallized=set_at(state.terastallized, (side, i), True,
-                                                when=tera))
-    # Terapagos-Terastal Terastallizes into its Stellar Form, whose Teraform Zero
-    # clears the weather and terrain.
-    stellar = tera & (state.species[side, i] == species_index("terapagosterastal"))
-    moved = forme_change(data, moved, side, i, species_index("terapagosstellar"), when=stellar,
-                         permanent=True, ability=A.TERAFORMZERO)
-    moved = moved._replace(
-        weather=jnp.where(stellar, jnp.int8(C.WEATHER_NONE), moved.weather),
-        weather_turns=jnp.where(stellar, jnp.int8(0), moved.weather_turns),
-        terrain=jnp.where(stellar, jnp.int8(C.TERRAIN_NONE), moved.terrain),
-        terrain_turns=jnp.where(stellar, jnp.int8(0), moved.terrain_turns))
-    moved = execute_move(data, moved, side, move_slot(action), moves_first, words,
-                         target_attacking)
+    moved = execute_move(data, state, side, move_slot(action), moves_first, words,
+                         target_attacking, target_acting, struggling)
 
     # Computed either way and selected, as a batched `lax.cond` would do; see
     # `state.select_state` for why it is not one.
     return select_state(able, moved, state)
+
+
+# Ogerpon Terastallizes into its "-Tera" forme, whose ability, Embody Aspect,
+# raises one stat as it does: (forme, Tera forme, ability, stage raised).
+_OGERPON_TERA = (
+    ("ogerpon", "ogerpontealtera", "embodyaspectteal", C.B_SPE),
+    ("ogerponwellspring", "ogerponwellspringtera", "embodyaspectwellspring", C.B_SPD),
+    ("ogerponhearthflame", "ogerponhearthflametera", "embodyaspecthearthflame", C.B_ATK),
+    ("ogerponcornerstone", "ogerponcornerstonetera", "embodyaspectcornerstone", C.B_DEF),
+)
+
+
+def terastallize(data, state, side, when):
+    """Terastallize `side`'s active Pokemon, with the formes that come with it.
+
+    Showdown resolves Terastallization as its own action, after switches and
+    before any move, so a Pokemon that moves second is already its Tera type
+    when it is hit -- and still spends the side's Terastallization if it is
+    knocked out before it moves.
+    """
+    i = act(state, side)
+    tera = when & jnp.logical_not(state.terastallized[side, i]) & \
+        (slot_get(state.hp, side, i) > 0)
+    state = state._replace(terastallized=set_at(state.terastallized, (side, i), True,
+                                                when=tera),
+                           tera_used=set_at(state.tera_used, side, True, when=tera))
+    species = state.species[side, i]
+    # Terapagos-Terastal becomes its Stellar Form, whose Teraform Zero clears the
+    # weather and terrain.
+    stellar = tera & (species == species_index("terapagosterastal"))
+    target = jnp.int16(species_index("terapagosstellar"))
+    ability = jnp.int16(A.TERAFORMZERO)
+    embody = jnp.zeros(C.NUM_BOOSTS, jnp.int32)
+    ogerpon = jnp.bool_(False)
+    for base, tera_forme, aspect, stage in _OGERPON_TERA:
+        hit = tera & (species == species_index(base))
+        ogerpon = ogerpon | hit
+        target = jnp.where(hit, jnp.int16(species_index(tera_forme)), target)
+        ability = jnp.where(hit, jnp.int16(ABILITY_IDX[aspect]), ability)
+        embody = jnp.where(hit, jnp.asarray(boost_delta((stage, 1))), embody)
+    state = forme_change(data, state, side, i, target, when=stellar | ogerpon,
+                         permanent=True, ability=ability)
+    state, _ = apply_boosts(state, side, embody)
+    # A Morpeko that Terastallizes Hangry stays Hangry for good, on the bench
+    # too: Showdown makes the forme its base species.
+    hangry = tera & (species == species_index("morpekohangry")) & \
+        jnp.logical_not(state.transformed[side])
+    state = state._replace(
+        base_species=slot_set(state.base_species, side, i, species, hangry),
+        weather=jnp.where(stellar, jnp.int8(C.WEATHER_NONE), state.weather),
+        weather_turns=jnp.where(stellar, jnp.int8(0), state.weather_turns),
+        terrain=jnp.where(stellar, jnp.int8(C.TERRAIN_NONE), state.terrain),
+        terrain_turns=jnp.where(stellar, jnp.int8(0), state.terrain_turns))
+    return paradox_update(state)
 
 
 # --- the public step ---------------------------------------------------------
@@ -742,6 +885,9 @@ def start_turn(state, when=True):
     already happened.
     """
     pick = lambda new, old: jnp.where(when, new, old)
+    # Stat changes from the leads' entry (Intimidate) still count on turn 1:
+    # Showdown only clears those flags from the second turn on.
+    stats_pick = lambda new, old: jnp.where(when & (state.turn >= 1), new, old)
     return state._replace(
         moved_this_turn=pick(jnp.zeros((C.NUM_PLAYERS,), bool), state.moved_this_turn),
         switched_this_turn=pick(jnp.zeros((C.NUM_PLAYERS,), bool),
@@ -749,7 +895,8 @@ def start_turn(state, when=True):
         damage_taken=pick(jnp.zeros((C.NUM_PLAYERS,), jnp.int16), state.damage_taken),
         damage_category=pick(jnp.full((C.NUM_PLAYERS,), -1, jnp.int8),
                              state.damage_category),
-        stats_lowered=pick(jnp.zeros((C.NUM_PLAYERS,), bool), state.stats_lowered),
+        stats_lowered=stats_pick(jnp.zeros((C.NUM_PLAYERS,), bool), state.stats_lowered),
+        stats_raised=stats_pick(jnp.zeros((C.NUM_PLAYERS,), bool), state.stats_raised),
         fusion_last=pick(jnp.int8(0), state.fusion_last),
         pass_mode=pick(jnp.zeros((C.NUM_PLAYERS,), jnp.int8), state.pass_mode),
         turn=pick(state.turn + 1, state.turn),
@@ -780,23 +927,61 @@ def run_turn(data, state, actions, key, resuming):
     first = turn_order(data, state, actions, k_order)
     second = 1 - first
 
+    # Struggle is settled when the move is chosen: whoever has no usable move
+    # now struggles this turn, whatever happens to its moves before it acts.
+    struggles = jnp.stack([jnp.logical_not(jnp.any(usable_moves(data, state, s)))
+                           for s in range(C.NUM_PLAYERS)])
+
     # Sucker Punch checks whether its target is about to attack.
     attacks = jnp.stack([is_attacking_action(data, state, 0, actions[0]),
                          is_attacking_action(data, state, 1, actions[1])])
     pending = resuming & (state.pending_side >= 0)
 
-    def switch_in(j, st):
-        # A replacement owed from last step (side order), or a switch chosen as
-        # this turn's action (turn order).
-        side = jnp.where(resuming, j, jnp.where(j == 0, first, second))
+    # Switches come in two kinds, and Showdown orders their entry effects
+    # differently. A switch chosen as the turn's action is made and its
+    # newcomer's entry effects run before the next switch (so the faster
+    # switcher's Intimidate hits the slower side's outgoing Pokemon). Replacements
+    # answering a prompt (Showdown's `instaswitch`) are all made first, then the
+    # newcomers arrive fastest first. With p1's replacement swapped in ahead of
+    # it, one loop body -- one swap, one arrival -- covers both in two steps:
+    #   chosen        (swap first, arrive first) (swap second, arrive second)
+    #   replacements  [swap p1] (swap p2, arrive faster) (arrive slower)
+    # (Arrivals are the costly part; a third step for the replacements' would
+    # be one more on every turn.)
+    def switch_in(st, came, side, when):
         action = actions[side]
         owed = resuming & st.force_switch[side]
         chosen = jnp.logical_not(resuming) & is_switch(action) & \
             (slot_get(st.hp, side, act(st, side)) > 0)
-        return select_state(owed | chosen,
-                            switch_to(data, st, side, switch_slot(action)), st)
+        reviving = when & owed & (st.pass_mode[side] == C.PASS_REVIVE)
+        moving = when & (owed | chosen) & jnp.logical_not(reviving)
+        swapped, valid = swap_in(data, st, side, switch_slot(action))
+        st = select_state(moving, swapped, st)
+        st = select_state(reviving, revive(st, side, switch_slot(action)), st)
+        came = jnp.where(jnp.arange(C.NUM_PLAYERS) == side, came | (moving & valid), came)
+        return st, came
 
-    state = jax.lax.fori_loop(0, C.NUM_PLAYERS, switch_in, state)
+    def switch_step(k, carry):
+        st, came, arrival_first = carry
+        side = jnp.where(resuming, 1, jnp.where(k == 0, first, second))
+        st, came = switch_in(st, came, side, jnp.logical_not(resuming) | (k == 0))
+        # Replacements arrive once both are in, fastest first (Trick Room
+        # reversing it); a chosen switch's newcomer arrives straight away.
+        arrival_first = jnp.where(resuming & (k == 0), speed_order(st), arrival_first)
+        coming = jnp.where(resuming, jnp.where(k == 0, arrival_first, 1 - arrival_first), side)
+        return arrive(data, st, coming, came[coming]), came, arrival_first
+
+    state, came = switch_in(state, jnp.zeros(C.NUM_PLAYERS, bool), 0, resuming)
+    state, _, _ = jax.lax.fori_loop(0, 2, switch_step, (state, came, jnp.int32(0)))
+
+    # Terastallization, in turn order, after the switches and before any move.
+    # A held-over move was Terastallized for when the turn began.
+    def tera_in(j, st):
+        side = jnp.where(j == 0, first, second)
+        wants = jnp.logical_not(resuming) & wants_tera(actions[side])
+        return terastallize(data, st, side, wants)
+
+    state = jax.lax.fori_loop(0, C.NUM_PLAYERS, tera_in, state)
 
     # Focus Punch and Beak Blast start their charge before anyone moves.
     for side in range(C.NUM_PLAYERS):
@@ -809,16 +994,20 @@ def run_turn(data, state, actions, key, resuming):
                 state.volatiles, (side, vol), 1, using & (eff == E.EFFECT_HANDLERS.index(name))))
 
     def slot(i, carry):
-        st, suspend = carry
+        st, suspend, suspend_b = carry
         is_a = i == 0
 
         # Slot B is the second mover, or the move held over from a suspension.
         # A switch already happened above, so it is a pass here.
         b_side = jnp.where(pending, st.pending_side.astype(jnp.int32), second)
+        # Roared or Dragon Tailed out by the first mover (both used -6
+        # priority, say), the second mover never gets to act: Showdown drags
+        # it out on the spot. The drag itself happens in `resolve_phazing`.
+        dragged = st.phazed[second] & _has_bench(st)[second]
         b_action = jnp.where(
             resuming,
             jnp.where(pending, st.pending_action.astype(jnp.int32), jnp.int32(-1)),
-            jnp.where(suspend, jnp.int32(-1), actions[second]))
+            jnp.where(suspend | dragged, jnp.int32(-1), actions[second]))
         side = jnp.where(is_a, first, b_side)
         action = jnp.where(is_a, jnp.where(resuming, jnp.int32(-1), actions[first]),
                            b_action)
@@ -826,17 +1015,31 @@ def run_turn(data, state, actions, key, resuming):
         # its point of view nothing is "about to attack".
         target_attacks = jnp.where(is_a, attacks[second],
                                    jnp.where(resuming, jnp.bool_(False), attacks[first]))
-        st = run_action(data, st, side, action, is_a, move_words[i], target_attacks)
+        # Whether anything acts after this (Protect fails if not): only slot A
+        # can be followed, by a second mover that chose a move.
+        target_acts = is_a & jnp.logical_not(resuming) & jnp.logical_not(suspend) & \
+            jnp.logical_not(is_switch(actions[second]))
+        # Once a side has nobody left, the battle is over and nothing else acts.
+        action = jnp.where(_battle_over(st), jnp.int32(-1), action)
+        st = run_action(data, st, side, action, is_a, move_words[i], target_attacks,
+                        target_acts, struggles[side])
 
         # A self-switch suspends the turn: its user picks a replacement before
         # the opponent's already-locked move resolves, so that move lands on
         # whoever comes in rather than on the Pokemon that left. Decided after
         # slot A has run, and read by slot B on the next iteration.
         after_a = jnp.logical_not(resuming) & st.force_switch[first] & \
-            _has_bench(st)[first]
-        return st, jnp.where(is_a, after_a, suspend)
+            _has_bench(st)[first] & jnp.logical_not(_battle_over(st))
+        # A self-switch by slot B suspends what is left of the turn too: its
+        # replacement comes in before the residuals, which then fall on it.
+        after_b = (action >= 0) & st.force_switch[side] & _has_bench(st)[side] & \
+            jnp.logical_not(_battle_over(st))
+        return (st, jnp.where(is_a, after_a, suspend),
+                jnp.where(is_a, jnp.bool_(False), after_b))
 
-    state, suspend = jax.lax.fori_loop(0, 2, slot, (state, jnp.bool_(False)))
+    state, suspend, suspend_b = jax.lax.fori_loop(
+        0, 2, slot, (state, jnp.bool_(False), jnp.bool_(False)))
+    b_side = jnp.where(pending, state.pending_side.astype(jnp.int32), second)
 
     # Resolved once, after both actions: every phazing move has negative
     # priority, so its target has already moved and the ordering is the same.
@@ -845,27 +1048,77 @@ def run_turn(data, state, actions, key, resuming):
     # Residuals close out a turn: skipped when one is suspended, and skipped on a
     # resume that was only bringing in a fainted Pokemon's replacement, since
     # that turn already ended.
-    finishing = jnp.where(resuming, pending, jnp.logical_not(suspend))
+    # A suspension after slot B holds no move over, only the residuals: it
+    # records slot B's side with action -1, which the resume runs as a pass.
+    # (And no residuals once the battle is decided: Showdown stops at the KO.)
+    finishing = jnp.where(resuming, pending, jnp.logical_not(suspend)) & \
+        jnp.logical_not(suspend_b) & jnp.logical_not(_battle_over(state))
+    # A binder knocked out during the turn lets go before its last chip.
+    state = _release_bound(state)
     state = residuals(data, state, k_res, when=finishing)
 
     state = state._replace(
-        pending_side=jnp.where(suspend, second, -1).astype(jnp.int8),
-        pending_action=jnp.where(suspend, actions[second], 0).astype(jnp.int8))
-    return _request_replacements(state)
+        pending_side=jnp.where(suspend, second,
+                               jnp.where(suspend_b, b_side, -1)).astype(jnp.int8),
+        pending_action=jnp.where(suspend, actions[second],
+                                 jnp.where(suspend_b, -1, 0)).astype(jnp.int8))
+    state = _release_bound(state)
+
+    # Mid-turn, only the self-switcher picks a replacement. A Pokemon knocked out
+    # in the meantime is replaced once the turn is over, as Showdown does.
+    return _request_replacements(state, when=jnp.logical_not(suspend | suspend_b))
+
+
+def _release_bound(state):
+    """A Pokemon that has fainted lets go of whatever it held its foe with --
+    Mean Look's trap, Attract, a binding move -- as Showdown clears linked
+    volatiles on fainting, rather than once its replacement comes in."""
+    source_down = jnp.logical_not(actives_alive(state))[::-1]
+    return state._replace(volatiles=jnp.where(
+        jnp.asarray(_SOURCE_BOUND_MASK)[None, :] & source_down[:, None], jnp.int8(0),
+        state.volatiles))
+
+
+def _battle_over(state):
+    """Has either side run out of Pokemon?"""
+    return jnp.any(jnp.sum(state.hp > 0, axis=1) == 0)
 
 
 def _has_bench(state):
-    """[P] bool: does this side have a healthy Pokemon that is not already out?"""
-    on_bench = (state.hp > 0) & (jnp.arange(C.TEAM_SIZE)[None, :] !=
-                                 state.active.astype(jnp.int32)[:, None])
-    return jnp.sum(on_bench, axis=1) > 0
+    """[P] bool: can this side answer its prompt? A healthy Pokemon that is not
+    already out to switch to -- or, for Revival Blessing, a fainted one to revive."""
+    benched = jnp.arange(C.TEAM_SIZE)[None, :] != state.active.astype(jnp.int32)[:, None]
+    reviving = (state.pass_mode == C.PASS_REVIVE)[:, None]
+    wanted = jnp.where(reviving, state.hp <= 0, state.hp > 0)
+    return jnp.sum(wanted & benched, axis=1) > 0
 
 
-def _request_replacements(state):
-    """Ask for a replacement from anyone who needs one and can provide one."""
+def revive(state, side, slot):
+    """Revival Blessing's answer: `slot`, if fainted, comes back at half HP with
+    no status -- otherwise the first fainted Pokemon does. The user stays in.
+    Fainting ended any Terastallization (Showdown deletes it then), though the
+    side's is still spent."""
+    slot = jnp.clip(slot, 0, C.TEAM_SIZE - 1)
+    fainted = state.hp[side] <= 0
+    slot = jnp.where(fainted[slot], slot, jnp.argmax(fainted))
+    half = jnp.maximum(state.maxhp[side, slot].astype(jnp.int32) // 2, 1)
+    return state._replace(
+        hp=set_at(state.hp, (side, slot), half),
+        status=set_at(state.status, (side, slot), jnp.int8(C.STATUS_NONE)),
+        terastallized=set_at(state.terastallized, (side, slot), False),
+        force_switch=set_at(state.force_switch, side, False),
+        pass_mode=set_at(state.pass_mode, side, 0))
+
+
+def _request_replacements(state, when=True):
+    """Ask for a replacement from anyone who needs one and can provide one.
+
+    `when=False` asks only those who already owe one (a self-switch), leaving
+    fainted Pokemon to be replaced when the turn is over.
+    """
     fainted = state.hp[jnp.arange(C.NUM_PLAYERS), state.active.astype(jnp.int32)] <= 0
     return state._replace(
-        force_switch=(state.force_switch | fainted) & _has_bench(state),
+        force_switch=(state.force_switch | (fainted & when)) & _has_bench(state),
         fainted_count=jnp.sum(state.hp <= 0, axis=1).astype(jnp.int8))
 
 

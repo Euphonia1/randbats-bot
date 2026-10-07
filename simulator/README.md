@@ -142,6 +142,75 @@ scenarios:
   and Clangorous Soul by the opponent's Soundproof: both checks now only apply
   to moves aimed at the foe.
 
+### Whole battles in lockstep
+
+The scenario harnesses check one turn at a time. `tools/showdown_lockstep.js`
+plays complete Random Battles -- Showdown's own teams, random legal choices --
+and records every decision; `tools/lockstep.py` replays the same games in
+psjax and compares the two states after every decision: HP, status and its
+counters, items, abilities, formes, Tera, PP, boosts, volatiles, hazards and
+screens with their turns, weather and terrain with theirs, Trick Room, who has
+to switch, and the winner.
+
+The two engines draw random numbers in different orders, so their streams can
+never be lined up. Instead every random word is pinned to one constant `w` in
+both. Showdown's `random(n)` is `floor(w * n / 2**32)`, so a constant word turns
+every roll into a fixed threshold -- `w = 0` hits, crits and procs everything,
+`w` near `2**32` nothing -- and both engines become deterministic. Each game is
+played under nine values of `w`. Where only values differ, psjax is resynced to
+Showdown and the game goes on, so one bug does not hide the next; a game stops
+only when the two have diverged structurally (a Pokemon fainted in one and not
+the other).
+
+Before the fixes below, 82% of decisions in 900 games matched Showdown exactly
+and only 6 games matched throughout. After them, 99.7% match (99.6% on a fresh
+recording with other teams), 792 of the 900 games match from first decision to
+last, and almost every game replays to its end. What it caught, beyond what the
+scenario harnesses could see:
+
+- **Items that did nothing.** Life Orb never took its recoil (only the boost
+  existed). White Herb, Flame Orb, Toxic Orb, Weakness Policy, Light Clay,
+  Throat Spray and Booster Energy had no behaviour at all (Booster Energy was
+  never used up, so it re-armed on every switch-in); Air Balloon never popped
+  and Focus Sash was never consumed. Soul Dew missed its Dragon boost, and the
+  forme items (Adamant Crystal, Griseous Core, Ogerpon's masks) their 1.2x.
+- **Turn structure.** Terastallization happened when the Pokemon moved rather
+  than at the start of the turn, so a slower Pokemon was hit with its old
+  typing. A self-switch by the second mover ran the residuals before its
+  replacement arrived. Showdown makes chosen switches one at a time but
+  replacements all at once, and the entry effects follow different orders.
+  Residuals kept running after a side had lost, and a double knockout was
+  called a tie where Showdown gives it to whoever fainted last.
+- **Moves.** Outrage, Petal Dance and Thrash never locked in (no fatigue
+  confusion). Trick Room, Throat Chop, Heal Block (Psychic Noise), Struggle and
+  binding moves did nothing. Roost healed twice, and failed Roosts still shed
+  Flying. Non-Ghost Curse cursed the foe, Heal Bell cured only the user, No
+  Retreat and Fillet Away boosted twice, Diamond Storm ignored its 50%, and
+  Tri Attack and Dire Claw never inflicted their status. Protect and Endure
+  succeeded with nothing left to act, Defog cleared the user's own screens,
+  and Revival Blessing switched its user out.
+- **Abilities.** Slow Start never activated. Mega Launcher keyed on the
+  `bullet` flag, Assault Vest and friends on the move's category rather than
+  the stat it hits (Psyshock), and Transistor was still 1.5x. Supreme Overlord
+  gave +20% per fallen ally instead of ~10%; Protosynthesis and Quark Drive
+  never woke to sun or terrain set mid-battle. Flash Fire's boost, Sand Force,
+  Hustle's accuracy, Sleep Clause Mod and the Tera 60-power floor were missing.
+- **Numbers.** Recoil, drain and healing moves round in Showdown; toxic floors
+  the sixteenth before multiplying; most "1.3x" effects are 5325/4096, a point
+  above `m(1.3)`; Pressure only charges moves that target its holder; the 2-5
+  hit table is 35/35/15/15, and Loaded Dice re-rolls rather than flooring at 4.
+
+Still different, and known: on-hit abilities that change Defense mid
+multi-hit (Weak Armor, Stamina) are counted per hit but the later hits'
+damage does not see them, nor a burn or berry triggered mid-move; Dancer only
+copies status dances; residuals run side by side rather than interleaved by
+effect; Lunar Dance does not restore PP; Stellar's version of the Tera
+60-power floor is not modelled.
+
+`tools/lockstep.py` prints these as a table of differing fields, with the
+battles and decisions each one touched, and writes every differing decision
+with Showdown's log for that turn to a report.
+
 ## Layout
 
 | File | What it does |
@@ -167,6 +236,8 @@ scenarios:
 | `tools/effect_cases.py` | the effect scenarios, as readable Python |
 | `tools/move_sweep.py` | generates a damage case for every damaging move |
 | `tools/ability_sweep.py` | generates damage cases for every wired ability |
+| `tools/showdown_lockstep.js` | records complete Random Battles, every roll pinned to one word |
+| `tools/lockstep.py` | replays them in psjax and reports every decision that differs |
 
 ## Setup
 
@@ -183,6 +254,9 @@ node tools/showdown_damage.js tools/ability_sweep_cases.json data/ability_sweep_
 python tools/effect_cases.py > tools/effect_cases.json
 node tools/showdown_effects.js tools/effect_cases.json data/effect_truth.json
 pytest -q
+
+node tools/showdown_lockstep.js 100 lockstep.json      # 900 complete battles
+python tools/lockstep.py lockstep.json report.json
 ```
 
 ## Use
@@ -208,7 +282,7 @@ Actions are a single integer per player:
 | `4..7` | terastallize, then use move `n - 4` |
 | `8..13` | switch to team slot `n - 8` |
 
-`env.observe` returns `[2, 524]` floats — each row is one player's view.
+`env.observe` returns `[2, 566]` floats — each row is one player's view.
 
 ## Leaving the field
 
@@ -376,6 +450,29 @@ entire state out to memory at each boundary: on the GPU, where a large batch is
 bound by memory traffic, that made the step 25% slower. Likewise, `slot_get` stays
 a masked sum rather than a chain of selects -- the selects saved a few GPU kernels
 but let the chains fuse back into their readers on the CPU, doubling its step.
+
+**Serial chains and repeated rewrites.** The lockstep fixes (see "Whole battles in
+lockstep") first made the batched CPU step 55% slower, 17.4 ms to 27.0 ms at 1,024
+battles, while the lowered program grew only 18%. Op counts could not say why.
+What found it was charging measured time to source lines: a profiler trace gives
+each kernel's time, and the compiled module's stack frames say which lines its
+ops came from. Three patterns, each cheap on its own line and expensive in
+context:
+
+- A `scan` whose carry grew from four values to seven (Rough Skin per hit,
+  hits that reached the Pokemon). Unrolled, it is a serial chain that nothing
+  around it can fuse with, and it cost a quarter of the move engine. Every
+  carry was a running total or "the first hit that ...", so the multi-hit
+  accounting is now prefix sums over all ten hits.
+- A helper that derives a value from the state at every call site, mid-chain:
+  `is_grounded`, for Misty Terrain, inside `confuse` and `status_immune`.
+  The move engine passes in the value it already has.
+- Several writes to one field, each read back by the next: a drop, Defiant's
+  answer, Mirror Armor's bounce and the answer to that. `apply_boosts` now works
+  out both boost rows and writes them once.
+
+With those, and switch-ins taking two arrivals per step rather than three, the
+step is back to 17.5 ms and compile to 15.8 s (from 14.9 s) on that machine.
 
 ### Compiling for GPU
 
@@ -622,6 +719,14 @@ because it is easy to hide too much:
   could already infer, and masking it would be theatre. The alive bits are public
   too -- Showdown shows the fainted count -- and bench species and movesets never
   enter the observation at all.
+
+- **Sleep** shows how long each sleeper has slept, never how long it has left.
+  `status_turns` holds the hidden turns remaining, so the encoder reads the
+  public `sleep_attempts` (times it tried to move and stayed asleep) and
+  `rest_sleep` (Rest's sleep is exactly two such attempts) instead. Both are
+  kept by the engine: the wrapper cannot count them from before-and-after
+  states, since a Pokemon put to sleep and then failing to move in the same
+  turn looks the same as one put to sleep after it moved.
 
 - **Illusion** is the one ability whose whole effect is on what the opponent
   sees, so the wrapper applies it: while it holds, the opponent's view of the

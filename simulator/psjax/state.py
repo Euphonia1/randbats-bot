@@ -38,8 +38,17 @@ class BattleState(NamedTuple):
     ability: jnp.ndarray        # [P,T] int16, current (Trace/Mummy mutate)
     status: jnp.ndarray         # [P,T] int8
     status_turns: jnp.ndarray   # [P,T] int8, sleep turns left / toxic counter
+    #: What a player can see of a sleep, unlike `status_turns`, which holds the
+    #: hidden turns left: how many times the Pokemon has tried to move and
+    #: stayed asleep, and whether Rest caused it (exactly two such attempts).
+    #: Meaningful only while `status == SLP`.
+    sleep_attempts: jnp.ndarray # [P,T] int8
+    rest_sleep: jnp.ndarray     # [P,T] bool
     tera_type: jnp.ndarray      # [P,T] int8
     terastallized: jnp.ndarray  # [P,T] bool
+    #: The side has Terastallized this battle -- for good, even once that
+    #: Pokemon has fainted and been revived out of its Tera type.
+    tera_used: jnp.ndarray      # [P] bool
     #: What a Pokemon reverts to on switching out. Forme changes, Transform,
     #: Trace and type changes are all undone then; a permanent forme change
     #: (Palafin-Hero, Mimikyu-Busted) rewrites these instead. -1 means "the
@@ -55,7 +64,9 @@ class BattleState(NamedTuple):
     #: the Pokemon at the front, and Illusion copies whoever is last.
     party_pos: jnp.ndarray      # [P,T] int8
     last_item: jnp.ndarray      # [P,T] int16, last berry eaten (Harvest)
-    bond_used: jnp.ndarray      # [P,T] bool, Battle Bond fires once a battle
+    #: A once-a-battle ability has fired: Battle Bond, and the Gen 9 Intrepid
+    #: Sword and Dauntless Shield (Showdown's `swordBoost` / `shieldBoost`).
+    bond_used: jnp.ndarray      # [P,T] bool
 
     # --- active slot --------------------------------------------------------
     active: jnp.ndarray             # [P] int8, team index of the active Pokemon
@@ -68,6 +79,10 @@ class BattleState(NamedTuple):
     choice_slot: jnp.ndarray        # [P] int8, -1 none
     last_move: jnp.ndarray          # [P] int16, -1 none
     boosted_stat: jnp.ndarray       # [P] int8, Protosynthesis/Quark Drive stat
+    #: Supreme Overlord's count of fallen allies, fixed when its holder came in.
+    overlord_count: jnp.ndarray     # [P] int8
+    #: That boost came from Booster Energy, so it outlasts the sun or terrain.
+    paradox_booster: jnp.ndarray    # [P] bool
     times_hit: jnp.ndarray          # [P] int8, Rage Fist
     protect_streak: jnp.ndarray     # [P] int8, consecutive protects
     damage_taken: jnp.ndarray       # [P] int16, damage this turn (Counter/Avalanche)
@@ -78,6 +93,7 @@ class BattleState(NamedTuple):
     moves_since_switch: jnp.ndarray # [P] int8, gates Fake Out / First Impression
     last_move_failed: jnp.ndarray   # [P] bool, Stomping Tantrum
     stats_lowered: jnp.ndarray      # [P] bool, Lash Out (this turn)
+    stats_raised: jnp.ndarray       # [P] bool, Burning Jealousy, Alluring Voice (this turn)
     illusion: jnp.ndarray           # [P] int8, team slot being impersonated; -1 none
     transformed: jnp.ndarray        # [P] bool
     #: The Pokemon's own moves while it is Transformed into something else.
@@ -107,6 +123,10 @@ class BattleState(NamedTuple):
     future_source: jnp.ndarray      # [P] int8, team slot on the other side
     wish_turns: jnp.ndarray         # [P] int8, residuals until it heals; 0 none
     wish_hp: jnp.ndarray            # [P] int16
+    #: Healing Wish (1) or Lunar Dance (2) is waiting for a replacement it can
+    #: heal: the first one to arrive hurt or statused (or, for Lunar Dance, short
+    #: of PP) is restored in full. 0 for neither.
+    healing_wish: jnp.ndarray       # [P] int8
     #: Fusion Flare / Fusion Bolt: 1 or 2 if the last move to succeed this turn
     #: was one of them, 0 otherwise.
     fusion_last: jnp.ndarray        # scalar int8
@@ -122,6 +142,9 @@ class BattleState(NamedTuple):
     pending_side: jnp.ndarray       # scalar int8
     pending_action: jnp.ndarray     # scalar int8
     winner: jnp.ndarray             # scalar int8, -1 ongoing, 0/1 winner, 2 tie
+    #: The side whose Pokemon fainted most recently, -1 if none has. When both
+    #: sides run out together, Showdown (Gen 5+) gives the win to that side.
+    last_faint: jnp.ndarray         # scalar int8
     key: jnp.ndarray                # PRNG key
 
     # --- convenience --------------------------------------------------------
@@ -222,8 +245,9 @@ def empty_state(key: jnp.ndarray) -> BattleState:
         types=jnp.full((P, T, 2), C.TYPE_NONE, jnp.int8),
         moves=jnp.full((P, T, M), -1, jnp.int16), pp=i8(P, T, M), maxpp=i8(P, T, M),
         item=i16(P, T), ability=i16(P, T), status=i8(P, T), status_turns=i8(P, T),
+        sleep_attempts=i8(P, T), rest_sleep=jnp.zeros((P, T), bool),
         tera_type=jnp.full((P, T), C.TYPE_NONE, jnp.int8),
-        terastallized=jnp.zeros((P, T), bool),
+        terastallized=jnp.zeros((P, T), bool), tera_used=jnp.zeros((P,), bool),
         base_species=jnp.full((P, T), -1, jnp.int16),
         base_ability=jnp.full((P, T), -1, jnp.int16),
         spread_zero=i8(P, T), gender=i8(P, T),
@@ -236,12 +260,14 @@ def empty_state(key: jnp.ndarray) -> BattleState:
         locked_slot=jnp.full((P,), -1, jnp.int8),
         choice_slot=jnp.full((P,), -1, jnp.int8),
         last_move=jnp.full((P,), -1, jnp.int16),
-        boosted_stat=jnp.full((P,), -1, jnp.int8),
+        boosted_stat=jnp.full((P,), -1, jnp.int8), paradox_booster=jnp.zeros((P,), bool),
+        overlord_count=i8(P),
         times_hit=i8(P), protect_streak=i8(P), damage_taken=i16(P),
         damage_category=jnp.full((P,), -1, jnp.int8),
         moved_this_turn=jnp.zeros((P,), bool), switched_this_turn=jnp.zeros((P,), bool),
         fainted_count=i8(P), moves_since_switch=i8(P),
         last_move_failed=jnp.zeros((P,), bool), stats_lowered=jnp.zeros((P,), bool),
+        stats_raised=jnp.zeros((P,), bool),
         illusion=jnp.full((P,), -1, jnp.int8), transformed=jnp.zeros((P,), bool),
         tf_moves=jnp.full((P, M), -1, jnp.int16), tf_pp=i8(P, M), tf_maxpp=i8(P, M),
         type_changed=jnp.zeros((P,), bool), cud_berry=i16(P), cud_turns=i8(P),
@@ -251,11 +277,12 @@ def empty_state(key: jnp.ndarray) -> BattleState:
         trick_room=jnp.int8(0), gravity=jnp.int8(0),
         side_conditions=i8(P, C.NUM_SIDE_CONDITIONS),
         future_turns=i8(P), future_move=i16(P), future_source=i8(P),
-        wish_turns=i8(P), wish_hp=i16(P), fusion_last=jnp.int8(0),
+        wish_turns=i8(P), wish_hp=i16(P), healing_wish=i8(P),
+        fusion_last=jnp.int8(0),
         turn=jnp.int32(0), phase=jnp.int8(C.PHASE_MOVE),
         force_switch=jnp.zeros((P,), bool), phazed=jnp.zeros((P,), bool),
         pending_side=jnp.int8(-1), pending_action=jnp.int8(0),
-        winner=jnp.int8(-1), key=key,
+        winner=jnp.int8(-1), last_faint=jnp.int8(-1), key=key,
     )
 
 
@@ -273,10 +300,12 @@ def reset_slot_state(state: BattleState, player: jnp.ndarray) -> BattleState:
         sub_hp=z(state.sub_hp), disabled_slot=z(state.disabled_slot, -1),
         encore_slot=z(state.encore_slot, -1), locked_slot=z(state.locked_slot, -1),
         choice_slot=z(state.choice_slot, -1), last_move=z(state.last_move, -1),
-        boosted_stat=z(state.boosted_stat, -1), times_hit=z(state.times_hit),
+        boosted_stat=z(state.boosted_stat, -1),
+        paradox_booster=z(state.paradox_booster, False), times_hit=z(state.times_hit),
         protect_streak=z(state.protect_streak),
         moves_since_switch=z(state.moves_since_switch),
         last_move_failed=z(state.last_move_failed, False),
+        stats_lowered=z(state.stats_lowered, False), stats_raised=z(state.stats_raised, False),
         illusion=z(state.illusion, -1), transformed=z(state.transformed, False),
         type_changed=z(state.type_changed, False),
         cud_berry=z(state.cud_berry), cud_turns=z(state.cud_turns),

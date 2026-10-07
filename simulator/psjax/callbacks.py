@@ -75,6 +75,7 @@ class CbCtx(NamedTuple):
     user_species: jnp.ndarray = -1   # signature moves that follow the user's forme
     plate_type: jnp.ndarray = C.TYPE_NONE   # type of the user's plate (Judgment)
     dfn_item_locked: jnp.ndarray = False    # target's item cannot be taken (Knock Off)
+    target_switched: jnp.ndarray = False    # target switched in this turn (Payback)
 
 M1 = 4096
 
@@ -97,7 +98,9 @@ def _bp_none(c): return c.base_power
 def _bp_acrobatics(c): return jnp.where(c.atk_item == 0, c.base_power * 2, c.base_power)
 def _bp_assurance(c): return jnp.where(c.target_damaged, c.base_power * 2, c.base_power)
 def _bp_avalanche(c): return jnp.where(c.user_damaged, c.base_power * 2, c.base_power)
-def _bp_payback(c): return jnp.where(c.moves_first, c.base_power, c.base_power * 2)
+def _bp_payback(c):
+    # Doubled against a target that has already moved -- not one that switched in.
+    return jnp.where(c.moves_first | c.target_switched, c.base_power, c.base_power * 2)
 def _bp_boltbeak(c): return jnp.where(c.moves_first, c.base_power * 2, c.base_power)
 
 

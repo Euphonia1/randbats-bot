@@ -112,8 +112,9 @@ ITEM_NAMES = [
     "hardstone", "metalcoat", "miracleseed", "nevermeltice", "poisonbarb",
     "sharpbeak", "silverpowder", "softsand", "spelltag", "twistedspoon",
     # Forme items. The forme they force is already baked into the species the
-    # generator picked, so in battle these only need to exist -- holding one is
-    # not the same as holding nothing (Knock Off, Trick and Fling all care).
+    # generator picked; holding one is not the same as holding nothing (Knock
+    # Off, Trick and Fling all care), and most also power up their owner's
+    # moves (`SPECIES_BOOST_ITEMS`).
     "rustedsword", "rustedshield", "adamantcrystal", "lustrousglobe",
     "griseouscore", "wellspringmask", "hearthflamemask", "cornerstonemask",
 ]
@@ -213,7 +214,7 @@ RESIST_BERRY = {
 # Type-boosting items: item -> (type, multiplier as a 4096-scaled modifier).
 TYPE_BOOST_ITEM = {
     "magnet": ("electric", 4915), "mysticwater": ("water", 4915),
-    "silkscarf": ("normal", 4915), "souldew": ("psychic", 4915),
+    "silkscarf": ("normal", 4915),
     # Plates, and the older items that boost the same type by the same 20%.
     "dracoplate": ("dragon", 4915), "dragonfang": ("dragon", 4915),
     "dreadplate": ("dark", 4915), "blackglasses": ("dark", 4915),
@@ -235,6 +236,21 @@ TYPE_BOOST_ITEM = {
 }
 
 CHOICE_ITEMS = {"choicescarf", "choiceband", "choicespecs"}
+
+# Items that boost only the species they belong to (by National Dex number), by
+# 4915/4096, on the given types -- or, for None, on every move: Soul Dew for
+# Latias and Latios, the forme items for Dialga, Palkia and Giratina, and
+# Ogerpon's masks.
+SPECIES_BOOST_ITEMS = {
+    "souldew": ((380, 381), ("psychic", "dragon")),
+    "adamantcrystal": ((483,), ("steel", "dragon")),
+    "lustrousorb": ((484,), ("water", "dragon")),
+    "lustrousglobe": ((484,), ("water", "dragon")),
+    "griseouscore": ((487,), ("ghost", "dragon")),
+    "cornerstonemask": ((1017,), None),
+    "hearthflamemask": ((1017,), None),
+    "wellspringmask": ((1017,), None),
+}
 
 # Items only a particular species can hold onto: nothing can take them from it
 # (Knock Off neither removes them nor gains power from them). Keyed by the

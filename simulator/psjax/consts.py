@@ -86,8 +86,8 @@ SIDE_CONDITION_MAX = {
  V_PROTOSYNTHESIS, V_QUARKDRIVE, V_GLAIVERUSH, V_THROATCHOP, V_TORMENT,
  V_MINIMIZE, V_DEFENSECURL, V_TARSHOT, V_FLASHFIRE, V_CHARGE,
  V_UNBURDEN, V_SMACKDOWN, V_SYRUPBOMB, V_TRUANT, V_FOCUSPUNCH, V_BEAKBLAST,
- V_MATBLOCK) = range(43)
-NUM_VOLATILES = 43
+ V_MATBLOCK, V_HEALBLOCK, V_NORETREAT, V_TRAPPED) = range(46)
+NUM_VOLATILES = 46
 VOLATILE_IDX = {
     "confusion": V_CONFUSION, "flinch": V_FLINCH, "substitute": V_SUBSTITUTE,
     "leechseed": V_LEECHSEED, "taunt": V_TAUNT, "encore": V_ENCORE,
@@ -104,6 +104,7 @@ VOLATILE_IDX = {
     "flashfire": V_FLASHFIRE, "charge": V_CHARGE, "unburden": V_UNBURDEN,
     "smackdown": V_SMACKDOWN, "syrupbomb": V_SYRUPBOMB, "truant": V_TRUANT,
     "focuspunch": V_FOCUSPUNCH, "beakblast": V_BEAKBLAST, "matblock": V_MATBLOCK,
+    "healblock": V_HEALBLOCK, "noretreat": V_NORETREAT, "trapped": V_TRAPPED,
 }
 
 # Volatiles Baton Pass carries over to the replacement: everything whose
@@ -118,6 +119,11 @@ BATON_PASS_VOLATILES = (
 # Attract and Cute Charm need opposite genders. 0 is genderless, which also
 # never matches, so an unset field is the safe default.
 GENDER_NONE, GENDER_M, GENDER_F = range(3)
+
+# --- What a self-switch prompt hands over (`BattleState.pass_mode`) ---------
+# 0 a plain switch, 2 Baton Pass, 3 Shed Tail -- and 4 not a switch at all:
+# Revival Blessing asking which fainted Pokemon to bring back.
+PASS_REVIVE = 4
 
 # --- Random Battle set roles -------------------------------------------------
 # Showdown tags every random-battle set with a role; the team builder uses it to

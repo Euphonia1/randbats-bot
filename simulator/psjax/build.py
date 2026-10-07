@@ -70,6 +70,7 @@ def build_species(raw):
         "species_weight": np.zeros(n, np.float32),
         "species_abilities": np.zeros((n, 3), np.int16),
         "species_nfe": np.zeros(n, np.bool_),
+        "species_paradox": np.zeros(n, np.bool_),   # keeps its Booster Energy
         # A fixed gender, or GENDER_NONE where Showdown picks one at random
         # (see `species_random_gender`).
         "species_gender": np.zeros(n, np.int8),
@@ -87,6 +88,7 @@ def build_species(raw):
         for k, a in enumerate(s["abilities"][:3]):
             out["species_abilities"][i, k] = H.ABILITY_IDX.get(to_id(a), 0)
         out["species_nfe"][i] = s["nfe"]
+        out["species_paradox"][i] = "Paradox" in s.get("tags", [])
         # Showdown ignores gender ratios outside the cartridge games: a species
         # without a fixed gender is male or female with equal odds.
         g = s["gender"]
@@ -110,6 +112,27 @@ def _boost_vec(b):
 
 def _fraction(f, default=(0, 1)):
     return tuple(f) if f else default
+
+
+#: Secondaries Showdown writes as an `onHit` callback rather than a declared
+#: `volatileStatus`, but which do nothing else: Throat Chop's sound-move block,
+#: Spirit Shackle's and Anchor Shot's trap.
+SECONDARY_HIT_VOLATILES = {"throatchop": "throatchop", "spiritshackle": "trapped",
+                           "anchorshot": "trapped"}
+
+#: The same for a move's own effect: Mean Look, Block and Thousand Waves trap
+#: their target through `onHit` (`addVolatile('trapped')`).
+HIT_VOLATILES = {"meanlook": "trapped", "block": "trapped", "thousandwaves": "trapped"}
+
+#: Secondaries whose `onHit` inflicts one of three statuses at random
+#: (Showdown's `this.random(3)`, in this order).
+SECONDARY_RANDOM_STATUS = {"triattack": ("brn", "par", "frz"),
+                           "direclaw": ("psn", "par", "slp")}
+
+#: Secondaries whose `onHit` only lands on a target that had a stat raised this
+#: turn (`statsRaisedThisTurn`): (status, volatile) each inflicts.
+SECONDARY_IF_RAISED = {"burningjealousy": ("brn", None),
+                       "alluringvoice": (None, "confusion")}
 
 
 def build_moves(raw):
@@ -136,12 +159,15 @@ def build_moves(raw):
         "move_weather": z8(), "move_terrain": z8(),
         "move_boosts": np.zeros((n, 7), np.int8),
         "move_self_boosts": np.zeros((n, 7), np.int8),
+        "move_self_chance": z8(),     # 0: the `self` effect always applies
         "move_self_volatile": np.full(n, -1, np.int8),
         "move_self_side_condition": np.full(n, -1, np.int8),
         # up to two secondaries (e.g. Fire Fang: burn chance + flinch chance)
         "move_sec_chance": np.zeros((n, 2), np.int8),
         "move_sec_status": np.zeros((n, 2), np.int8),
+        "move_sec_status_pick": np.zeros((n, 3), np.int8),   # one picked at random
         "move_sec_volatile": np.full((n, 2), -1, np.int8),
+        "move_sec_if_raised": np.zeros(n, np.bool_),   # only on a target boosted this turn
         "move_sec_boosts": np.zeros((n, 2, 7), np.int8),
         "move_sec_self_boosts": np.zeros((n, 2, 7), np.int8),
         # Sheer Force removes a move's secondaries (and its `self` effect) and
@@ -166,6 +192,10 @@ def build_moves(raw):
         "move_crash_damage": np.zeros(n, np.bool_),
         "move_no_variance": np.zeros(n, np.bool_),
         "move_is_charge": np.zeros(n, np.bool_),
+        "move_multiaccuracy": np.zeros(n, np.bool_),   # each hit rolls accuracy
+        "move_pulse": np.zeros(n, np.bool_),
+        "move_cant_use_twice": np.zeros(n, np.bool_),   # Blood Moon, Gigaton Hammer
+        "move_must_pressure": np.zeros(n, np.bool_),
         "move_duration": z8(),
         "move_bp_replace": z8(), "move_bp_modify": z8(), "move_dmg_cb": z8(),
         "move_acc_cb": z8(),
@@ -194,6 +224,12 @@ def build_moves(raw):
                 bits |= 1 << C.FLAG_BITS[f]
         out["move_flags"][i] = bits
         out["move_is_charge"][i] = bool((m["flags"] or {}).get("charge"))
+        out["move_multiaccuracy"][i] = bool(m["multiaccuracy"])
+        # Flags past bit 31 do not survive JAX's 32-bit integers, so the ones the
+        # engine needs beyond `FLAG_BITS` get columns of their own.
+        out["move_pulse"][i] = bool((m["flags"] or {}).get("pulse"))
+        out["move_cant_use_twice"][i] = bool((m["flags"] or {}).get("cantusetwice"))
+        out["move_must_pressure"][i] = bool((m["flags"] or {}).get("mustpressure"))
 
         out["move_drain"][i] = _fraction(m["drain"])
         out["move_recoil"][i] = _fraction(m["recoil"])
@@ -213,6 +249,8 @@ def build_moves(raw):
             out["move_status"][i] = C.STATUS_IDX.get(m["status"], 0)
         if m["volatileStatus"]:
             out["move_volatile"][i] = C.VOLATILE_IDX.get(m["volatileStatus"], -1)
+        if mid in HIT_VOLATILES:
+            out["move_volatile"][i] = C.VOLATILE_IDX[HIT_VOLATILES[mid]]
         if m["sideCondition"]:
             out["move_side_condition"][i] = C.SIDE_CONDITION_IDX.get(
                 to_id(m["sideCondition"]), -1)
@@ -222,8 +260,14 @@ def build_moves(raw):
             out["move_terrain"][i] = C.TERRAIN_IDX.get(to_id(m["terrain"]), 0)
 
         out["move_boosts"][i] = _boost_vec(m["boosts"])
+        # `selfBoost` (Scale Shot) lands once after the move hits, which is
+        # exactly how the engine applies `self` boosts.
+        if m.get("selfBoost"):
+            out["move_self_boosts"][i] = _boost_vec(m["selfBoost"])
         if m["self"]:
             out["move_self_boosts"][i] = _boost_vec(m["self"]["boosts"])
+            # Diamond Storm's +2 Defense is a `self` effect with a 50% chance.
+            out["move_self_chance"][i] = m["self"]["chance"] or 0
             if m["self"]["volatileStatus"]:
                 out["move_self_volatile"][i] = C.VOLATILE_IDX.get(
                     m["self"]["volatileStatus"], -1)
@@ -241,6 +285,19 @@ def build_moves(raw):
             out["move_sec_boosts"][i, k] = _boost_vec(s["boosts"])
             if s["self"]:
                 out["move_sec_self_boosts"][i, k] = _boost_vec(s["self"]["boosts"])
+
+        # A secondary whose whole effect is an `onHit` adding a volatile.
+        if mid in SECONDARY_RANDOM_STATUS:
+            out["move_sec_status_pick"][i] = [C.STATUS_IDX[s] for s in SECONDARY_RANDOM_STATUS[mid]]
+        if mid in SECONDARY_HIT_VOLATILES:
+            out["move_sec_volatile"][i, 0] = C.VOLATILE_IDX[SECONDARY_HIT_VOLATILES[mid]]
+        if mid in SECONDARY_IF_RAISED:
+            status, volatile = SECONDARY_IF_RAISED[mid]
+            out["move_sec_if_raised"][i] = True
+            if status:
+                out["move_sec_status"][i, 0] = C.STATUS_IDX[status]
+            if volatile:
+                out["move_sec_volatile"][i, 0] = C.VOLATILE_IDX[volatile]
 
         out["move_has_secondary"][i] = bool(m["secondaries"]) and not m["hasSheerForceBoost"]
         out["move_sheer_force"][i] = bool(m["secondaries"]) or m["hasSheerForceBoost"]

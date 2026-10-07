@@ -20,7 +20,7 @@ import numpy as np
 from . import consts as C
 from .data import load_data, load_team_pool
 from .hooks import A, I
-from .mechanics import is_trapped
+from .mechanics import is_trapped, usable_moves
 from .state import empty_state
 from .stats import compute_all_stats, compute_stat
 
@@ -172,10 +172,13 @@ def new_battle(key, data=None, pool=None):
         active=jnp.zeros(C.NUM_PLAYERS, jnp.int8),
     )
     state = finish_teams(data, state, jax.random.fold_in(k_state, 1))
-    # Leads arrive: entry abilities fire, but there are no hazards on turn one.
-    state = apply_switch_in_ability(data, state, 0)
-    state = apply_switch_in_ability(data, state, 1)
-    return state
+    # Leads arrive: entry abilities fire, fastest first (it decides a weather
+    # war), but there are no hazards on turn one.
+    from .engine import speed_order
+    from .state import select_state
+    p0_first = apply_switch_in_ability(data, apply_switch_in_ability(data, state, 0), 1)
+    p1_first = apply_switch_in_ability(data, apply_switch_in_ability(data, state, 1), 0)
+    return select_state(speed_order(state) == 0, p0_first, p1_first)
 
 
 def finish_teams(data, state, key):
@@ -227,31 +230,26 @@ def legal_action_mask(data, state):
     slots = jnp.arange(C.MOVES_PER_POKEMON)
     for side in range(C.NUM_PLAYERS):
         i = state.active[side].astype(jnp.int32)
-        moves = state.moves[side, i]
-        vol = state.volatiles[side]
-        has_move = (moves >= 0) & (state.pp[side, i] > 0)
-        # A Choice item locks the holder into the move it last used.
-        locked = state.choice_slot[side] >= 0
-        choice_ok = slots == state.choice_slot[side]
-        move_ok = has_move & jnp.where(locked, choice_ok, True)
-        # Disable forbids one move; Taunt every status move; Torment a repeat;
-        # Encore everything but the encored move.
-        status_move = data["move_category"][jnp.maximum(moves, 0)] == C.CAT_STATUS
-        move_ok = move_ok & ~((vol[C.V_DISABLE] > 0) & (slots == state.disabled_slot[side]))
-        move_ok = move_ok & ~((vol[C.V_TAUNT] > 0) & status_move)
-        move_ok = move_ok & ~((vol[C.V_TORMENT] > 0) & (moves == state.last_move[side]))
-        encored = (vol[C.V_ENCORE] > 0) & (state.encore_slot[side] >= 0)
-        move_ok = move_ok & jnp.where(encored, slots == state.encore_slot[side], True)
-        # A charging move (Solar Beam's second turn) is the only choice there is.
-        charging = state.locked_slot[side] >= 0
-        move_ok = jnp.where(charging, slots == state.locked_slot[side], move_ok)
-        # If nothing is usable the Pokemon would use Struggle; allow slot 0.
-        move_ok = jnp.where(jnp.any(move_ok), move_ok,
+        move_ok = usable_moves(data, state, side)
+        # Recharging (Hyper Beam) leaves one choice, Showdown's "Recharge":
+        # slot 0 stands for it, with no Terastallizing and no switching.
+        recharging = state.volatiles[side, C.V_RECHARGE] > 0
+        # Locked into a move (a charge move's second turn, a rampage) or with
+        # nothing usable -- and so struggling -- it cannot Terastallize.
+        free = jnp.any(move_ok) & (state.locked_slot[side] < 0) & jnp.logical_not(recharging)
+        # With nothing usable the Pokemon struggles; slot 0 stands for that.
+        move_ok = jnp.where(jnp.any(move_ok) & jnp.logical_not(recharging), move_ok,
                             jnp.arange(C.MOVES_PER_POKEMON) == 0)
 
-        can_tera = jnp.logical_not(jnp.any(state.terastallized[side])) & \
-                   (state.tera_type[side, i] != C.TYPE_NONE)
+        # Transformed into Ogerpon or Terapagos (Imposter), it cannot
+        # Terastallize until it switches out.
+        num = data["species_num"][state.species[side, i]]
+        tera_locked = state.transformed[side] & ((num == 1017) | (num == 1024))
+        can_tera = free & jnp.logical_not(state.tera_used[side]) & \
+                   jnp.logical_not(tera_locked) & (state.tera_type[side, i] != C.TYPE_NONE)
         switch_ok = (state.hp[side] > 0) & (jnp.arange(C.TEAM_SIZE) != i)
+        # Revival Blessing's prompt picks a fainted Pokemon to bring back instead.
+        revive_ok = (state.hp[side] <= 0) & (jnp.arange(C.TEAM_SIZE) != i)
         # Shadow Tag, Arena Trap, Magnet Pull, binding moves and move locks keep
         # the active in -- but never stop a replacement for a fainted Pokemon.
         free_switch = switch_ok & jnp.logical_not(is_trapped(state, side))
@@ -259,8 +257,9 @@ def legal_action_mask(data, state):
         row = jnp.concatenate([move_ok, move_ok & can_tera, free_switch])
         # Replacing a fainted Pokemon: switches only.
         forced = state.force_switch[side]
+        answer = jnp.where(state.pass_mode[side] == C.PASS_REVIVE, revive_ok, switch_ok)
         row = jnp.where(forced,
-                        jnp.concatenate([jnp.zeros(8, bool), switch_ok]), row)
+                        jnp.concatenate([jnp.zeros(8, bool), answer]), row)
         # A player with nothing to do still needs one legal action. While being
         # asked for a replacement that fallback has to decode to a switch, not to
         # move slot 0 -- action 0 would decode as switch-to-slot-minus-eight.

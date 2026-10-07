@@ -3,7 +3,8 @@
 `test_effects.py` compares what a turn does to the battle. These pin the rest:
 which actions a player is offered (trapping, Disable, Encore, Taunt, a charging
 move), what a Pokemon turns back into when it leaves the field, what the team
-builder derives from a team, and what Illusion shows an opponent.
+builder derives from a team, what Illusion shows an opponent, and the public
+sleep count.
 """
 from __future__ import annotations
 
@@ -16,7 +17,7 @@ from psjax.data import load_data, load_team_pool, names
 from psjax.engine import step, switch_to
 from psjax.env import BattleEnv
 from psjax.fog import FogOfWarEnv, FogState
-from psjax.mechanics import species_stats
+from psjax.mechanics import set_status, species_stats
 from psjax.teams import legal_action_mask, new_battle
 from scenario import build
 
@@ -238,3 +239,81 @@ def test_illusion_shows_the_disguise_until_hit():
     # A damaging hit breaks it.
     state = JIT_STEP(state, jnp.array([0, 0], jnp.int32))
     assert int(state.illusion[0]) == -1
+
+
+# --- sleep -----------------------------------------------------------------------
+
+def _asleep(ability, roll):
+    """A Dodrio put to sleep with roll 0, 1 or 2 (2-4 turns on the counter)."""
+    state = battle(mon("Dodrio", ability), BENCH)
+    state, ok = set_status(DATA, state, 0, jnp.int8(C.SLP), jnp.uint32(roll))
+    assert bool(ok)
+    return state
+
+
+def _attempts_until_awake(state):
+    """`sleep_attempts` after each turn the sleeper tries to move, until it wakes."""
+    seen = []
+    for _ in range(5):
+        state = JIT_STEP(state, jnp.array([0, 0], jnp.int32))
+        if int(state.status[0, 0]) != C.SLP:
+            assert int(state.sleep_attempts[0, 0]) == 0, "waking clears the count"
+            return seen
+        seen.append(int(state.sleep_attempts[0, 0]))
+    raise AssertionError("never woke")
+
+
+def test_sleep_counts_each_attempt_that_stays_asleep():
+    """Sleep lasts 1-3 failed attempts; the waking attempt is not one of them."""
+    for roll, failed in [(0, 1), (1, 2), (2, 3)]:
+        assert _attempts_until_awake(_asleep("Run Away", roll)) == list(range(1, failed + 1))
+
+
+def test_early_bird_ticks_twice_without_shortening_the_roll():
+    """Showdown's Early Bird only doubles the tick, so it wakes after 0, 1 or 1 failed
+    attempts -- not always on the first."""
+    for roll, turns in [(0, 2), (1, 3), (2, 4)]:
+        assert int(_asleep("Early Bird", roll).status_turns[0, 0]) == turns
+    for roll, failed in [(0, 0), (1, 1), (2, 1)]:
+        assert len(_attempts_until_awake(_asleep("Early Bird", roll))) == failed
+
+
+def test_rest_sleeps_through_exactly_two_attempts():
+    state = battle(mon("Snorlax", "Thick Fat", ["rest"]), BENCH)
+    state = state._replace(hp=state.hp.at[0, 0].set(1))
+    state = JIT_STEP(state, jnp.array([0, 0], jnp.int32))
+    assert int(state.status[0, 0]) == C.SLP
+    assert bool(state.rest_sleep[0, 0]) and int(state.sleep_attempts[0, 0]) == 0
+    assert _attempts_until_awake(state) == [1, 2]
+
+
+def test_the_sleep_count_survives_switching_and_restarts_with_a_new_sleep():
+    dodrio = mon("Dodrio", "Run Away")
+    state = battle(dodrio, BENCH, p1team=[dodrio, BENCH])
+    state, _ = set_status(DATA, state, 0, jnp.int8(C.SLP), jnp.uint32(2))
+    state = JIT_STEP(state, jnp.array([0, 0], jnp.int32))
+    assert int(state.sleep_attempts[0, 0]) == 1
+    state = switch_to(DATA, state, 0, jnp.int32(1))
+    state = switch_to(DATA, state, 0, jnp.int32(0))
+    assert int(state.sleep_attempts[0, 0]) == 1, "the count waits on the bench, as the sleep does"
+
+    # A fresh sleep starts from zero and is not a Rest, whatever came before.
+    state = state._replace(status=state.status.at[0, 0].set(C.STATUS_NONE),
+                           rest_sleep=state.rest_sleep.at[0, 0].set(True))
+    state, _ = set_status(DATA, state, 0, jnp.int8(C.SLP), jnp.uint32(0))
+    assert int(state.sleep_attempts[0, 0]) == 0 and not bool(state.rest_sleep[0, 0])
+
+
+def test_the_opponent_sees_how_long_a_pokemon_has_slept_but_not_how_long_is_left():
+    state = _asleep("Run Away", 2)
+    env = FogOfWarEnv(BattleEnv(DATA))
+    fs = FogState(battle=state, revealed=jnp.zeros((2, 6), bool),
+                  revealed_moves=jnp.zeros((2, 6, 4), bool))
+    seen = lambda st: env.observe(fs._replace(battle=st))[1]   # player 1's view
+    base = seen(state)
+    assert not bool(jnp.allclose(base, seen(state._replace(
+        sleep_attempts=state.sleep_attempts.at[0, 0].set(2)))))
+    assert not bool(jnp.allclose(base, seen(state._replace(
+        rest_sleep=state.rest_sleep.at[0, 0].set(True)))))
+    assert bool(jnp.allclose(base, seen(state._replace(
+        status_turns=state.status_turns.at[0, 0].set(1))))), "turns left stay hidden"

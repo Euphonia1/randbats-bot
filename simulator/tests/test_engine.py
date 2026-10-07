@@ -246,12 +246,18 @@ def test_paralysis_halves_speed():
 
 def test_choice_item_locks_the_move():
     state = new_battle(jax.random.PRNGKey(7), DATA)
-    state = state._replace(choice_slot=state.choice_slot.at[0].set(jnp.int8(2)))
+    lead = int(state.active[0])
+    state = state._replace(choice_slot=state.choice_slot.at[0].set(jnp.int8(2)),
+                           item=state.item.at[0, lead].set(N.item_id("Choice Scarf")))
     mask = legal_action_mask(DATA, state)
     usable = [i for i in range(4) if bool(mask[0, i])]
     assert usable == [2], f"Choice lock allowed {usable}"
     # Switching out is still allowed while Choice-locked.
     assert bool(jnp.any(mask[0, C.ACTION_SWITCH_BASE:]))
+    # The lock goes with the item: once it is knocked off, every move is back.
+    state = state._replace(item=state.item.at[0, lead].set(0))
+    mask = legal_action_mask(DATA, state)
+    assert [i for i in range(4) if bool(mask[0, i])] == [0, 1, 2, 3]
 
 
 def test_forced_switch_phase_only_allows_switches():

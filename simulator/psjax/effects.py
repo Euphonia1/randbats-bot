@@ -270,6 +270,7 @@ EFFECT_HANDLERS = [
     "transform",       # becomes a copy of the target
     "focuspunch",      # fails if the user was hit first
     "chargeboost",     # Meteor Beam / Electro Shot: +1 SpA while charging
+    "trickroom",       # sets Trick Room, or ends it if it is already up
 ]
 EFFECT_MOVES = {
     "substitute": ["substitute"],
@@ -299,8 +300,9 @@ EFFECT_MOVES = {
     "destinybond": ["destinybond"],
     "bellydrum": ["bellydrum"],
     "psychoshift": ["psychoshift"],
-    "refresh": ["refresh", "healbell"],
-    "aromatherapy": ["aromatherapy"],
+    "refresh": ["refresh"],
+    # Heal Bell, like Aromatherapy, cures the whole team -- not just the user.
+    "aromatherapy": ["aromatherapy", "healbell"],
     "roost": ["roost"],
     "sunnyday_heal": ["synthesis", "moonlight", "morningsun"],
     "shoreup": ["shoreup"],
@@ -350,6 +352,7 @@ EFFECT_MOVES = {
     "transform": ["transform"],
     "focuspunch": ["focuspunch"],
     "chargeboost": ["meteorbeam", "electroshot"],
+    "trickroom": ["trickroom"],
 }
 
 

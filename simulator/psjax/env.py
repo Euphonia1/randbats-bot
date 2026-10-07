@@ -124,6 +124,11 @@ class BattleEnv:
                 rows.append((state.hp[side] > 0).astype(jnp.float32))       # 6
                 rows.append(jax.nn.one_hot(state.status[side], C.NUM_STATUS)
                             .reshape(-1))                                   # 6*7
+                # How long each sleeper has slept (never how long it has left).
+                asleep = state.status[side] == C.SLP
+                rows.append(jnp.where(asleep, state.sleep_attempts[side] / 3.0, 0.0)
+                            .astype(jnp.float32))                           # 6
+                rows.append((asleep & state.rest_sleep[side]).astype(jnp.float32))  # 6
                 rows.append(state.boosts[side].astype(jnp.float32) / 6.0)   # 7
                 rows.append(jax.nn.one_hot(state.types[side, i] + 1,
                                            C.NUM_TYPES + 1).reshape(-1))    # 2*20

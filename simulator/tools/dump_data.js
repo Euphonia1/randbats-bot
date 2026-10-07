@@ -53,6 +53,8 @@ function dumpMoves() {
         sideCondition: m.self.sideCondition || null,
         chance: m.self.chance ?? null,
       } : null,
+      // Boosts the user takes once after the whole move hits (Scale Shot).
+      selfBoost: m.selfBoost ? m.selfBoost.boosts || null : null,
       secondaries: (m.secondaries || []).map(s => ({
         chance: s.chance ?? 100, status: s.status || null,
         volatileStatus: s.volatileStatus || null, boosts: s.boosts || null,
@@ -101,6 +103,7 @@ function dumpSpecies() {
       weightkg: s.weightkg, baseSpecies: s.baseSpecies, forme: s.forme,
       nfe: !!s.nfe, gender: s.gender || '',
       requiredItem: s.requiredItem || null,
+      tags: s.tags || [],
     };
   }
   return out;
