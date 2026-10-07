@@ -22,7 +22,8 @@ TRUTH = pathlib.Path(__file__).resolve().parent.parent / "data" / "damage_truth.
 CASES = json.load(open(TRUTH)) if TRUTH.exists() else []
 
 WEATHER = {"sunnyday": C.SUN, "raindance": C.RAIN, "sandstorm": C.SAND,
-           "snowscape": C.SNOW}
+           "snowscape": C.SNOW, "desolateland": C.HARSH_SUN,
+           "primordialsea": C.HEAVY_RAIN, "deltastream": C.STRONG_WINDS}
 TERRAIN = {"electricterrain": C.ELECTRIC_TERRAIN, "grassyterrain": C.GRASSY_TERRAIN,
            "mistyterrain": C.MISTY_TERRAIN, "psychicterrain": C.PSYCHIC_TERRAIN}
 SCREENS = {"reflect": C.SC_REFLECT, "lightscreen": C.SC_LIGHTSCREEN,
@@ -57,7 +58,9 @@ def _run_case(case):
     def_types = current_types(dfn.types, dfn.terastallized, dfn.tera_type)
     exp, immune = type_effectiveness(
         data, mv.type, def_types, mv, data["move_ignore_immunity"][mv.id],
-        dfn.ability, jnp.bool_(False))
+        dfn.ability, jnp.bool_(False), def_terastallized=dfn.terastallized,
+        def_grounded=jnp.bool_(case.get("groundedTarget", True)),
+        def_full_hp=dfn.hp >= dfn.maxhp)
     # Collision Course and friends key off the effectiveness, so the callback
     # context only becomes complete once it is known -- as in `execute_move`.
     cb_ctx = cb_ctx._replace(type_exp=exp)
@@ -118,12 +121,7 @@ SWEEP = json.load(open(SWEEP_TRUTH)) if SWEEP_TRUTH.exists() else []
 #: Moves this engine knowingly does not model, and why. Skipped rather than
 #: deleted so the gap stays visible in the test report; `psjax.coverage` lists
 #: them too. Anything not named here must match Showdown exactly.
-KNOWN_UNMODELLED = {
-    "beatup": "Beat Up's power and hit count come from the whole party's base "
-              "Attack, which would need party data in the per-hit damage path. "
-              "It appears in 1 of 4336 Random Battle sets (Fezandipiti only), "
-              "so the hot-path cost is not worth it.",
-}
+KNOWN_UNMODELLED = {}
 
 
 @pytest.mark.skipif(not SWEEP, reason="run tools/move_sweep.py to build sweep data")

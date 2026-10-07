@@ -58,6 +58,9 @@ function setup(c) {
   if (c.weather) { battle.field.weather = c.weather; battle.field.weatherState = {id: c.weather, duration: 5}; }
   if (c.terrain) { battle.field.terrain = c.terrain; battle.field.terrainState = {id: c.terrain, duration: 5}; }
   if (c.screens) for (const s of c.screens) tgt.side.addSideCondition(s, tgt);
+  if (c.gravity) battle.field.addPseudoWeather('gravity', src);
+  // Charge doubles the attacker's next Electric move.
+  if (c.attacker.charged) src.addVolatile('charge');
   // Knobs for the base-power callbacks. `newlySwitched` is set by switchIn and
   // would otherwise skew Payback / Bolt Beak, which read it directly.
   src.newlySwitched = false;
@@ -92,6 +95,9 @@ function run(c) {
     const move = battle.dex.getActiveMove(c.move);
     move.willCrit = !!c.crit;
     battle.random = (n) => (n === 16 ? roll : 0);
+    // Fickle Beam's 30% roll goes through `randomChance`, which `random` does
+    // not reach; `fickle` wins it.
+    if (c.fickle) battle.forceRandomChance = true;
     // Handlers like Unaware key off these; getDamage alone does not set them.
     battle.activePokemon = src;
     battle.activeTarget = tgt;

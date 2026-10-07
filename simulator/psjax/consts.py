@@ -85,8 +85,9 @@ SIDE_CONDITION_MAX = {
  V_LOCKEDMOVE, V_TWOTURN, V_RECHARGE, V_FOCUSENERGY, V_HELPINGHAND, V_SLOWSTART,
  V_PROTOSYNTHESIS, V_QUARKDRIVE, V_GLAIVERUSH, V_THROATCHOP, V_TORMENT,
  V_MINIMIZE, V_DEFENSECURL, V_TARSHOT, V_FLASHFIRE, V_CHARGE,
- V_UNBURDEN) = range(37)
-NUM_VOLATILES = 37
+ V_UNBURDEN, V_SMACKDOWN, V_SYRUPBOMB, V_TRUANT, V_FOCUSPUNCH, V_BEAKBLAST,
+ V_MATBLOCK) = range(43)
+NUM_VOLATILES = 43
 VOLATILE_IDX = {
     "confusion": V_CONFUSION, "flinch": V_FLINCH, "substitute": V_SUBSTITUTE,
     "leechseed": V_LEECHSEED, "taunt": V_TAUNT, "encore": V_ENCORE,
@@ -101,7 +102,22 @@ VOLATILE_IDX = {
     "glaiverush": V_GLAIVERUSH, "throatchop": V_THROATCHOP, "torment": V_TORMENT,
     "minimize": V_MINIMIZE, "defensecurl": V_DEFENSECURL, "tarshot": V_TARSHOT,
     "flashfire": V_FLASHFIRE, "charge": V_CHARGE, "unburden": V_UNBURDEN,
+    "smackdown": V_SMACKDOWN, "syrupbomb": V_SYRUPBOMB, "truant": V_TRUANT,
+    "focuspunch": V_FOCUSPUNCH, "beakblast": V_BEAKBLAST, "matblock": V_MATBLOCK,
 }
+
+# Volatiles Baton Pass carries over to the replacement: everything whose
+# Showdown condition is not `noCopy`. Shed Tail passes the Substitute alone.
+BATON_PASS_VOLATILES = (
+    V_CONFUSION, V_SUBSTITUTE, V_LEECHSEED, V_TAUNT, V_MAGNETRISE, V_AQUARING,
+    V_INGRAIN, V_CURSE, V_PERISHSONG, V_PARTIALLYTRAPPED, V_FOCUSENERGY,
+    V_THROATCHOP, V_TARSHOT, V_CHARGE,
+)
+
+# --- Gender ------------------------------------------------------------------
+# Attract and Cute Charm need opposite genders. 0 is genderless, which also
+# never matches, so an unset field is the safe default.
+GENDER_NONE, GENDER_M, GENDER_F = range(3)
 
 # --- Random Battle set roles -------------------------------------------------
 # Showdown tags every random-battle set with a role; the team builder uses it to
@@ -169,3 +185,4 @@ NUM_ACTIONS = 14
 TEAM_SIZE = 6
 NUM_PLAYERS = 2
 MOVES_PER_POKEMON = 4
+NUM_MOVES = 848

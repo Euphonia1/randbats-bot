@@ -48,7 +48,24 @@ def load_index() -> Dict[str, Any]:
     if not INDEX.exists():
         raise FileNotFoundError(
             f"{INDEX} not found -- run `node tools/dump_data.js && python -m psjax.build`")
-    return json.load(open(INDEX))
+    return json.load(open(INDEX, encoding="utf-8"))
+
+
+@functools.lru_cache(maxsize=None)
+def species_index(species_id: str) -> int:
+    """A species' row in the compiled tables, as a static Python int.
+
+    For the handful of mechanics tied to one species or forme (Hyperspace Fury,
+    Disguise, Zero to Hero, ...). Engine code compares a traced species against
+    this the way it compares abilities against `A.*`.
+    """
+    return load_index()["species"][species_id]
+
+
+@functools.lru_cache(maxsize=None)
+def move_index(move_id: str) -> int:
+    """A move's row, as a static Python int (Gulp Missile keys off Surf)."""
+    return load_index()["moves"][move_id]
 
 
 @functools.lru_cache(maxsize=1)

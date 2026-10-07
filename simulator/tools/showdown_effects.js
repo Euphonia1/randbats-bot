@@ -19,7 +19,7 @@ const IVS = {hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31};
 function mkset(spec) {
   return {
     name: spec.species, species: spec.species, level: spec.level || 100,
-    gender: 'N', item: spec.item || '', ability: spec.ability || '',
+    gender: spec.gender || 'N', item: spec.item || '', ability: spec.ability || '',
     moves: spec.moves && spec.moves.length ? spec.moves : ['splash'],
     evs: EVS, ivs: IVS, nature: 'Serious',
     teraType: spec.tera || undefined, happiness: 255,
@@ -41,6 +41,9 @@ function snapshot(battle) {
     maxhp: team.map(p => p.maxhp),
     status: team.map(p => p.status || ''),
     item: team.map(p => p.item || ''),
+    species: team.map(p => p.species.id),
+    ability: team.map(p => p.ability || ''),
+    types: s.active[0] ? s.active[0].getTypes().map(t => t.toLowerCase()) : [],
     boosts: s.active[0] ? {...s.active[0].boosts} : null,
     sideConditions: Object.keys(s.sideConditions).sort(),
     spikeLayers: s.sideConditions.spikes ? s.sideConditions.spikes.layers : 0,
@@ -72,6 +75,8 @@ function run(c) {
   const apply = (side, spec) => {
     const mon = side.active[0];
     if (spec.status) mon.setStatus(spec.status, null, null, true);
+    // Sleep length is otherwise rolled here, out of the scenario's control.
+    if (spec.statusTurns) mon.statusState.time = spec.statusTurns;
     if (spec.hpPercent) mon.hp = Math.max(1, Math.floor(mon.maxhp * spec.hpPercent));
     if (spec.boosts) Object.assign(mon.boosts, spec.boosts);
     for (const sc of spec.sideConditions || []) side.addSideCondition(sc, mon);
@@ -79,16 +84,27 @@ function run(c) {
   };
   apply(battle.p1, c.p1);
   apply(battle.p2, c.p2);
+  // A benched team member's status (Beat Up skips the statused).
+  for (const [side, key] of [[battle.p1, 'p1team'], [battle.p2, 'p2team']]) {
+    (c[key] || []).forEach((spec, i) => {
+      if (i > 0 && spec.status) battle.__order[side.id][i].setStatus(spec.status, null, null, true);
+    });
+  }
   // Scenarios that need an effect already in place before the turn runs.
   if (c.seedP2) battle.p2.active[0].addVolatile('leechseed', battle.p1.active[0]);
   if (c.weather) { battle.field.weather = c.weather; battle.field.weatherState = {id: c.weather, duration: 8}; }
   if (c.terrain) { battle.field.terrain = c.terrain; battle.field.terrainState = {id: c.terrain, duration: 8}; }
+  if (c.gravity) battle.field.addPseudoWeather('gravity', battle.p1.active[0]);
 
   // Pin the RNG to zero. `randomChance(num, den)` is `random(den) < num`, so
   // every accuracy check and every chance-based effect succeeds -- the scenario
   // becomes deterministic. (Overriding `randomChance` itself is wrong: it is the
   // accuracy check too, so forcing it false makes every move miss.)
   battle.random = () => 0;
+  // `force` also wins every `randomChance` roll -- a 30% ability, a crit, a
+  // secondary -- so a scenario about one of those is deterministic too. The
+  // psjax side pins its random words to zero to match.
+  if (c.force) battle.forceRandomChance = true;
 
   const before = snapshot(battle);
   try {
@@ -98,6 +114,9 @@ function run(c) {
     if (c.p1switchAfter && battle.requestState === 'switch') {
       battle.makeChoices(`switch ${c.p1switchAfter}`, 'default');
     }
+    // Scenarios that play out over several turns (Future Sight, Wish, charge
+    // moves) list the later turns' choices.
+    for (const [a, b] of c.turns || []) battle.makeChoices(a, b);
   } catch (e) {
     return {...c, error: String(e.message).slice(0, 200)};
   }

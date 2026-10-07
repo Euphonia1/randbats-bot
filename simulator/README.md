@@ -34,31 +34,38 @@ cannot cross into JAX. Rather than reimplement mechanics from a wiki, this repo:
 
 ```
 $ pytest -q
-1232 passed, 3 skipped
+2583 passed, 2 skipped
 ```
 
-**1,094 damage checks**, all against a live Showdown:
+**2,187 damage checks**, all against a live Showdown:
 
-- 88 hand-written scenarios × 16 rolls probe specific mechanics — crits, weather,
+- 118 hand-written scenarios × 16 rolls probe specific mechanics — crits, weather,
   screens, Tera, Adaptability, Unaware, Low Kick's weight steps, Wring Out's
-  fixed-point rounding.
+  fixed-point rounding, the Ruin abilities, Stellar moves against Terastallized
+  targets, Tera Shell, and the signature moves whose type follows a plate or forme.
 - A **move sweep** runs every one of the 269 damaging moves in the Random Battle
   pool, so each compiled row (base power, type, category, base-power callback) is
-  verified. All match exactly except Beat Up, skipped with its reason attached.
-- An **ability sweep** puts each of the 138 wired abilities on the attacker and
-  on the defender across two contexts — burned and in a pinch under sun, and a
-  special move in rain — so an ability that fires when it should not, or on the
-  wrong hook, shows up.
+  verified. All match exactly.
+- An **ability sweep** puts each of the 229 wired abilities on the attacker and
+  on the defender across four contexts — burned and in a pinch under sun; a
+  special move in rain; a burned special attacker in a pinch using a Fire move
+  with a secondary; and a poisoned physical attacker — so an ability that fires
+  when it should not, or on the wrong hook, shows up.
 
-**101 effect checks** — one real Showdown turn each, comparing the fields the
-scenario is about. Because Showdown's RNG is pinned and psjax's is not, each
-scenario runs under several keys and the most common psjax outcome must be
-Showdown's; for the many that cannot miss, that is every run agreeing.
+**214 effect checks** — one real Showdown battle each, one turn or several
+(Future Sight, Wish, charge moves, Truant), comparing the fields the scenario is
+about. Because Showdown's RNG is pinned and psjax's is not, each scenario runs
+under several keys and the most common psjax outcome must be Showdown's; for the
+many that cannot miss, that is every run agreeing. A `force` flag wins every
+chance roll in both engines instead, for effects that happen 30% of the time or
+checks that depend on a damage number.
 
-**27 engine and batching checks** — battles terminate with a consistent winner,
-HP/PP/boosts stay in range, rewards are zero-sum and paid once, priority beats
-Speed, Trick Room inverts it, Choice locks hold, and a batched step matches a
-sequential one field for field.
+**Engine, batching and mechanics checks** — battles terminate with a consistent
+winner, HP/PP/boosts stay in range, rewards are zero-sum and paid once, priority
+beats Speed, Trick Room inverts it, Choice locks hold, a batched step matches a
+sequential one field for field; and, where the Showdown harness cannot look, the
+action mask under trapping, Disable, Encore, Taunt and a charging move, what a
+Pokemon reverts to on switching out, and what Illusion shows an opponent.
 
 ### Bugs this caught
 
@@ -97,6 +104,44 @@ half-wired — the switch-in half was there and the damage half was not:
   5461/4096, not the 1.3 they are usually quoted as.
 - **Slow Start** halved Speed but not Attack.
 
+Modelling the last unmodelled moves and abilities turned up a further batch in
+mechanics the engine already claimed. All of these are now pinned by Showdown
+scenarios:
+
+- **Sheer Force never applied in a battle.** `execute_move` never told the
+  damage formula a move had secondaries, so the boost only existed in unit
+  tests — which never exercised it either. It is 5325/4096, a point above
+  `m(1.3)`, and it also deletes the secondaries it pays for.
+- **Confusion expired before it could do anything.** It was applied with a
+  one-turn counter, so the self-hit never happened. It now lasts Showdown's
+  2–5 turns, at a 33% (not ⅓) self-hit.
+- **Self-targeting volatiles landed on the opponent.** Magnet Rise, Charge,
+  Focus Energy, Ingrain and the like applied their volatile to the target.
+- **Status moves went straight through a Substitute**, and secondaries,
+  contact abilities and Knock Off all fired on a hit the Substitute soaked.
+- **Knock Off removed items even when it missed** or hit a Protect; handler
+  effects now wait for the move to connect.
+- **Defiant and Competitive ignored secondary drops** such as Icy Wind's.
+- **Own Tempo blocked flinching** (it blocks confusion); Inner Focus is the one
+  that stops flinching.
+- **Flare Boost, Toxic Boost and the pinch abilities were on the wrong hook**:
+  the first two modify base power and the pinch abilities the attacking stat,
+  not the other way round. The sweep never burned, poisoned or pinched an
+  attacker using a move of the right type, so two contexts were added that do.
+- **Water Absorb and friends absorbed moves that were never used** — a
+  sleeping attacker's Surf still healed the target.
+- **A sleeping or flinching Pokemon still ticked its confusion** and could hit
+  itself; Showdown stops at the first BeforeMove handler that says no.
+- **Self-drops came with a missed move** (a missed Draco Meteor still lowered
+  Sp. Atk).
+- **A Fire move in heavy rain dealt 1 damage** instead of failing, and the same
+  for Water in harsh sun.
+- **Thousand Arrows could not hit Flying types**: its immunity-bypass mask was
+  read by the defender's type rather than the move's.
+- **Protect was blocked by Psychic Terrain** whenever the opponent was grounded,
+  and Clangorous Soul by the opponent's Soundproof: both checks now only apply
+  to moves aimed at the foe.
+
 ## Layout
 
 | File | What it does |
@@ -117,6 +162,7 @@ half-wired — the switch-in half was there and the damage half was not:
 | `psjax/env.py` | batched RL environment wrapper |
 | `psjax/coverage.py` | what is and is not modelled |
 | `tests/test_batching.py` | batched execution == sequential, field by field |
+| `tests/test_mechanics.py` | what the harness cannot see: action masks, reverting on switch-out, Illusion under fog |
 | `tools/showdown_effects.js` | ground-truth turn results from a real Showdown battle |
 | `tools/effect_cases.py` | the effect scenarios, as readable Python |
 | `tools/move_sweep.py` | generates a damage case for every damaging move |
@@ -259,9 +305,13 @@ around **800 battles**: below that, shelling out to Showdown finishes sooner.
 Four things the ratio does not say:
 
 - **Showdown is doing more work per battle.** It emits a full protocol log,
-  implements every move and ability rather than 98.7% and 81.9% of usage, and
-  supports every format and generation. Part of its cost buys what this package
-  does not have.
+  implements every held item's behaviour (see the gaps listed under known
+  deviations), and supports every format and generation. Part of its cost buys
+  what this package does not have. These figures also predate modelling the last
+  ~90 moves and abilities, which on an 8-core Windows machine halved CPU
+  throughput (≈102k to ≈51k env steps/s at a batch of 1024, both measured back
+  to back) and doubled compilation (13 s to 26 s); see "Since modelling the
+  remaining moves and abilities" below for the GPU.
 - **A batch finishes at the pace of its slowest battle**, so `battles/s` --
   whole batch over wall time -- is dragged down by the tail. `env steps/s`
   (192,797 at 8192) is the rate without that effect.
@@ -302,6 +352,30 @@ of their per-hit powers are under the threshold regardless.
 Diagnosing this was mostly a matter of measuring HLO size with
 `jax.jit(f).lower(...).as_text()`, which is cheap, rather than compile time,
 which is not.
+
+**Recomputation.** XLA fuses cheap elementwise producers into their consumers,
+and a value at the end of a long chain of them -- a damage number, whether a move
+connected -- is recomputed inside *every* kernel that reads it. The move engine is
+exactly that shape, and modelling the last ~90 moves and abilities multiplied the
+readers: the batched CPU step became four times slower while the program grew
+only 60%, and a single Future Sight damage calculation made the residuals twenty
+times slower than the rest of them put together. `state.barrier` (an
+`optimization_barrier`) on the handful of values at the end of those chains --
+whether a move connected, its damage, Future Sight's damage -- makes each reader
+use the stored value instead, and cut the batched CPU step about threefold (49 ms
+to 17 ms at 1,024 battles) -- though that is still about twice the 8 ms of the
+engine before those mechanics, measured back to back on an idle machine. A
+component that is cheap timed in isolation but slow in context is the signature
+of this. (Measure the two versions back to back: on a machine that is also running
+something else, the old engine's timings moved by half while the new one's barely
+did, which once made the gap look like 10%.)
+
+Barrier the values, not the state. A barrier on the whole `BattleState` stops
+recomputation just as well and made the CPU step faster still, but it forces the
+entire state out to memory at each boundary: on the GPU, where a large batch is
+bound by memory traffic, that made the step 25% slower. Likewise, `slot_get` stays
+a masked sum rather than a chain of selects -- the selects saved a few GPU kernels
+but let the chains fuse back into their readers on the CPU, doubling its step.
 
 ### Compiling for GPU
 
@@ -409,6 +483,37 @@ pool, so 1.5M battles (3.1 GB) run and 2M do not.
 `XLA_PYTHON_CLIENT_ALLOCATOR=platform` allocates buffer by buffer instead and
 runs 2M battles at 211 ms a step, but it makes every step about 70% slower (1M
 battles: 123 ms against 73).
+
+#### Since modelling the remaining moves and abilities
+
+The tables above are the engine before its last ~90 moves and abilities. Same
+RTX 4070 under WSL2, same benchmark (step = action sampling plus `env.step`,
+best of five ten-step windows; games per second with finished battles replaced
+every 16 steps and stalemates cut at 500 turns), both versions measured in the
+same session:
+
+| battles in flight | step, before -> now | complete games/s, before -> now | compile |
+| --- | --- | --- | --- |
+| 1,024 | 2.02 -> 3.09 ms | | 8.9 -> 18.2 s |
+| 4,096 | 1.82 -> 3.15 ms | | 9.1 -> 18.6 s |
+| 16,384 | 1.33 -> 2.75 ms | 159,900 -> 66,900 | 9.4 -> 18.6 s |
+| 65,536 | 3.28 -> 9.25 ms | 291,200 -> 95,700 | 8.9 -> 17.8 s |
+| 262,144 | 16.1 -> 49.1 ms | 216,000 -> 69,700 | 10.2 -> 20.1 s |
+
+Both backends pay for the new mechanics: about 2.2x per step on the CPU, and on
+the GPU 1.5x at small batches rising to 3x at large ones. Batched battles on the
+GPU are bound by memory traffic, and
+XLA's cost analysis puts the step at roughly 41 KB moved per battle against 16 KB
+before. Most of the increase comes from the rarely-used mechanics, which every
+battle computes regardless: forme changes, Transform and switching back out each
+rewrite team-wide arrays (stats, moves, PP, types) several times a step, and the
+per-team and volatile fields grew. It is not one hotspot -- stubbing out any
+single piece saves a few percent -- so getting the old speed back is a layout
+change rather than a tweak: keeping the active Pokemon's mutable battle data in
+per-side arrays, written back to the team only on switching out, would let those
+rewrites touch a few bytes instead of the team. Results are unaffected: a batch of
+512 battles plays out bit-identically on the GPU and the CPU, every field after
+every step.
 
 ### Filling the machine
 
@@ -518,6 +623,10 @@ because it is easy to hide too much:
   too -- Showdown shows the fainted count -- and bench species and movesets never
   enter the observation at all.
 
+- **Illusion** is the one ability whose whole effect is on what the opponent
+  sees, so the wrapper applies it: while it holds, the opponent's view of the
+  active Pokemon carries the disguise's typing.
+
 One approximation is left in place and noted rather than fixed: the opponent's
 effective speed is exposed exactly, where a real player infers it from turn order.
 
@@ -525,17 +634,54 @@ effective speed is exposed exactly, where a real player infers it from turn orde
 
 Run `python -m psjax.coverage` for the current numbers. As of Showdown v0.11.11:
 
-- **Moves.** 324/349 of the Random Battle movepool is fully modelled; weighted by
-  how often moves appear in sets, **98.7%** of usage is covered. Every damaging
-  move is verified against Showdown by the sweep. The rest run as ordinary moves
-  with their special behaviour skipped.
-- **Abilities.** All 203 Random Battle abilities have an id, and **138 of them
-  (81.9% by set usage)** are wired to actual behaviour. The rest are inert: they
-  do not error, they simply have no effect. `python -m psjax.coverage` lists
-  them. Some are legitimately passive — Multitype, the single most common, only
-  fixes a forme's type, which the species data already encodes.
+- **Moves.** All **349/349** moves in the Random Battle movepool are modelled.
+  Every damaging move is verified against Showdown by the sweep, and every move
+  with a special effect has at least one Showdown scenario.
+- **Abilities.** All **203** Random Battle abilities are accounted for: 200 are
+  wired to behaviour, and three are passive by nature, each with its reason in
+  `python -m psjax.coverage` -- Multitype (the species already carries Arceus's
+  type; the plate's own rules, Judgment's type and that nothing can take it, are
+  modelled on the item), Frisk (it only announces an item, and no observation
+  carries items) and Power Spot (it boosts allies, and singles has none).
 - **Items.** All 33 items the Gen 9 Random Battle generator can assign are
-  present, plus ~55 more.
+  present, plus ~55 more. Berries are eaten when their trigger is met -- Sitrus,
+  Oran, Figy, Lum, Chesto, Leppa, the pinch stat berries and the resist berries
+  -- because Harvest, Cud Chew, Cheek Pouch, Unnerve, Bug Bite and Stuff Cheeks
+  all turn on it. Most other held-item behaviour beyond the damage formula is
+  still missing; see below.
+
+### How the harder mechanics are modelled
+
+A few of the moves and abilities needed state the engine did not have:
+
+- **Formes.** A forme change (Relic Song, Shields Down, Hunger Switch, Gulp
+  Missile, Disguise, Ice Face, Zero to Hero, Tera Shift, Terapagos's Stellar
+  Form) rewrites the species, types and stats. Stats are rebuilt from the new
+  forme's base stats and the set's spread, which `teams.finish_teams` infers
+  from the stats themselves: Showdown's generator only ever zeroes Attack (for
+  special sets) or Speed (for Trick Room sets), so a stat below its full-spread
+  value is one of those. That inference reproduces every one of the 300,000
+  Pokemon in the team pool exactly. A permanent change also becomes what the
+  Pokemon reverts to.
+- **Switching out** undoes what does not survive leaving the field, as
+  Showdown's `clearVolatile` does: Transform (the Pokemon's own moves and PP
+  are kept aside meanwhile), battle formes, Trace's ability, Protean's and Burn
+  Up's typing. Baton Pass and Shed Tail hand over what they pass through
+  `pass_mode`; party order is tracked for Illusion.
+- **Slot conditions**: Future Sight and Doom Desire remember the move and the
+  team slot of their user and are calculated at the end of the turn they land,
+  with that Pokemon's stats even from the bench; Wish remembers its HP.
+- **The action mask** now enforces Disable, Encore, Taunt, Torment, a charging
+  move's lock, and trapping (Shadow Tag, Arena Trap, Magnet Pull, binding
+  moves, Ingrain -- not on Ghost types, and never against a forced
+  replacement).
+- **Mold Breaker** and its kin -- including moves like Sunsteel Strike and
+  Mycelium Might's status moves -- ignore a target's *breakable* ability for the
+  move. An ability that cures its own status on the next Update (Insomnia,
+  Limber, ...) still wins in the end, as in Showdown.
+- **Illusion** only changes what an opponent sees, so it lives in the fog of war
+  wrapper: until the holder takes a damaging hit, the opponent's view shows the
+  disguise's typing.
 
 ### Known deviations
 
@@ -559,8 +705,25 @@ These are deliberate and documented rather than hidden:
   this engine needs a step cap, and an RL loop needs one that terminates the
   episode rather than leaving it hanging. Rollouts need a cap for this reason, which `rollout_batch` takes as
   `max_steps`.
-- **Beat Up is not modelled.** Its power and hit count come from the whole
-  party's base Attack, which would need party data threaded into the per-hit
-  damage path. It appears in 1 of 4336 Random Battle sets.
+- **Dancer copies status dances only.** Swords Dance, Dragon Dance, Quiver
+  Dance, Victory Dance, Clangorous Soul, Feather Dance and Teeter Dance are
+  copied; a damaging dance (Fiery Dance, Aqua Step, Revelation Dance, Petal
+  Dance) would need the whole move engine run a second time in the turn, which
+  would roughly double its cost for an ability on 0.4% of sets. They are about
+  1% of what an Oricorio faces.
+- **Charge moves have no invulnerable turn.** Solar Beam and Meteor Beam, the
+  only charge moves the format rolls, charge and fire as in Showdown; Fly, Dig
+  and friends would charge but not vanish.
+- **Magic Bounce** reuses the original move's accuracy roll for the reflected
+  one.
+- **A resist berry** halves every hit of a multi-hit move rather than only the
+  first; no Random Battle set holds one.
+- **Mirror Armor and Flower Veil** are not bypassed by Mold Breaker.
+- **Held items beyond the damage formula** are still mostly unmodelled: Life
+  Orb's recoil, Focus Sash and Air Balloon being used up, Booster Energy being
+  consumed, Weakness Policy, White Herb, Throat Spray, the Flame and Toxic Orbs,
+  Light Clay, Custap Berry, and the Ogerpon masks' and origin orbs' power boosts.
+  Outrage-style lock-in and fatigue are not modelled either. None of these is a
+  move or ability, and each is a lead for future work.
 - No Dynamax, Z-moves or Mega Evolution — none exist in Gen 9 singles.
 

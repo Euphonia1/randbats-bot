@@ -57,6 +57,13 @@ honest account of what is and is not modelled.
 #     scatter is a kernel of its own behind a copy of its operand.
 #   * No `lax.cond` or `lax.switch` on a batched value: `state.select_state`.
 #     Batched, they broadcast every table their branches read to the whole batch.
+#
+# And one for both backends: keep the `state.barrier` calls on the move engine's
+# key intermediate values (whether a move connected, its damage). XLA recomputes
+# a fused chain of elementwise work inside every kernel that reads its result,
+# and those values have many readers; without the barriers the batched CPU step
+# was four times slower. Barrier values, never the whole state: that forces the
+# state out to memory at each boundary, which cost the GPU 25%.
 
 from .data import load_data, names
 from .state import BattleState

@@ -55,7 +55,7 @@ def wired_abilities() -> set:
 
 
 def report():
-    raw = json.load(open(RAW))
+    raw = json.load(open(RAW, encoding="utf-8"))
     move_usage, ability_usage = randbats_usage(raw)
     lines = []
     add = lines.append
@@ -102,9 +102,11 @@ def report():
     # --- abilities ---
     known = set(H.ABILITY_NAMES)
     wired = wired_abilities()
+    passive = set(H.PASSIVE_ABILITIES)
     rb_abilities = set(ability_usage)
     missing_ab = sorted(rb_abilities - known, key=lambda a: -ability_usage[a])
-    inert = sorted(rb_abilities - wired, key=lambda a: -ability_usage[a])
+    inert = sorted(rb_abilities - wired - passive, key=lambda a: -ability_usage[a])
+    idle = sorted((rb_abilities & passive) - wired, key=lambda a: -ability_usage[a])
     total_ab = sum(ability_usage.values())
     covered_ab = total_ab - sum(ability_usage[a] for a in missing_ab)
     wired_ab = total_ab - sum(ability_usage[a] for a in inert)
@@ -113,12 +115,20 @@ def report():
     add(f"  Random Battle abilities with an id: "
         f"{len(rb_abilities) - len(missing_ab)}/{len(rb_abilities)} "
         f"({100 * covered_ab / total_ab:.1f}% by set usage)")
-    add(f"  ... of which actually wired to behaviour: "
+    passive_ab = sum(ability_usage[a] for a in idle)
+    add(f"  ... of which wired to behaviour: "
+        f"{len(rb_abilities) - len(inert) - len(idle)}/{len(rb_abilities)} "
+        f"({100 * (wired_ab - passive_ab) / total_ab:.1f}% by set usage)")
+    add(f"  ... and passive by nature: {len(idle)} "
+        f"({100 * passive_ab / total_ab:.1f}%), so accounted for: "
         f"{len(rb_abilities) - len(inert)}/{len(rb_abilities)} "
-        f"({100 * wired_ab / total_ab:.1f}% by set usage)")
+        f"({100 * wired_ab / total_ab:.1f}%)")
+    if idle:
+        add("  passive abilities, and why they have nothing to do here:")
+        for a in idle:
+            add(f"    {ability_usage[a]:5d}x  {a}: {H.PASSIVE_ABILITIES[a]}")
     add("  An ability with an id but no wiring is inert: it does not error, it")
-    add("  simply has no effect. Some are legitimately passive (Multitype just")
-    add("  fixes a forme's type, which the species data already encodes).")
+    add("  simply has no effect.")
     if missing_ab:
         add("  most-used abilities with no id at all:")
         for a in missing_ab[:10]:
@@ -147,7 +157,8 @@ def report():
     add("STRUCTURAL LIMITATIONS")
     for note in (
         "singles only -- no doubles targeting, spread damage or ally effects",
-        "held items are assigned by set role, not by Showdown's generator logic",
+        "held items come from Showdown's own generator (the team pool); only the "
+        "procedural fallback assigns them by set role",
         "no Dynamax, Z-moves or Mega Evolution (none appear in Gen 9 singles)",
         "happiness is fixed at 255 (Return 102 BP, Frustration 1 BP)",
     ):

@@ -19,9 +19,10 @@ import numpy as np
 
 from . import consts as C
 from .data import load_data, load_team_pool
-from .hooks import I
+from .hooks import A, I
+from .mechanics import is_trapped
 from .state import empty_state
-from .stats import compute_all_stats
+from .stats import compute_all_stats, compute_stat
 
 # Role -> held item. An approximation of Showdown's generator; see the note above.
 ITEM_BY_ROLE = {
@@ -170,10 +171,49 @@ def new_battle(key, data=None, pool=None):
         tera_type=team["tera_type"].astype(jnp.int8),
         active=jnp.zeros(C.NUM_PLAYERS, jnp.int8),
     )
+    state = finish_teams(data, state, jax.random.fold_in(k_state, 1))
     # Leads arrive: entry abilities fire, but there are no hazards on turn one.
     state = apply_switch_in_ability(data, state, 0)
     state = apply_switch_in_ability(data, state, 1)
     return state
+
+
+def finish_teams(data, state, key):
+    """Fill in what a battle derives from its teams rather than stores in them.
+
+    What each Pokemon reverts to on leaving the field; which of its stats were
+    built with 0 IVs and EVs (Showdown's generator zeroes only Attack and Speed,
+    so a stat below its full-spread value is one of those), which lets forme
+    changes rebuild the stats exactly; its gender, fixed by species or else an
+    even coin flip as Showdown does; and a lead's Illusion.
+    """
+    base = data["species_base_stats"][state.species].astype(jnp.int32)
+    level = state.level.astype(jnp.int32)[..., None]
+    full = compute_stat(base, level)
+    zeroed = state.stats.astype(jnp.int32) < full
+    bits = jnp.sum(jnp.where(zeroed[..., 1:], 1 << jnp.arange(1, C.NUM_STATS), 0), axis=-1)
+
+    fixed = data["species_gender"][state.species]
+    coin = jax.random.bernoulli(key, 0.5, fixed.shape)
+    gender = jnp.where(data["species_random_gender"][state.species],
+                       jnp.where(coin, C.GENDER_M, C.GENDER_F), fixed).astype(jnp.int8)
+
+    return lead_illusion(state._replace(
+        base_species=state.species, base_ability=state.ability,
+        spread_zero=bits.astype(jnp.int8), gender=gender))
+
+
+def lead_illusion(state):
+    """A lead with Illusion disguises itself as the last healthy party member.
+
+    The leads are at the front of the party (slot 0), so that is the highest
+    healthy slot. Later entries go through `engine.switch_to`.
+    """
+    slots = jnp.arange(C.TEAM_SIZE)
+    last = jnp.max(jnp.where((state.hp > 0) & (slots > 0), slots, -1), axis=1)
+    lead_ability = state.ability[:, 0]
+    return state._replace(
+        illusion=jnp.where(lead_ability == A.ILLUSION, last, -1).astype(jnp.int8))
 
 
 def legal_action_mask(data, state):
@@ -184,13 +224,27 @@ def legal_action_mask(data, state):
     healthy benched Pokemon.
     """
     rows = []
+    slots = jnp.arange(C.MOVES_PER_POKEMON)
     for side in range(C.NUM_PLAYERS):
         i = state.active[side].astype(jnp.int32)
-        has_move = (state.moves[side, i] >= 0) & (state.pp[side, i] > 0)
+        moves = state.moves[side, i]
+        vol = state.volatiles[side]
+        has_move = (moves >= 0) & (state.pp[side, i] > 0)
         # A Choice item locks the holder into the move it last used.
         locked = state.choice_slot[side] >= 0
-        choice_ok = jnp.arange(C.MOVES_PER_POKEMON) == state.choice_slot[side]
+        choice_ok = slots == state.choice_slot[side]
         move_ok = has_move & jnp.where(locked, choice_ok, True)
+        # Disable forbids one move; Taunt every status move; Torment a repeat;
+        # Encore everything but the encored move.
+        status_move = data["move_category"][jnp.maximum(moves, 0)] == C.CAT_STATUS
+        move_ok = move_ok & ~((vol[C.V_DISABLE] > 0) & (slots == state.disabled_slot[side]))
+        move_ok = move_ok & ~((vol[C.V_TAUNT] > 0) & status_move)
+        move_ok = move_ok & ~((vol[C.V_TORMENT] > 0) & (moves == state.last_move[side]))
+        encored = (vol[C.V_ENCORE] > 0) & (state.encore_slot[side] >= 0)
+        move_ok = move_ok & jnp.where(encored, slots == state.encore_slot[side], True)
+        # A charging move (Solar Beam's second turn) is the only choice there is.
+        charging = state.locked_slot[side] >= 0
+        move_ok = jnp.where(charging, slots == state.locked_slot[side], move_ok)
         # If nothing is usable the Pokemon would use Struggle; allow slot 0.
         move_ok = jnp.where(jnp.any(move_ok), move_ok,
                             jnp.arange(C.MOVES_PER_POKEMON) == 0)
@@ -198,8 +252,11 @@ def legal_action_mask(data, state):
         can_tera = jnp.logical_not(jnp.any(state.terastallized[side])) & \
                    (state.tera_type[side, i] != C.TYPE_NONE)
         switch_ok = (state.hp[side] > 0) & (jnp.arange(C.TEAM_SIZE) != i)
+        # Shadow Tag, Arena Trap, Magnet Pull, binding moves and move locks keep
+        # the active in -- but never stop a replacement for a fainted Pokemon.
+        free_switch = switch_ok & jnp.logical_not(is_trapped(state, side))
 
-        row = jnp.concatenate([move_ok, move_ok & can_tera, switch_ok])
+        row = jnp.concatenate([move_ok, move_ok & can_tera, free_switch])
         # Replacing a fainted Pokemon: switches only.
         forced = state.force_switch[side]
         row = jnp.where(forced,

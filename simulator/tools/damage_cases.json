@@ -1137,5 +1137,381 @@
   },
   "move": "earthquake",
   "terrain": "electricterrain"
+ },
+ {
+  "name": "sheer force powers up a move with a secondary",
+  "attacker": {
+   "species": "Conkeldurr",
+   "ability": "Sheer Force"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flamethrower"
+ },
+ {
+  "name": "flare boost while burned",
+  "attacker": {
+   "species": "Drifblim",
+   "ability": "Flare Boost",
+   "status": "brn"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "shadowball"
+ },
+ {
+  "name": "toxic boost while poisoned",
+  "attacker": {
+   "species": "Zangoose",
+   "ability": "Toxic Boost",
+   "status": "psn"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "closecombat"
+ },
+ {
+  "name": "blaze in a pinch",
+  "attacker": {
+   "species": "Cinderace",
+   "ability": "Blaze",
+   "hpPercent": 0.3
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flamethrower"
+ },
+ {
+  "name": "torrent in a pinch",
+  "attacker": {
+   "species": "Greninja",
+   "ability": "Torrent",
+   "hpPercent": 0.3
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "hydropump"
+ },
+ {
+  "name": "overgrow above a third does nothing",
+  "attacker": {
+   "species": "Venusaur",
+   "ability": "Overgrow",
+   "hpPercent": 0.5
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "energyball"
+ },
+ {
+  "name": "tablets of ruin weakens attack",
+  "attacker": {
+   "species": "Garchomp",
+   "ability": "Rough Skin"
+  },
+  "defender": {
+   "species": "Wo-Chien",
+   "ability": "Tablets of Ruin"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "vessel of ruin weakens sp. atk",
+  "attacker": {
+   "species": "Chi-Yu",
+   "ability": "Flash Fire"
+  },
+  "defender": {
+   "species": "Ting-Lu",
+   "ability": "Vessel of Ruin"
+  },
+  "move": "darkpulse"
+ },
+ {
+  "name": "sword of ruin weakens defense",
+  "attacker": {
+   "species": "Chien-Pao",
+   "ability": "Sword of Ruin"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "iciclecrash"
+ },
+ {
+  "name": "beads of ruin weakens sp. def",
+  "attacker": {
+   "species": "Chi-Yu",
+   "ability": "Beads of Ruin"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "flamethrower"
+ },
+ {
+  "name": "a ruin ability spares its fellow holder",
+  "attacker": {
+   "species": "Chien-Pao",
+   "ability": "Sword of Ruin"
+  },
+  "defender": {
+   "species": "Chien-Pao",
+   "ability": "Sword of Ruin"
+  },
+  "move": "iciclecrash"
+ },
+ {
+  "name": "grav apple under gravity",
+  "attacker": {
+   "species": "Flapple",
+   "ability": "Hustle"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "gravapple",
+  "gravity": true
+ },
+ {
+  "name": "grav apple without gravity",
+  "attacker": {
+   "species": "Flapple",
+   "ability": "Hustle"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "gravapple"
+ },
+ {
+  "name": "fickle beam's double-power roll",
+  "attacker": {
+   "species": "Hydrapple",
+   "ability": "Regenerator"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ficklebeam",
+  "fickle": true
+ },
+ {
+  "name": "liquid voice makes hyper voice water",
+  "attacker": {
+   "species": "Primarina",
+   "ability": "Liquid Voice"
+  },
+  "defender": {
+   "species": "Arcanine",
+   "ability": "Intimidate"
+  },
+  "move": "hypervoice"
+ },
+ {
+  "name": "heavy metal doubles the user's weight",
+  "attacker": {
+   "species": "Copperajah",
+   "ability": "Heavy Metal"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "heavyslam"
+ },
+ {
+  "name": "light metal halves the target's weight",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Duraludon",
+   "ability": "Light Metal"
+  },
+  "move": "lowkick"
+ },
+ {
+  "name": "heavy metal on the target",
+  "attacker": {
+   "species": "Great Tusk",
+   "ability": "Protosynthesis"
+  },
+  "defender": {
+   "species": "Copperajah",
+   "ability": "Heavy Metal"
+  },
+  "move": "lowkick"
+ },
+ {
+  "name": "charge doubles an electric move",
+  "attacker": {
+   "species": "Raichu",
+   "ability": "Lightning Rod",
+   "charged": true
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "thunderbolt"
+ },
+ {
+  "name": "tera shell resists everything at full hp",
+  "attacker": {
+   "species": "Garchomp",
+   "ability": "Rough Skin"
+  },
+  "defender": {
+   "species": "Terapagos-Terastal",
+   "ability": "Tera Shell"
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "tera shell stops working once hurt",
+  "attacker": {
+   "species": "Garchomp",
+   "ability": "Rough Skin"
+  },
+  "defender": {
+   "species": "Terapagos-Terastal",
+   "ability": "Tera Shell",
+   "hpPercent": 0.9
+  },
+  "move": "earthquake"
+ },
+ {
+  "name": "stellar tera blast hits a terastallized target super effectively",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Magic Guard",
+   "tera": "Stellar"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "tera": "Water"
+  },
+  "move": "terablast"
+ },
+ {
+  "name": "stellar tera blast is neutral on the rest",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Magic Guard",
+   "tera": "Stellar"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "terablast"
+ },
+ {
+  "name": "judgment takes its plate's type",
+  "attacker": {
+   "species": "Arceus-Fire",
+   "ability": "Multitype",
+   "item": "Flame Plate"
+  },
+  "defender": {
+   "species": "Scizor",
+   "ability": "Technician"
+  },
+  "move": "judgment"
+ },
+ {
+  "name": "ivy cudgel follows ogerpon's mask",
+  "attacker": {
+   "species": "Ogerpon-Wellspring",
+   "ability": "Water Absorb"
+  },
+  "defender": {
+   "species": "Arcanine",
+   "ability": "Intimidate"
+  },
+  "move": "ivycudgel"
+ },
+ {
+  "name": "raging bull follows the tauros breed",
+  "attacker": {
+   "species": "Tauros-Paldea-Combat",
+   "ability": "Intimidate"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "ragingbull"
+ },
+ {
+  "name": "aura wheel turns dark when hangry",
+  "attacker": {
+   "species": "Morpeko-Hangry",
+   "ability": "Hunger Switch"
+  },
+  "defender": {
+   "species": "Gengar",
+   "ability": "Cursed Body"
+  },
+  "move": "aurawheel"
+ },
+ {
+  "name": "knock off gets no bonus against a plate",
+  "attacker": {
+   "species": "Weavile",
+   "ability": "Pressure"
+  },
+  "defender": {
+   "species": "Arceus-Fire",
+   "ability": "Multitype",
+   "item": "Flame Plate"
+  },
+  "move": "knockoff"
+ },
+ {
+  "name": "tera starstorm is stellar for terapagos-stellar",
+  "attacker": {
+   "species": "Terapagos-Stellar",
+   "ability": "Teraform Zero",
+   "tera": "Stellar"
+  },
+  "defender": {
+   "species": "Blissey",
+   "ability": "Natural Cure"
+  },
+  "move": "terastarstorm"
+ },
+ {
+  "name": "thousand arrows hits a flyer for neutral damage",
+  "attacker": {
+   "species": "Clefable",
+   "ability": "Unaware"
+  },
+  "defender": {
+   "species": "Corviknight",
+   "ability": "Pressure"
+  },
+  "move": "thousandarrows",
+  "groundedTarget": false
  }
 ]

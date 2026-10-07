@@ -10,6 +10,7 @@ import jax.numpy as jnp
 
 from psjax import consts as C
 from psjax.data import load_data, names
+from psjax.mechanics import active_types
 from psjax.state import empty_state
 from psjax.stats import compute_all_stats
 
@@ -74,7 +75,11 @@ def build(case, key):
             status=state.status.at[side, slot].set(
                 PS_TO_STATUS.get(spec.get("status") or "", 0)),
             status_turns=state.status_turns.at[side, slot].set(
-                1 if spec.get("status") == "tox" else 0),
+                spec.get("statusTurns") or (1 if spec.get("status") == "tox" else 0)),
+            gender=state.gender.at[side, slot].set(
+                {"M": C.GENDER_M, "F": C.GENDER_F}.get(spec.get("gender"), C.GENDER_NONE)),
+            tera_type=state.tera_type.at[side, slot].set(
+                N.type_id(spec["tera"]) if spec.get("tera") else C.TYPE_NONE),
         )
         if slot == 0:
             for name, amount in (spec.get("boosts") or {}).items():
@@ -86,6 +91,10 @@ def build(case, key):
                 state = state._replace(
                     side_conditions=state.side_conditions.at[side, idx].set(
                         1 if layers else 5))
+            for vol in spec.get("volatiles") or []:
+                state = state._replace(volatiles=state.volatiles.at[side, C.VOLATILE_IDX[vol]].set(1))
+                if vol == "substitute":
+                    state = state._replace(sub_hp=state.sub_hp.at[side].set(maxhp // 4))
 
     if case.get("weather"):
         state = state._replace(weather=jnp.int8(PS_TO_WEATHER[case["weather"]]),
@@ -93,9 +102,22 @@ def build(case, key):
     if case.get("terrain"):
         state = state._replace(terrain=jnp.int8(PS_TO_TERRAIN[case["terrain"]]),
                                terrain_turns=jnp.int8(8))
+    if case.get("gravity"):
+        state = state._replace(gravity=jnp.int8(5))
     if case.get("seedP2"):
         state = state._replace(
             volatiles=state.volatiles.at[1, C.V_LEECHSEED].set(jnp.int8(1)))
+    # Both leads have been switched in by the time Showdown's first turn runs,
+    # so their entry abilities (Imposter, Trace, Tera Shift, ...) have fired.
+    # Leads go in Speed order there; so they do here.
+    from psjax.engine import apply_switch_in_ability
+    from psjax.mechanics import effective_speed
+    from psjax.teams import lead_illusion
+    state = lead_illusion(state._replace(base_species=state.species,
+                                         base_ability=state.ability))
+    first = 0 if int(effective_speed(state, 0)) >= int(effective_speed(state, 1)) else 1
+    for side in (first, 1 - first):
+        state = apply_switch_in_ability(DATA, state, side)
     return state
 
 
@@ -116,6 +138,10 @@ def snapshot(state):
             "status": [STATUS_TO_PS[int(s)] for s in state.status[p]],
             "item": [N.items_by_id.get(int(i), "") if int(i) else ""
                      for i in state.item[p]],
+            "species": [N.species_by_id[int(x)] for x in state.species[p]],
+            "ability": [N.abilities_by_id.get(int(a), "") for a in state.ability[p]],
+            "types": [N.types_by_id[int(t)] for t in active_types(state, p)
+                      if int(t) != C.TYPE_NONE],
             "boosts": {k: int(state.boosts[p, j]) for j, k in enumerate(BOOST_KEYS)},
             "sideConditions": side_conditions,
             "spikeLayers": int(state.side_conditions[p, C.SC_SPIKES]),

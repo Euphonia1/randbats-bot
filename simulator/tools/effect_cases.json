@@ -2538,5 +2538,2653 @@
    }
   ],
   "p1switchAfter": 2
+ },
+ {
+  "name": "sleep talk uses another of the user's moves",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "sleeptalk",
+    "seismictoss"
+   ],
+   "status": "slp",
+   "statusTurns": 3
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ]
+ },
+ {
+  "name": "sleep talk does nothing awake",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "sleeptalk",
+    "seismictoss"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ]
+ },
+ {
+  "name": "meteor beam spends its first turn charging",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "meteorbeam"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.boosts",
+   "p2.hp",
+   "p1.volatiles"
+  ]
+ },
+ {
+  "name": "meteor beam fires on the second turn",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "meteorbeam"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.boosts",
+   "p2.hp"
+  ],
+  "turns": [
+   [
+    "move 1",
+    "move 1"
+   ]
+  ],
+  "force": true
+ },
+ {
+  "name": "power herb skips the charge",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "meteorbeam"
+   ],
+   "item": "Power Herb"
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.boosts",
+   "p1.item",
+   "p2.hp"
+  ],
+  "force": true
+ },
+ {
+  "name": "solar beam fires at once in sun",
+  "p1": {
+   "species": "Venusaur",
+   "ability": "Overgrow",
+   "moves": [
+    "solarbeam"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ],
+  "weather": "sunnyday",
+  "force": true
+ },
+ {
+  "name": "solar beam charges outside sun",
+  "p1": {
+   "species": "Venusaur",
+   "ability": "Overgrow",
+   "moves": [
+    "solarbeam"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp",
+   "p1.volatiles"
+  ]
+ },
+ {
+  "name": "future sight does nothing on the turn it is used",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "futuresight",
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ]
+ },
+ {
+  "name": "future sight lands two turns later",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "futuresight",
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ],
+  "turns": [
+   [
+    "move 2",
+    "move 1"
+   ],
+   [
+    "move 2",
+    "move 1"
+   ]
+  ],
+  "force": true
+ },
+ {
+  "name": "doom desire lands two turns later",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "doomdesire",
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ],
+  "turns": [
+   [
+    "move 2",
+    "move 1"
+   ],
+   [
+    "move 2",
+    "move 1"
+   ]
+  ],
+  "force": true
+ },
+ {
+  "name": "future sight cannot touch a dark type",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "futuresight",
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Umbreon",
+   "ability": "Synchronize",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ],
+  "turns": [
+   [
+    "move 2",
+    "move 1"
+   ],
+   [
+    "move 2",
+    "move 1"
+   ]
+  ],
+  "force": true
+ },
+ {
+  "name": "wish heals at the end of the next turn",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "wish",
+    "splash"
+   ],
+   "hpPercent": 0.3
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp"
+  ],
+  "turns": [
+   [
+    "move 2",
+    "move 1"
+   ]
+  ]
+ },
+ {
+  "name": "wish waits a turn",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "wish"
+   ],
+   "hpPercent": 0.3
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp"
+  ]
+ },
+ {
+  "name": "focus punch fails if the user is hit first",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "focuspunch"
+   ]
+  },
+  "p2": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "tackle"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ],
+  "force": true
+ },
+ {
+  "name": "focus punch lands if nothing hits the user",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "focuspunch"
+   ]
+  },
+  "p2": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ],
+  "force": true
+ },
+ {
+  "name": "beak blast burns whatever touches it while it heats up",
+  "p1": {
+   "species": "Toucannon",
+   "ability": "Keen Eye",
+   "moves": [
+    "beakblast"
+   ]
+  },
+  "p2": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "tackle"
+   ]
+  },
+  "check": [
+   "p2.status"
+  ],
+  "force": true
+ },
+ {
+  "name": "transform copies species, stat stages and typing",
+  "p1": {
+   "species": "Ditto",
+   "ability": "Limber",
+   "moves": [
+    "transform"
+   ]
+  },
+  "p2": {
+   "species": "Gyarados",
+   "ability": "Moxie",
+   "moves": [
+    "splash"
+   ],
+   "boosts": {
+    "atk": 2
+   }
+  },
+  "check": [
+   "p1.species",
+   "p1.boosts",
+   "p1.types"
+  ]
+ },
+ {
+  "name": "mat block stops attacks on its first turn",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "matblock"
+   ]
+  },
+  "p2": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "tackle"
+   ]
+  },
+  "check": [
+   "p1.hp"
+  ]
+ },
+ {
+  "name": "beat up hits once per healthy party member",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "beatup"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ],
+  "force": true,
+  "p1team": [
+   {
+    "species": "Weavile",
+    "ability": "Pressure",
+    "moves": [
+     "beatup"
+    ]
+   },
+   {
+    "species": "Blissey",
+    "ability": "Natural Cure",
+    "moves": [
+     "splash"
+    ]
+   },
+   {
+    "species": "Snorlax",
+    "ability": "Thick Fat",
+    "moves": [
+     "splash"
+    ],
+    "status": "brn"
+   }
+  ]
+ },
+ {
+  "name": "sparkling aria cures the target's burn",
+  "p1": {
+   "species": "Primarina",
+   "ability": "Torrent",
+   "moves": [
+    "sparklingaria"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ],
+   "status": "brn"
+  },
+  "check": [
+   "p2.status"
+  ]
+ },
+ {
+  "name": "ceaseless edge lays spikes",
+  "p1": {
+   "species": "Samurott-Hisui",
+   "ability": "Sharpness",
+   "moves": [
+    "ceaselessedge"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.sideConditions",
+   "p2.spikeLayers"
+  ],
+  "force": true
+ },
+ {
+  "name": "stone axe lays stealth rock",
+  "p1": {
+   "species": "Kleavor",
+   "ability": "Sharpness",
+   "moves": [
+    "stoneaxe"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.sideConditions"
+  ],
+  "force": true
+ },
+ {
+  "name": "sheer force swallows stone axe's rocks",
+  "p1": {
+   "species": "Kleavor",
+   "ability": "Sheer Force",
+   "moves": [
+    "stoneaxe"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.sideConditions"
+  ],
+  "force": true
+ },
+ {
+  "name": "grassy glide jumps the queue on grassy terrain",
+  "p1": {
+   "species": "Rillaboom",
+   "ability": "Grassy Surge",
+   "moves": [
+    "grassyglide"
+   ]
+  },
+  "p2": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "seismictoss"
+   ],
+   "hpPercent": 0.01
+  },
+  "check": [
+   "p1.hp"
+  ],
+  "terrain": "grassyterrain",
+  "force": true
+ },
+ {
+  "name": "hyperspace fury fails for all but hoopa-unbound",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "hyperspacefury"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp",
+   "p1.boosts"
+  ]
+ },
+ {
+  "name": "hyperspace fury from hoopa-unbound",
+  "p1": {
+   "species": "Hoopa-Unbound",
+   "ability": "Magician",
+   "moves": [
+    "hyperspacefury"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.boosts"
+  ],
+  "force": true
+ },
+ {
+  "name": "take heart cures and boosts",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "takeheart"
+   ],
+   "status": "brn"
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.status",
+   "p1.boosts"
+  ]
+ },
+ {
+  "name": "fusion flare doubles after fusion bolt",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "fusionflare"
+   ]
+  },
+  "p2": {
+   "species": "Zekrom",
+   "ability": "Teravolt",
+   "moves": [
+    "fusionbolt"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ],
+  "force": true
+ },
+ {
+  "name": "bug bite eats the target's sitrus berry",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "bugbite"
+   ],
+   "hpPercent": 0.5
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ],
+   "item": "Sitrus Berry"
+  },
+  "check": [
+   "p1.hp",
+   "p2.item"
+  ],
+  "force": true
+ },
+ {
+  "name": "stuff cheeks eats the berry for +2 defense",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "stuffcheeks"
+   ],
+   "item": "Sitrus Berry",
+   "hpPercent": 0.9
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp",
+   "p1.item",
+   "p1.boosts"
+  ]
+ },
+ {
+  "name": "clangorous soul trades a third of HP for +1 everything",
+  "p1": {
+   "species": "Kommo-o",
+   "ability": "Bulletproof",
+   "moves": [
+    "clangoroussoul"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp",
+   "p1.boosts"
+  ]
+ },
+ {
+  "name": "clangorous soul fails at a third of HP",
+  "p1": {
+   "species": "Kommo-o",
+   "ability": "Bulletproof",
+   "moves": [
+    "clangoroussoul"
+   ],
+   "hpPercent": 0.3
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp",
+   "p1.boosts"
+  ]
+ },
+ {
+  "name": "relic song turns meloetta pirouette",
+  "p1": {
+   "species": "Meloetta",
+   "ability": "Serene Grace",
+   "moves": [
+    "relicsong"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.species"
+  ]
+ },
+ {
+  "name": "magnet rise lifts its user, not the target",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "magnetrise"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.volatiles",
+   "p2.volatiles"
+  ]
+ },
+ {
+  "name": "magnet rise fails under gravity",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "magnetrise"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.volatiles"
+  ],
+  "gravity": true
+ },
+ {
+  "name": "syrup bomb drains speed at the end of the turn",
+  "p1": {
+   "species": "Dipplin",
+   "ability": "Sticky Hold",
+   "moves": [
+    "syrupbomb"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.boosts"
+  ],
+  "force": true
+ },
+ {
+  "name": "thousand arrows grounds a flyer",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "thousandarrows"
+   ]
+  },
+  "p2": {
+   "species": "Corviknight",
+   "ability": "Pressure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.volatiles",
+   "p2.hp"
+  ],
+  "force": true
+ },
+ {
+  "name": "teleport switches its user out",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "teleport"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.active"
+  ],
+  "p1team": [
+   {
+    "species": "Clefable",
+    "ability": "Unaware",
+    "moves": [
+     "teleport"
+    ]
+   },
+   {
+    "species": "Blissey",
+    "ability": "Natural Cure",
+    "moves": [
+     "splash"
+    ]
+   }
+  ],
+  "p1switchAfter": 2
+ },
+ {
+  "name": "baton pass hands over stat stages",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "batonpass"
+   ],
+   "boosts": {
+    "atk": 2
+   }
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.boosts",
+   "p1.active"
+  ],
+  "p1switchAfter": 2,
+  "p1team": [
+   {
+    "species": "Clefable",
+    "ability": "Unaware",
+    "moves": [
+     "batonpass"
+    ],
+    "boosts": {
+     "atk": 2
+    }
+   },
+   {
+    "species": "Blissey",
+    "ability": "Natural Cure",
+    "moves": [
+     "splash"
+    ]
+   }
+  ],
+  "p1move": "move 1"
+ },
+ {
+  "name": "shed tail leaves its substitute behind",
+  "p1": {
+   "species": "Cyclizar",
+   "ability": "Regenerator",
+   "moves": [
+    "shedtail"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.volatiles",
+   "p1.subHP",
+   "p1.active"
+  ],
+  "p1switchAfter": 2,
+  "p1team": [
+   {
+    "species": "Cyclizar",
+    "ability": "Regenerator",
+    "moves": [
+     "shedtail"
+    ]
+   },
+   {
+    "species": "Blissey",
+    "ability": "Natural Cure",
+    "moves": [
+     "splash"
+    ]
+   }
+  ],
+  "p1move": "move 1"
+ },
+ {
+  "name": "encore locks the target into its last move",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "splash",
+    "encore"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "seismictoss",
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp",
+   "p2.volatiles"
+  ],
+  "turns": [
+   [
+    "move 2",
+    "move 2"
+   ]
+  ]
+ },
+ {
+  "name": "disable stops the target's last move",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "splash",
+    "disable"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "check": [
+   "p1.hp",
+   "p2.volatiles"
+  ],
+  "turns": [
+   [
+    "move 2",
+    "move 1"
+   ]
+  ]
+ },
+ {
+  "name": "confuse ray's confusion makes its target hit itself",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "confuseray"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "check": [
+   "p1.hp",
+   "p2.hp"
+  ],
+  "force": true
+ },
+ {
+  "name": "status moves stop at a substitute",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "toxic"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ],
+   "volatiles": [
+    "substitute"
+   ]
+  },
+  "check": [
+   "p2.status"
+  ]
+ },
+ {
+  "name": "defiant answers a secondary's drop",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "icywind"
+   ]
+  },
+  "p2": {
+   "species": "Kingambit",
+   "ability": "Defiant",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.boosts"
+  ],
+  "force": true
+ },
+ {
+  "name": "knock off takes nothing through protect",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "knockoff"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "protect"
+   ],
+   "item": "Leftovers"
+  },
+  "check": [
+   "p2.item"
+  ]
+ },
+ {
+  "name": "inner focus ignores flinching",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "fakeout"
+   ]
+  },
+  "p2": {
+   "species": "Lucario",
+   "ability": "Inner Focus",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "check": [
+   "p1.hp"
+  ],
+  "force": true
+ },
+ {
+  "name": "own tempo can still be made to flinch",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "fakeout"
+   ]
+  },
+  "p2": {
+   "species": "Slowbro",
+   "ability": "Own Tempo",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "check": [
+   "p1.hp"
+  ],
+  "force": true
+ },
+ {
+  "name": "harvest regrows a sitrus berry in sun",
+  "p1": {
+   "species": "Exeggutor",
+   "ability": "Harvest",
+   "moves": [
+    "splash"
+   ],
+   "item": "Sitrus Berry",
+   "hpPercent": 0.4
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp",
+   "p1.item"
+  ],
+  "weather": "sunnyday"
+ },
+ {
+  "name": "cursed body disables the move that hit it",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "moonblast"
+   ]
+  },
+  "p2": {
+   "species": "Gengar",
+   "ability": "Cursed Body",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.volatiles"
+  ],
+  "force": true
+ },
+ {
+  "name": "toxic chain badly poisons",
+  "p1": {
+   "species": "Okidogi",
+   "ability": "Toxic Chain",
+   "moves": [
+    "tackle"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.status"
+  ],
+  "force": true
+ },
+ {
+  "name": "dancer copies a swords dance",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "swordsdance"
+   ]
+  },
+  "p2": {
+   "species": "Oricorio",
+   "ability": "Dancer",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.boosts"
+  ]
+ },
+ {
+  "name": "unnerve keeps the foe off its berries",
+  "p1": {
+   "species": "Pyroar",
+   "ability": "Unnerve",
+   "moves": [
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ],
+   "item": "Sitrus Berry",
+   "hpPercent": 0.4
+  },
+  "check": [
+   "p2.item",
+   "p2.hp"
+  ]
+ },
+ {
+  "name": "wind rider eats a wind move",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "hurricane"
+   ]
+  },
+  "p2": {
+   "species": "Brambleghast",
+   "ability": "Wind Rider",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.boosts",
+   "p2.hp"
+  ]
+ },
+ {
+  "name": "wind rider rides its own tailwind",
+  "p1": {
+   "species": "Brambleghast",
+   "ability": "Wind Rider",
+   "moves": [
+    "tailwind"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.boosts"
+  ]
+ },
+ {
+  "name": "magician steals the target's item",
+  "p1": {
+   "species": "Hoopa-Unbound",
+   "ability": "Magician",
+   "moves": [
+    "darkpulse"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ],
+   "item": "Leftovers"
+  },
+  "check": [
+   "p1.item",
+   "p2.item"
+  ],
+  "force": true
+ },
+ {
+  "name": "libero turns into the move's type",
+  "p1": {
+   "species": "Cinderace",
+   "ability": "Libero",
+   "moves": [
+    "tackle"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.types"
+  ],
+  "force": true
+ },
+ {
+  "name": "protean turns into the move's type",
+  "p1": {
+   "species": "Greninja",
+   "ability": "Protean",
+   "moves": [
+    "icebeam"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.types"
+  ],
+  "force": true
+ },
+ {
+  "name": "magic bounce reflects stealth rock",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "stealthrock"
+   ]
+  },
+  "p2": {
+   "species": "Espeon",
+   "ability": "Magic Bounce",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.sideConditions",
+   "p2.sideConditions"
+  ]
+ },
+ {
+  "name": "magic bounce reflects toxic",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "toxic"
+   ]
+  },
+  "p2": {
+   "species": "Espeon",
+   "ability": "Magic Bounce",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.status",
+   "p2.status"
+  ],
+  "force": true
+ },
+ {
+  "name": "soul-heart gains sp. atk when something faints",
+  "p1": {
+   "species": "Magearna",
+   "ability": "Soul-Heart",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ],
+   "hpPercent": 0.01
+  },
+  "check": [
+   "p1.boosts"
+  ],
+  "p2team": [
+   {
+    "species": "Blissey",
+    "ability": "Natural Cure",
+    "moves": [
+     "splash"
+    ],
+    "hpPercent": 0.01
+   },
+   {
+    "species": "Clefable",
+    "ability": "Unaware",
+    "moves": [
+     "splash"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "download reads the foe's weaker defence",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.boosts"
+  ],
+  "p1team": [
+   {
+    "species": "Clefable",
+    "ability": "Unaware",
+    "moves": [
+     "splash"
+    ]
+   },
+   {
+    "species": "Porygon2",
+    "ability": "Download",
+    "moves": [
+     "splash"
+    ]
+   }
+  ],
+  "p1move": "switch 2"
+ },
+ {
+  "name": "aroma veil blocks taunt",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "taunt"
+   ]
+  },
+  "p2": {
+   "species": "Alcremie",
+   "ability": "Aroma Veil",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.volatiles"
+  ]
+ },
+ {
+  "name": "ice body heals in snow",
+  "p1": {
+   "species": "Glaceon",
+   "ability": "Ice Body",
+   "moves": [
+    "splash"
+   ],
+   "hpPercent": 0.5
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp"
+  ],
+  "weather": "snowscape"
+ },
+ {
+  "name": "rain dish heals in rain",
+  "p1": {
+   "species": "Ludicolo",
+   "ability": "Rain Dish",
+   "moves": [
+    "splash"
+   ],
+   "hpPercent": 0.5
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp"
+  ],
+  "weather": "raindance"
+ },
+ {
+  "name": "dry skin heals an eighth in rain",
+  "p1": {
+   "species": "Toxicroak",
+   "ability": "Dry Skin",
+   "moves": [
+    "splash"
+   ],
+   "hpPercent": 0.5
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp"
+  ],
+  "weather": "raindance"
+ },
+ {
+  "name": "dry skin burns an eighth in sun",
+  "p1": {
+   "species": "Toxicroak",
+   "ability": "Dry Skin",
+   "moves": [
+    "splash"
+   ],
+   "hpPercent": 0.5
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp"
+  ],
+  "weather": "sunnyday"
+ },
+ {
+  "name": "solar power burns an eighth in sun",
+  "p1": {
+   "species": "Houndoom",
+   "ability": "Solar Power",
+   "moves": [
+    "splash"
+   ],
+   "hpPercent": 0.5
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp"
+  ],
+  "weather": "sunnyday"
+ },
+ {
+  "name": "truant loafs every other turn",
+  "p1": {
+   "species": "Slaking",
+   "ability": "Truant",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ],
+  "turns": [
+   [
+    "move 1",
+    "move 1"
+   ]
+  ]
+ },
+ {
+  "name": "good as gold ignores status moves",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "thunderwave"
+   ]
+  },
+  "p2": {
+   "species": "Gholdengo",
+   "ability": "Good as Gold",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.status"
+  ]
+ },
+ {
+  "name": "cud chew eats its berry twice",
+  "p1": {
+   "species": "Tauros-Paldea-Aqua",
+   "ability": "Cud Chew",
+   "moves": [
+    "splash"
+   ],
+   "item": "Sitrus Berry",
+   "hpPercent": 0.4
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp",
+   "p1.item"
+  ],
+  "turns": [
+   [
+    "move 1",
+    "move 1"
+   ]
+  ]
+ },
+ {
+  "name": "bulletproof ignores ball moves",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "shadowball"
+   ]
+  },
+  "p2": {
+   "species": "Chesnaught",
+   "ability": "Bulletproof",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ]
+ },
+ {
+  "name": "leaf guard blocks status in sun",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "thunderwave"
+   ]
+  },
+  "p2": {
+   "species": "Zarude",
+   "ability": "Leaf Guard",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.status"
+  ],
+  "weather": "sunnyday"
+ },
+ {
+  "name": "cheek pouch heals on top of the berry",
+  "p1": {
+   "species": "Dedenne",
+   "ability": "Cheek Pouch",
+   "moves": [
+    "splash"
+   ],
+   "item": "Sitrus Berry",
+   "hpPercent": 0.4
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp"
+  ]
+ },
+ {
+  "name": "oblivious ignores taunt",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "taunt"
+   ]
+  },
+  "p2": {
+   "species": "Whiscash",
+   "ability": "Oblivious",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.volatiles"
+  ]
+ },
+ {
+  "name": "oblivious ignores intimidate",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Whiscash",
+   "ability": "Oblivious",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.boosts"
+  ],
+  "p1team": [
+   {
+    "species": "Clefable",
+    "ability": "Unaware",
+    "moves": [
+     "splash"
+    ]
+   },
+   {
+    "species": "Landorus-Therian",
+    "ability": "Intimidate",
+    "moves": [
+     "splash"
+    ]
+   }
+  ],
+  "p1move": "switch 2"
+ },
+ {
+  "name": "toxic debris scatters toxic spikes when hit physically",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "tackle"
+   ]
+  },
+  "p2": {
+   "species": "Glimmora",
+   "ability": "Toxic Debris",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.sideConditions",
+   "p1.toxicSpikeLayers"
+  ],
+  "force": true
+ },
+ {
+  "name": "as one gains attack from a knockout",
+  "p1": {
+   "species": "Calyrex-Ice",
+   "ability": "As One (Glastrier)",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ],
+   "hpPercent": 0.01
+  },
+  "check": [
+   "p1.boosts"
+  ],
+  "p2team": [
+   {
+    "species": "Blissey",
+    "ability": "Natural Cure",
+    "moves": [
+     "splash"
+    ],
+    "hpPercent": 0.01
+   },
+   {
+    "species": "Clefable",
+    "ability": "Unaware",
+    "moves": [
+     "splash"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "hunger switch flips morpeko's mode each turn",
+  "p1": {
+   "species": "Morpeko",
+   "ability": "Hunger Switch",
+   "moves": [
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.species"
+  ]
+ },
+ {
+  "name": "ice face takes the first physical hit",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "tackle"
+   ]
+  },
+  "p2": {
+   "species": "Eiscue",
+   "ability": "Ice Face",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp",
+   "p2.species"
+  ],
+  "force": true
+ },
+ {
+  "name": "ice face lets special hits through",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "moonblast"
+   ]
+  },
+  "p2": {
+   "species": "Eiscue",
+   "ability": "Ice Face",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.species"
+  ],
+  "force": true
+ },
+ {
+  "name": "tera shift turns terapagos terastal on entry",
+  "p1": {
+   "species": "Terapagos",
+   "ability": "Tera Shift",
+   "moves": [
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.species",
+   "p1.ability",
+   "p1.maxhp",
+   "p1.hp"
+  ]
+ },
+ {
+  "name": "terapagos terastallizes into its stellar form",
+  "p1": {
+   "species": "Terapagos",
+   "ability": "Tera Shift",
+   "moves": [
+    "terastarstorm"
+   ],
+   "tera": "Stellar"
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.species",
+   "p1.ability",
+   "p2.hp"
+  ],
+  "p1move": "move 1 terastallize",
+  "force": true
+ },
+ {
+  "name": "zero to hero makes palafin a hero as it leaves",
+  "p1": {
+   "species": "Palafin",
+   "ability": "Zero to Hero",
+   "moves": [
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.species"
+  ],
+  "p1team": [
+   {
+    "species": "Palafin",
+    "ability": "Zero to Hero",
+    "moves": [
+     "splash"
+    ]
+   },
+   {
+    "species": "Blissey",
+    "ability": "Natural Cure",
+    "moves": [
+     "splash"
+    ]
+   }
+  ],
+  "p1move": "switch 2"
+ },
+ {
+  "name": "unseen fist punches through protect",
+  "p1": {
+   "species": "Urshifu",
+   "ability": "Unseen Fist",
+   "moves": [
+    "closecombat"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "protect"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ],
+  "force": true
+ },
+ {
+  "name": "disguise takes the first hit, at a cost",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "shadowball"
+   ]
+  },
+  "p2": {
+   "species": "Mimikyu",
+   "ability": "Disguise",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp",
+   "p2.species"
+  ],
+  "force": true
+ },
+ {
+  "name": "damp stops explosion",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "explosion"
+   ]
+  },
+  "p2": {
+   "species": "Swampert",
+   "ability": "Damp",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.hp",
+   "p2.hp"
+  ]
+ },
+ {
+  "name": "cute charm infatuates on contact",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "tackle"
+   ],
+   "gender": "M"
+  },
+  "p2": {
+   "species": "Enamorus",
+   "ability": "Cute Charm",
+   "moves": [
+    "splash"
+   ],
+   "gender": "F"
+  },
+  "check": [
+   "p1.volatiles"
+  ],
+  "force": true
+ },
+ {
+  "name": "cute charm needs opposite genders",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "tackle"
+   ],
+   "gender": "F"
+  },
+  "p2": {
+   "species": "Enamorus",
+   "ability": "Cute Charm",
+   "moves": [
+    "splash"
+   ],
+   "gender": "F"
+  },
+  "check": [
+   "p1.volatiles"
+  ],
+  "force": true
+ },
+ {
+  "name": "poison puppeteer confuses what it poisons",
+  "p1": {
+   "species": "Pecharunt",
+   "ability": "Poison Puppeteer",
+   "moves": [
+    "toxic"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.status",
+   "p2.volatiles"
+  ]
+ },
+ {
+  "name": "mirror armor reflects growl",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "growl"
+   ]
+  },
+  "p2": {
+   "species": "Corviknight",
+   "ability": "Mirror Armor",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.boosts",
+   "p2.boosts"
+  ]
+ },
+ {
+  "name": "gulp missile catches something on surf",
+  "p1": {
+   "species": "Cramorant",
+   "ability": "Gulp Missile",
+   "moves": [
+    "surf"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.species"
+  ]
+ },
+ {
+  "name": "gulp missile spits its catch",
+  "p1": {
+   "species": "Cramorant",
+   "ability": "Gulp Missile",
+   "moves": [
+    "surf"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash",
+    "tackle"
+   ]
+  },
+  "check": [
+   "p1.species",
+   "p2.boosts"
+  ],
+  "turns": [
+   [
+    "move 1",
+    "move 2"
+   ]
+  ],
+  "force": true
+ },
+ {
+  "name": "gooey slows a contact attacker",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "tackle"
+   ]
+  },
+  "p2": {
+   "species": "Goodra",
+   "ability": "Gooey",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.boosts"
+  ],
+  "force": true
+ },
+ {
+  "name": "tangling hair slows a contact attacker",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "tackle"
+   ]
+  },
+  "p2": {
+   "species": "Dugtrio-Alola",
+   "ability": "Tangling Hair",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.boosts"
+  ],
+  "force": true
+ },
+ {
+  "name": "seed sower raises grassy terrain when hit",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "tackle"
+   ]
+  },
+  "p2": {
+   "species": "Arboliva",
+   "ability": "Seed Sower",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "terrain"
+  ],
+  "force": true
+ },
+ {
+  "name": "electromorphosis charges when hit",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "tackle"
+   ]
+  },
+  "p2": {
+   "species": "Bellibolt",
+   "ability": "Electromorphosis",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.volatiles"
+  ],
+  "force": true
+ },
+ {
+  "name": "sticky hold keeps its item",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "knockoff"
+   ]
+  },
+  "p2": {
+   "species": "Dipplin",
+   "ability": "Sticky Hold",
+   "moves": [
+    "splash"
+   ],
+   "item": "Eviolite"
+  },
+  "check": [
+   "p2.item"
+  ],
+  "force": true
+ },
+ {
+  "name": "queenly majesty stops priority moves",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "quickattack"
+   ]
+  },
+  "p2": {
+   "species": "Tsareena",
+   "ability": "Queenly Majesty",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.hp"
+  ]
+ },
+ {
+  "name": "mycelium might's status moves go last",
+  "p1": {
+   "species": "Toedscruel",
+   "ability": "Mycelium Might",
+   "moves": [
+    "spore"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "check": [
+   "p1.hp",
+   "p2.status"
+  ]
+ },
+ {
+  "name": "mycelium might's status moves ignore abilities",
+  "p1": {
+   "species": "Toedscruel",
+   "ability": "Mycelium Might",
+   "moves": [
+    "spore"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Insomnia",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p2.status"
+  ]
+ },
+ {
+  "name": "shields down arrives in its meteor shell",
+  "p1": {
+   "species": "Minior",
+   "ability": "Shields Down",
+   "moves": [
+    "thunderwave"
+   ]
+  },
+  "p2": {
+   "species": "Minior",
+   "ability": "Shields Down",
+   "moves": [
+    "thunderwave"
+   ]
+  },
+  "check": [
+   "p1.species",
+   "p2.species",
+   "p1.status",
+   "p2.status"
+  ]
+ },
+ {
+  "name": "shields down drops its shell below half",
+  "p1": {
+   "species": "Minior",
+   "ability": "Shields Down",
+   "moves": [
+    "splash"
+   ],
+   "hpPercent": 0.4
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.species"
+  ]
+ },
+ {
+  "name": "imposter transforms on arrival",
+  "p1": {
+   "species": "Ditto",
+   "ability": "Imposter",
+   "moves": [
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Gyarados",
+   "ability": "Moxie",
+   "moves": [
+    "splash"
+   ],
+   "boosts": {
+    "def": 1
+   }
+  },
+  "check": [
+   "p1.species",
+   "p1.ability",
+   "p1.types"
+  ]
+ },
+ {
+  "name": "trace copies intimidate and uses it",
+  "p1": {
+   "species": "Gardevoir",
+   "ability": "Trace",
+   "moves": [
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Gyarados",
+   "ability": "Intimidate",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.ability",
+   "p2.boosts"
+  ]
+ },
+ {
+  "name": "battle bond powers up after a knockout",
+  "p1": {
+   "species": "Greninja-Bond",
+   "ability": "Battle Bond",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ],
+   "hpPercent": 0.01
+  },
+  "check": [
+   "p1.boosts"
+  ],
+  "p2team": [
+   {
+    "species": "Blissey",
+    "ability": "Natural Cure",
+    "moves": [
+     "splash"
+    ],
+    "hpPercent": 0.01
+   },
+   {
+    "species": "Clefable",
+    "ability": "Unaware",
+    "moves": [
+     "splash"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "anger shell snaps past half HP",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "seismictoss"
+   ]
+  },
+  "p2": {
+   "species": "Klawf",
+   "ability": "Anger Shell",
+   "moves": [
+    "splash"
+   ],
+   "hpPercent": 0.6
+  },
+  "check": [
+   "p2.boosts"
+  ]
+ },
+ {
+  "name": "effect spore can put an attacker to sleep",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "tackle"
+   ]
+  },
+  "p2": {
+   "species": "Vileplume",
+   "ability": "Effect Spore",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.status"
+  ],
+  "force": true
+ },
+ {
+  "name": "pickpocket steals from a contact attacker",
+  "p1": {
+   "species": "Clefable",
+   "ability": "Unaware",
+   "moves": [
+    "tackle"
+   ],
+   "item": "Leftovers"
+  },
+  "p2": {
+   "species": "Weavile",
+   "ability": "Pickpocket",
+   "moves": [
+    "splash"
+   ]
+  },
+  "check": [
+   "p1.item",
+   "p2.item"
+  ],
+  "force": true
+ },
+ {
+  "name": "bad dreams hurt a sleeping foe",
+  "p1": {
+   "species": "Darkrai",
+   "ability": "Bad Dreams",
+   "moves": [
+    "splash"
+   ]
+  },
+  "p2": {
+   "species": "Blissey",
+   "ability": "Natural Cure",
+   "moves": [
+    "splash"
+   ],
+   "status": "slp",
+   "statusTurns": 3
+  },
+  "check": [
+   "p2.hp"
+  ]
+ },
+ {
+  "name": "a plate stays with arceus",
+  "p1": {
+   "species": "Weavile",
+   "ability": "Pressure",
+   "moves": [
+    "knockoff"
+   ]
+  },
+  "p2": {
+   "species": "Arceus-Fire",
+   "ability": "Multitype",
+   "moves": [
+    "splash"
+   ],
+   "item": "Flame Plate"
+  },
+  "check": [
+   "p2.item"
+  ],
+  "force": true
  }
 ]

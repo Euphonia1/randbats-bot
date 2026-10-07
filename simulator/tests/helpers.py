@@ -70,6 +70,7 @@ def make_attacker(spec) -> Attacker:
         # means it is active unless the case says otherwise.
         slow_start=jnp.bool_(spec.get(
             "slowStart", n.to_id(spec.get("ability", "")) == "slowstart")),
+        charged=jnp.bool_(spec.get("charged", False)),
     )
 
 
@@ -95,6 +96,17 @@ def make_defender(spec) -> Defender:
     )
 
 
+def spec_ability(spec):
+    return names().to_id(spec.get("ability", ""))
+
+
+def _weight(data, sid, ability):
+    """Species weight in kg, after Heavy Metal / Light Metal."""
+    hg = round(float(data["species_weight"][sid]) * 10)
+    hg = hg * 2 if ability == "heavymetal" else (hg // 2 if ability == "lightmetal" else hg)
+    return jnp.float32(hg / 10)
+
+
 def make_cb_ctx(case, atk: Attacker, dfn: Defender, weather, terrain) -> CbCtx:
     """Callback context for a one-off calculation (no turn history)."""
     data, n = load_data(), names()
@@ -107,8 +119,8 @@ def make_cb_ctx(case, atk: Attacker, dfn: Defender, weather, terrain) -> CbCtx:
         atk_status=atk.status, dfn_status=dfn.status,
         atk_hp=atk.hp, atk_maxhp=atk.maxhp, dfn_hp=dfn.hp, dfn_maxhp=dfn.maxhp,
         atk_item=atk.item, dfn_item=dfn.item,
-        atk_weight=data["species_weight"][a_sid],
-        dfn_weight=data["species_weight"][d_sid],
+        atk_weight=_weight(data, a_sid, spec_ability(a_spec)),
+        dfn_weight=_weight(data, d_sid, spec_ability(d_spec)),
         atk_speed=boosted(atk, C.SPE), dfn_speed=boosted(dfn, C.SPE),
         atk_boosts=atk.boosts, dfn_boosts=dfn.boosts,
         moves_first=jnp.bool_(case.get("movesFirst", True)),
@@ -131,6 +143,13 @@ def make_cb_ctx(case, atk: Attacker, dfn: Defender, weather, terrain) -> CbCtx:
         user_type=atk.types[0],
         type_exp=jnp.int32(case.get("typeExp", 0)),
         dfn_def=boosted(dfn, C.DEF), dfn_spd=boosted(dfn, C.SPD),
+        gravity=jnp.bool_(case.get("gravity", False)),
+        fickle=jnp.bool_(case.get("fickle", False)),
+        user_base_atk=data["species_base_stats"][a_sid, C.ATK],
+        user_species=jnp.int16(a_sid),
+        plate_type=data["item_plate_type"][atk.item],
+        dfn_item_locked=(data["item_locked_num"][dfn.item] > 0) &
+        (data["species_num"][d_sid] == data["item_locked_num"][dfn.item]),
     )
 
 

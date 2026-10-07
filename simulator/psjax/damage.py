@@ -18,6 +18,8 @@ import jax.numpy as jnp
 
 from . import callbacks as cb
 from . import consts as C
+from .data import species_index
+from .effects import BP_REPLACE_HANDLERS, EFFECT_HANDLERS, TYPE_HANDLERS
 from .hooks import A, I
 from .stats import boost_multiply, chain_modify, floordiv, idiv, modify
 
@@ -47,6 +49,7 @@ class Attacker(NamedTuple):
     tera_type: jnp.ndarray
     boosted_stat: jnp.ndarray   # Protosynthesis / Quark Drive; -1 when inactive
     slow_start: jnp.ndarray     # Slow Start still counting down
+    charged: jnp.ndarray = False    # Charge: the next Electric move hits twice as hard
 
 
 class Defender(NamedTuple):
@@ -76,7 +79,9 @@ class MoveCtx(NamedTuple):
 
 
 def has_flag(flags, bit_name: str):
-    return (flags & (1 << C.FLAG_BITS[bit_name])) != 0
+    # Shift, then test the low bit: `futuremove` is bit 31, which as a mask
+    # would not fit in the int32 the flags are loaded as.
+    return (jnp.right_shift(flags, C.FLAG_BITS[bit_name]) & 1) != 0
 
 
 # --- typing ------------------------------------------------------------------
@@ -89,7 +94,8 @@ def current_types(types, terastallized, tera_type):
 
 
 def type_effectiveness(data, move_type, def_types, move_ctx, ignore_immunity_mask,
-                       defender_ability, scrappy):
+                       defender_ability, scrappy, def_terastallized=False,
+                       def_grounded=True, def_full_hp=False):
     """Return `(exponent, immune)`.
 
     The exponent counts doublings so the caller can apply Showdown's
@@ -100,10 +106,11 @@ def type_effectiveness(data, move_type, def_types, move_ctx, ignore_immunity_mas
     exp = jnp.where(eff == 2.0, 1, jnp.where(eff == 0.5, -1, 0))
     zero = (eff == 0.0) & present
 
-    # Moves that pierce specific type immunities (Thousand Arrows vs Flying);
-    # -1 in the mask means "all immunities".
+    # Moves that ignore the immunities to their own type (Thousand Arrows:
+    # Ground, so Flying types are hit); -1 in the mask means "all immunities".
+    # The mask is keyed by the attacking type, as Showdown's `ignoreImmunity`.
     pierced = (ignore_immunity_mask == -1) | (
-        (ignore_immunity_mask >> def_types.astype(jnp.int32)) & 1).astype(bool)
+        (ignore_immunity_mask >> move_type.astype(jnp.int32)) & 1).astype(bool)
     # Scrappy / Foresight: Normal and Fighting hit Ghost.
     ghost_pierce = scrappy & (def_types == C.GHOST)
     zero = zero & ~pierced & ~ghost_pierce
@@ -111,7 +118,6 @@ def type_effectiveness(data, move_type, def_types, move_ctx, ignore_immunity_mas
     exp = jnp.where(present, exp, 0)
 
     # Freeze-Dry is super effective on Water regardless of the chart.
-    from .effects import EFFECT_HANDLERS
     fd = EFFECT_HANDLERS.index("freezedry")
     is_fd = move_ctx.effect_cb == fd
     fd_exp = jnp.where(present & (def_types == C.WATER), 1, exp)
@@ -129,9 +135,29 @@ def type_effectiveness(data, move_type, def_types, move_ctx, ignore_immunity_mas
     total_exp = jnp.sum(exp)
     immune = jnp.any(zero)
 
-    # Levitate and friends: an ability-granted immunity to a whole type.
+    # Thousand Arrows hits an airborne Flying type for neutral damage, whatever
+    # its other type -- Showdown zeroes every type's contribution.
+    ta = move_ctx.effect_cb == EFFECT_HANDLERS.index("thousandarrows")
+    airborne_flyer = ta & jnp.any(def_types == C.FLYING) & jnp.logical_not(def_grounded)
+    total_exp = jnp.where(airborne_flyer, 0, total_exp)
+
+    # A Stellar move is super effective on anything Terastallized and neutral on
+    # everything else.
+    stellar = move_type == C.STELLAR
+    total_exp = jnp.where(stellar, jnp.where(def_terastallized, 1, 0), total_exp)
+    immune = immune & jnp.logical_not(stellar)
+
+    # Levitate and friends: an ability-granted immunity to a whole type. A move
+    # that ignores that type's immunities goes through it too -- Showdown's
+    # `runImmunity` returns before Levitate is ever consulted.
     ab_immune = data["ability_immune_type"][defender_ability]
-    immune = immune | ((ab_immune == move_type) & (ab_immune != C.TYPE_NONE))
+    immune = immune | ((ab_immune == move_type) & (ab_immune != C.TYPE_NONE) &
+                       jnp.logical_not(pierced))
+
+    # Tera Shell: at full HP every damaging hit is not very effective.
+    shell = (defender_ability == A.TERASHELL) & def_full_hp & (total_exp >= 0) & \
+        jnp.logical_not(immune) & (move_ctx.category != C.CAT_STATUS)
+    total_exp = jnp.where(shell, -1, total_exp)
 
     return jnp.clip(total_exp, -6, 6), immune
 
@@ -188,9 +214,12 @@ def _attack_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
     mod = apply(mod, ((ab == A.HUGEPOWER) | (ab == A.PUREPOWER)) & phys, m(2.0))
     mod = apply(mod, (ab == A.GUTS) & statused & phys, m(1.5))
     mod = apply(mod, (ab == A.HUSTLE) & phys, m(1.5))
-    mod = apply(mod, (ab == A.TOXICBOOST) & phys &
-                ((atk.status == C.PSN) | (atk.status == C.TOX)), m(1.5))
-    mod = apply(mod, (ab == A.FLAREBOOST) & ~phys & (atk.status == C.BRN), m(1.5))
+    # Pinch abilities: Overgrow/Blaze/Torrent/Swarm at <= 1/3 HP. Showdown hooks
+    # these on the attacking stat, not on base power.
+    pinch = atk.hp * 3 <= atk.maxhp
+    for ability, typ in ((A.OVERGROW, C.GRASS), (A.BLAZE, C.FIRE),
+                         (A.TORRENT, C.WATER), (A.SWARM, C.BUG)):
+        mod = apply(mod, (ab == ability) & pinch & (mv.type == typ), m(1.5))
     sun = (weather == C.SUN) | (weather == C.HARSH_SUN)
     mod = apply(mod, (ab == A.SOLARPOWER) & ~phys & sun, m(1.5))
     # Orichalcum Pulse and Hadron Engine are 5461/4096, not the 1.3 they are
@@ -222,6 +251,11 @@ def _attack_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
     mod = apply(mod, (it == I.CHOICESPECS) & ~phys, m(1.5))
     mod = apply(mod, (it == I.LIGHTBALL), m(2.0))  # Pikachu-only in practice
     mod = apply(mod, (it == I.THICKCLUB) & phys, m(2.0))
+
+    # The Ruin abilities weaken everyone else's stat while their holder is out:
+    # Tablets of Ruin their Attack, Vessel of Ruin their Sp. Atk.
+    mod = apply(mod, phys & (d_ab == A.TABLETSOFRUIN) & (ab != A.TABLETSOFRUIN), m(0.75))
+    mod = apply(mod, ~phys & (d_ab == A.VESSELOFRUIN) & (ab != A.VESSELOFRUIN), m(0.75))
 
     return jnp.maximum(chain_modify(stat, mod), 1)
 
@@ -262,6 +296,10 @@ def _defense_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
     is_rock = jnp.any(dfn.types == C.ROCK)
     mod = apply(mod, (weather == C.SNOW) & is_ice & phys, m(1.5))
     mod = apply(mod, (weather == C.SAND) & is_rock & ~phys, m(1.5))
+    # Sword of Ruin weakens everyone else's Defense, Beads of Ruin their Sp. Def.
+    a_ab = atk.ability
+    mod = apply(mod, phys & (a_ab == A.SWORDOFRUIN) & (ab != A.SWORDOFRUIN), m(0.75))
+    mod = apply(mod, ~phys & (a_ab == A.BEADSOFRUIN) & (ab != A.BEADSOFRUIN), m(0.75))
 
     return jnp.maximum(chain_modify(stat, mod), 1)
 
@@ -297,17 +335,17 @@ def _base_power_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx,
     mod = apply(mod, (data["ability_ate_type"][ab] != C.TYPE_NONE) &
                 (data["move_type"][mv.id] == C.NORMAL), m(1.2))
     mod = apply(mod, (ab == A.RECKLESS) & (data["move_recoil"][mv.id, 0] > 0), m(1.2))
-    mod = apply(mod, (ab == A.SHEERFORCE) & has_secondary, m(1.3))
+    # Sheer Force is 5325/4096, a point above what `m(1.3)` truncates to.
+    mod = apply(mod, (ab == A.SHEERFORCE) & has_secondary, 5325)
+    mod = apply(mod, (ab == A.TOXICBOOST) & (mv.category == C.CAT_PHYSICAL) &
+                ((atk.status == C.PSN) | (atk.status == C.TOX)), m(1.5))
+    mod = apply(mod, (ab == A.FLAREBOOST) & (mv.category == C.CAT_SPECIAL) &
+                (atk.status == C.BRN), m(1.5))
     # Analytic only applies when the user moves last.
     mod = apply(mod, (ab == A.ANALYTIC) & analytic_ok, m(1.3))
     # Supreme Overlord: +10% per fallen ally, as a single 4096ths modifier.
     mod = jnp.where(ab == A.SUPREMEOVERLORD,
                     chain_modify(mod, 4096 + 819 * jnp.clip(fainted_count, 0, 5)), mod)
-    # Pinch abilities: Overgrow/Blaze/Torrent/Swarm at <= 1/3 HP.
-    pinch = atk.hp * 3 <= atk.maxhp
-    for ability, typ in ((A.OVERGROW, C.GRASS), (A.BLAZE, C.FIRE),
-                         (A.TORRENT, C.WATER), (A.SWARM, C.BUG)):
-        mod = apply(mod, (ab == ability) & pinch & (mv.type == typ), m(1.5))
 
     # Type-boosting held items (Magnet, Mystic Water, ...).
     boost_type = data["item_boost_type"][it]
@@ -316,6 +354,9 @@ def _base_power_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx,
     mod = apply(mod, (it == I.MUSCLEBAND) & (mv.category == C.CAT_PHYSICAL), m(1.1))
     mod = apply(mod, (it == I.WISEGLASSES) & (mv.category == C.CAT_SPECIAL), m(1.1))
     mod = apply(mod, (it == I.PUNCHINGGLOVE) & has_flag(mv.flags, "punch"), m(1.1))
+    # Charge doubles the next Electric move; Dry Skin takes Fire harder.
+    mod = apply(mod, atk.charged & (mv.type == C.ELECTRIC), m(2.0))
+    mod = apply(mod, (dfn.ability == A.DRYSKIN) & (mv.type == C.FIRE), m(1.25))
 
     # Terrain boosts require the user to be grounded; Misty Terrain instead
     # weakens Dragon moves aimed at a grounded target.
@@ -336,18 +377,19 @@ def _base_power_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx,
 # --- weather -----------------------------------------------------------------
 
 def weather_modifier(weather, move_type, utility_umbrella):
-    """Sun/rain scaling of Fire and Water moves; 0 means the move fizzles."""
+    """Sun/rain scaling of Fire and Water moves.
+
+    The primal weathers only boost: a Water move in harsh sun or a Fire move in
+    heavy rain never gets this far -- it fails before use (`execute_move`).
+    """
     active = jnp.logical_not(utility_umbrella)
     sun = ((weather == C.SUN) | (weather == C.HARSH_SUN)) & active
     rain = ((weather == C.RAIN) | (weather == C.HEAVY_RAIN)) & active
     mod = jnp.int32(M1)
     mod = jnp.where(sun & (move_type == C.FIRE), m(1.5), mod)
-    mod = jnp.where(sun & (move_type == C.WATER), m(0.5), mod)
+    mod = jnp.where((weather == C.SUN) & active & (move_type == C.WATER), m(0.5), mod)
     mod = jnp.where(rain & (move_type == C.WATER), m(1.5), mod)
-    mod = jnp.where(rain & (move_type == C.FIRE), m(0.5), mod)
-    # The primal weathers null out the opposing type completely.
-    mod = jnp.where((weather == C.HARSH_SUN) & (move_type == C.WATER), 0, mod)
-    mod = jnp.where((weather == C.HEAVY_RAIN) & (move_type == C.FIRE), 0, mod)
+    mod = jnp.where((weather == C.RAIN) & active & (move_type == C.FIRE), m(0.5), mod)
     return mod
 
 
@@ -375,7 +417,7 @@ def stab_modifier(atk: Attacker, move_type):
 # --- final modifiers ---------------------------------------------------------
 
 def _final_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx, type_exp,
-                     side_conditions, is_crit):
+                     side_conditions, is_crit, berry_ok=True):
     ab, it = atk.ability, atk.item
     d_ab, d_it = dfn.ability, dfn.item
     mod = jnp.int32(M1)
@@ -415,8 +457,10 @@ def _final_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx, type_exp,
     mod = apply(mod, (it == I.EXPERTBELT) & super_eff, m(1.2))
     # A resist berry halves a super-effective hit of its type (Chilan: any Normal).
     berry_type = data["item_resist_type"][d_it]
-    berry_ok = (berry_type == mv.type) & (berry_type != C.TYPE_NONE) & \
-               (super_eff | (berry_type == C.NORMAL))
+    # It only works if it gets eaten: `berry_ok` is false behind a Substitute,
+    # against Unnerve, and after the first hit of a multi-hit move.
+    berry_ok = berry_ok & (berry_type == mv.type) & (berry_type != C.TYPE_NONE) & \
+        (super_eff | (berry_type == C.NORMAL))
     mod = apply(mod, berry_ok, m(0.5))
     return mod
 
@@ -426,9 +470,9 @@ def _final_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx, type_exp,
 def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
                 is_crit, damage_roll, weather, terrain, side_conditions,
                 type_exp, bp_cb_mod=4096, grounded_user=True, grounded_target=True,
-                has_secondary=False, utility_umbrella=False, analytic_ok=False,
+                has_secondary=None, utility_umbrella=False, analytic_ok=False,
                 fainted_count=0, target_switched_in=False,
-                defender_stats_source=None, technician_power=None):
+                defender_stats_source=None, technician_power=None, berry_ok=True):
     """Damage for one hit. `damage_roll` is 0..15, matching Showdown's `random(16)`.
 
     `type_exp` comes from `type_effectiveness`; immunity is handled by the caller
@@ -446,6 +490,10 @@ def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
     """
     if defender_stats_source is None:
         defender_stats_source = dfn.stats
+    if has_secondary is None:
+        # Sheer Force's trigger is a property of the move, so it is read off the
+        # compiled row rather than left to every caller.
+        has_secondary = data["move_sheer_force"][mv.id]
 
     bp_mod = _base_power_modifiers(data, atk, dfn, mv, terrain, has_secondary,
                                    analytic_ok, fainted_count, bp_cb_mod,
@@ -487,7 +535,7 @@ def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
     base = jnp.where(burned, chain_modify(base, m(0.5)), base)
 
     base = chain_modify(base, _final_modifiers(
-        data, atk, dfn, mv, type_exp, side_conditions, is_crit))
+        data, atk, dfn, mv, type_exp, side_conditions, is_crit, berry_ok))
 
     return jnp.maximum(base, 1).astype(jnp.int32)
 
@@ -555,15 +603,21 @@ def resolve_move_ctx(data, move_id, cb_ctx: "cb.CbCtx") -> MoveCtx:
     # Aerilate / Pixilate / Refrigerate / Galvanize retype Normal moves.
     ate = data["ability_ate_type"][cb_ctx.user_ability]
     mv_type = jnp.where((ate != C.TYPE_NONE) & (mv_type == C.NORMAL), ate, mv_type)
+    # Liquid Voice runs after the other type changes: sound moves become Water.
+    sound = (data["move_flags"][move_id] & (1 << C.FLAG_BITS["sound"])) != 0
+    mv_type = jnp.where((cb_ctx.user_ability == A.LIQUIDVOICE) & sound,
+                        jnp.int8(C.WATER), mv_type).astype(jnp.int8)
     ctx = ctx._replace(move_type=mv_type)
     base_power = cb.base_power_replace(data["move_bp_replace"][move_id], ctx)
 
     # Tera Blast and Photon Geyser become physical when the user's Attack is
     # higher than its Sp. Atk (boosts counted, ability/item modifiers not).
-    from .effects import BP_REPLACE_HANDLERS, EFFECT_HANDLERS  # noqa: F401
     is_terablast = data["move_bp_replace"][move_id] == BP_REPLACE_HANDLERS.index("terablast")
     is_photon = data["move_effect_cb"][move_id] == EFFECT_HANDLERS.index("photongeyser")
-    physical_switch = ((is_terablast & cb_ctx.terastallized) | is_photon) & \
+    # Tera Starstorm does the same, but only as Terapagos-Stellar.
+    is_starstorm = (data["move_type_cb"][move_id] == TYPE_HANDLERS.index("terastarstorm")) & \
+        (cb_ctx.user_species == species_index("terapagosstellar"))
+    physical_switch = (((is_terablast | is_starstorm) & cb_ctx.terastallized) | is_photon) & \
                       (cb_ctx.off_atk > cb_ctx.off_spa)
 
     # Shell Side Arm compares the two base damages rather than the raw stats,
@@ -592,7 +646,6 @@ def scale_power_for_hit(data, move_id, mv: MoveCtx, hit_number) -> MoveCtx:
     They are the only base-power callbacks that depend on the hit index, so the
     multi-hit loop applies this instead of re-running the whole dispatch.
     """
-    from .effects import BP_REPLACE_HANDLERS
     scaling = data["move_bp_replace"][move_id] == \
         BP_REPLACE_HANDLERS.index("multihit_scaling")
     power = jnp.where(scaling, mv.base_power * jnp.maximum(hit_number, 1),

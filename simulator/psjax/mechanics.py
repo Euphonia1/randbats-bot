@@ -12,9 +12,11 @@ import numpy as np
 
 from . import consts as C
 from .damage import current_types
+from .data import species_index
 from .hooks import A, I
 from .state import set_at
-from .stats import boost_multiply, chain_modify, floordiv, idiv
+from .stats import (boost_multiply, chain_modify, compute_all_stats, compute_hp,
+                    floordiv, idiv)
 
 M1 = 4096
 
@@ -54,22 +56,31 @@ def act(state, side):
 
 
 def active_types(state, side):
+    """The active Pokemon's types right now: Tera, and Roost's lost Flying."""
     i = act(state, side)
-    return current_types(slot_get(state.types, side, i),
-                         slot_get(state.terastallized, side, i),
-                         slot_get(state.tera_type, side, i))
+    types = current_types(slot_get(state.types, side, i),
+                          slot_get(state.terastallized, side, i),
+                          slot_get(state.tera_type, side, i))
+    # Roost sheds the Flying type for the rest of the turn; a pure Flying type
+    # is left Normal (Showdown's Gen 5+ rule for an empty type list).
+    roosting = state.volatiles[side, C.V_ROOST] > 0
+    types = jnp.where(roosting & (types == C.FLYING), jnp.int8(C.TYPE_NONE), types)
+    emptied = roosting & jnp.all(types == C.TYPE_NONE)
+    return jnp.where(emptied, jnp.array([C.NORMAL, C.TYPE_NONE], jnp.int8), types)
 
 
 def is_grounded(state, side) -> jnp.ndarray:
     """Ground moves, hazards and terrain all key off this."""
     i = act(state, side)
     types = active_types(state, side)
+    # Roost is already reflected in `active_types`: it grounds a Flying type
+    # by taking the type away, not by lifting anything else.
     ungrounded = (jnp.any(types == C.FLYING) |
                   (slot_get(state.ability, side, i) == A.LEVITATE) |
                   (slot_get(state.item, side, i) == I.AIRBALLOON) |
-                  (state.volatiles[side, C.V_MAGNETRISE] > 0) |
-                  (state.volatiles[side, C.V_ROOST] > 0))
-    forced = (state.gravity > 0) | (state.volatiles[side, C.V_INGRAIN] > 0)
+                  (state.volatiles[side, C.V_MAGNETRISE] > 0))
+    forced = ((state.gravity > 0) | (state.volatiles[side, C.V_INGRAIN] > 0) |
+              (state.volatiles[side, C.V_SMACKDOWN] > 0))
     return forced | jnp.logical_not(ungrounded)
 
 
@@ -183,12 +194,24 @@ def boost_immune(state, side, lowering):
                        (state.side_conditions[side, C.SC_MIST] > 0))
 
 
-def apply_boosts(state, side, delta, from_opponent=False):
-    """Apply a `[7]` boost delta, clamped to -6..+6.
+def has_type(state, side, typ):
+    """Does `side`'s active have `typ` right now (Tera included)?
 
-    Contrary inverts it; Simple doubles it; Clear Body and friends block drops
-    that come from the opponent. Returns the state and the delta actually applied
-    (Defiant and Competitive key off that).
+    Cheaper than `active_types` for any type but Flying, which is the only one
+    Roost takes away.
+    """
+    i = act(state, side)
+    types = current_types(slot_get(state.types, side, i),
+                          slot_get(state.terastallized, side, i),
+                          slot_get(state.tera_type, side, i))
+    return jnp.any(types == typ)
+
+
+def _boost_one(state, side, delta, from_opponent, bounce):
+    """`apply_boosts` for one side; also returns what Mirror Armor sends back.
+
+    `from_opponent` is a Python bool, so a Pokemon boosting itself skips every
+    drop-blocking check at trace time rather than computing and discarding them.
     """
     i = act(state, side)
     ab = slot_get(state.ability, side, i)
@@ -196,36 +219,86 @@ def apply_boosts(state, side, delta, from_opponent=False):
     delta = jnp.where(ab == A.CONTRARY, -delta, delta)
     delta = jnp.where(ab == A.SIMPLE, delta * 2, delta)
 
-    lowering = delta < 0
-    blocked = boost_immune(state, side, lowering) & from_opponent
-    # Targeted stat-drop protections.
-    blocked = blocked | (lowering & from_opponent & (
-        ((ab == A.HYPERCUTTER) & (jnp.arange(7) == C.B_ATK)) |
-        ((ab == A.BIGPECKS) & (jnp.arange(7) == C.B_DEF)) |
-        ((ab == A.KEENEYE) & (jnp.arange(7) == C.B_ACC))))
-    delta = jnp.where(blocked, 0, delta)
-
     old = state.boosts[side].astype(jnp.int32)
-    new = jnp.clip(old + delta, -6, 6)
-    applied = new - old
-    return state._replace(boosts=set_at(state.boosts, side, new)), applied
+    # Showdown caps the change before the TryBoost handlers see it, so a drop
+    # at -6 is nothing -- Mirror Armor has nothing to send back.
+    delta = jnp.clip(old + delta, -6, 6) - old
+    reflected = jnp.zeros_like(delta)
+    if from_opponent:
+        lowering = delta < 0
+        stage = jnp.arange(C.NUM_BOOSTS)
+        # Clear Body and friends; the targeted protections; and Flower Veil,
+        # which shields a Grass-type holder from every drop an opponent causes.
+        blocked = boost_immune(state, side, lowering) | (lowering & (
+            ((ab == A.HYPERCUTTER) & (stage == C.B_ATK)) |
+            ((ab == A.BIGPECKS) & (stage == C.B_DEF)) |
+            ((ab == A.KEENEYE) & (stage == C.B_ACC)) |
+            ((ab == A.FLOWERVEIL) & has_type(state, side, C.GRASS))))
+        if bounce:
+            # Mirror Armor sends the drops back where they came from instead.
+            bounced = lowering & (ab == A.MIRRORARMOR) & jnp.logical_not(blocked)
+            reflected = jnp.where(bounced, delta, 0)
+            blocked = blocked | bounced
+        delta = jnp.where(blocked, 0, delta)
+
+    new = old + delta
+    return state._replace(boosts=set_at(state.boosts, side, new)), delta, reflected
+
+
+def apply_boosts(state, side, delta, from_opponent=False):
+    """Apply a `[7]` boost delta, clamped to -6..+6.
+
+    Contrary inverts it; Simple doubles it; Clear Body and friends block drops
+    that come from the opponent, and Mirror Armor reflects them onto the
+    opponent. Returns the state and the delta actually applied (Defiant and
+    Competitive key off that).
+    """
+    assert isinstance(from_opponent, bool), "from_opponent is decided at trace time"
+    state, applied, reflected = _boost_one(state, side, delta, from_opponent, True)
+    if not from_opponent:
+        return state, applied
+    # The reflected drops land on the opponent as though it had lowered its own
+    # stats through Mirror Armor -- which a second Mirror Armor does not return.
+    other = 1 - side
+    alive = slot_get(state.hp, other, act(state, other)) > 0
+    state, _, _ = _boost_one(state, other, jnp.where(alive, reflected, 0), True, False)
+    return state, applied
 
 
 # --- status ------------------------------------------------------------------
 
-def status_immune(data, state, side, status, source_ability=None):
+def status_immune(data, state, side, status, source_ability=None, ignore_ability=False):
     """True if `side`'s active cannot be given `status` right now.
 
     `source_ability` is the ability of whoever is inflicting it, so Corrosion can
-    poison Steel and Poison types.
+    poison Steel and Poison types. `ignore_ability` is Mold Breaker's effect on
+    the target's breakable abilities (Insomnia, Leaf Guard, ...).
     """
     i = act(state, side)
     ab = slot_get(state.ability, side, i)
-    types = active_types(state, side)
+    # Roost only ever removes Flying, which grants no status immunity, so the
+    # plain type line (Tera included) is enough here.
+    types = current_types(slot_get(state.types, side, i),
+                          slot_get(state.terastallized, side, i),
+                          slot_get(state.tera_type, side, i))
+    w = effective_weather(state)
+    sunny = (w == C.SUN) | (w == C.HARSH_SUN)
 
     already = slot_get(state.status, side, i) != C.STATUS_NONE
     mask = data["ability_status_immune"][ab]
     by_ability = ((mask >> status.astype(jnp.int32)) & 1).astype(bool)
+    # Leaf Guard in sun; Flower Veil on a Grass-type holder (from anyone but the
+    # holder itself, which is every caller here); Minior's Meteor shell.
+    by_ability = by_ability | ((ab == A.LEAFGUARD) & sunny) | (
+        (ab == A.FLOWERVEIL) & jnp.any(types == C.GRASS)) | (
+        (ab == A.SHIELDSDOWN) &
+        (slot_get(state.species, side, i) == species_index("miniormeteor")))
+    # Mold Breaker gets a status past a breakable ability -- but Insomnia and the
+    # like cure it again on the next Update, so for them it never sticks.
+    cures_itself = (ab == A.IMMUNITY) | (ab == A.LIMBER) | (ab == A.INSOMNIA) |         (ab == A.VITALSPIRIT) | (ab == A.WATERVEIL) | (ab == A.MAGMAARMOR) |         (ab == A.THERMALEXCHANGE)
+    by_ability = by_ability & jnp.logical_not(
+        jnp.asarray(ignore_ability) & data["ability_breakable"][ab] &
+        jnp.logical_not(cures_itself))
 
     # Typing immunities.
     poison = (status == C.PSN) | (status == C.TOX)
@@ -238,24 +311,24 @@ def status_immune(data, state, side, status, source_ability=None):
     freeze_immune = (status == C.FRZ) & jnp.any(types == C.ICE)
 
     # Field protections.
-    misty = (state.terrain == C.MISTY_TERRAIN) & is_grounded(state, side)
-    electric_sleep = (status == C.SLP) & (state.terrain == C.ELECTRIC_TERRAIN) & \
-                     is_grounded(state, side)
+    grounded = is_grounded(state, side)
+    misty = (state.terrain == C.MISTY_TERRAIN) & grounded
+    electric_sleep = (status == C.SLP) & (state.terrain == C.ELECTRIC_TERRAIN) & grounded
     safeguard = state.side_conditions[side, C.SC_SAFEGUARD] > 0
-    sun_freeze = (status == C.FRZ) & (
-        (effective_weather(state) == C.SUN) | (effective_weather(state) == C.HARSH_SUN))
+    sun_freeze = (status == C.FRZ) & sunny
 
     return (already | by_ability | poison_immune | burn_immune | para_immune |
             freeze_immune | misty | electric_sleep | safeguard | sun_freeze)
 
 
-def set_status(data, state, side, status, word, source_ability=None):
+def set_status(data, state, side, status, word, source_ability=None,
+               ignore_ability=False):
     """Try to inflict a major status. Returns `(state, applied)`.
 
     `word` is a random `uint32` (see `random_words`); only sleep reads it.
     """
     i = act(state, side)
-    blocked = status_immune(data, state, side, status, source_ability)
+    blocked = status_immune(data, state, side, status, source_ability, ignore_ability)
     ok = jnp.logical_not(blocked) & (status != C.STATUS_NONE) & \
         (slot_get(state.hp, side, i) > 0)
 
@@ -342,3 +415,271 @@ def has_volatile(state, side, volatile):
 
 def clear_volatile(state, side, volatile):
     return state._replace(volatiles=set_at(state.volatiles, (side, volatile), 0))
+
+
+def actives_alive(state):
+    """`[P]` bool: is each side's active Pokemon still standing?"""
+    return jnp.stack([slot_get(state.hp, p, act(state, p)) > 0
+                      for p in range(C.NUM_PLAYERS)])
+
+
+def soul_heart(state, alive_before):
+    """Soul-Heart: +1 Sp. Atk for every Pokemon that fainted since `alive_before`.
+
+    Only the actives can faint mid-turn, so comparing them is enough. Written
+    straight into the boost table: nothing that can hold Soul-Heart has Contrary
+    or Simple, so `apply_boosts` would be a long way round.
+    """
+    alive_now = actives_alive(state)
+    fainted = jnp.sum(alive_before & jnp.logical_not(alive_now)).astype(jnp.int32)
+    boosts = state.boosts
+    for side in range(C.NUM_PLAYERS):
+        holder = (slot_get(state.ability, side, act(state, side)) == A.SOULHEART) & \
+            alive_now[side]
+        raised = jnp.minimum(boosts[side, C.B_SPA].astype(jnp.int32) + fainted, 6)
+        boosts = set_at(boosts, (side, C.B_SPA), raised, holder)
+    return state._replace(boosts=boosts)
+
+
+def confuse(state, side, word, when=True):
+    """Confuse `side` for 2-5 turns (Showdown's `random(2, 6)`).
+
+    Counted in move attempts, not turns: `before_move` ticks it. A Pokemon that
+    is already confused keeps its old count, and Own Tempo is immune.
+    """
+    i = act(state, side)
+    turns = (2 + below(word, 4)).astype(jnp.int8)
+    ok = when & (state.volatiles[side, C.V_CONFUSION] <= 0) & \
+        (slot_get(state.ability, side, i) != A.OWNTEMPO) & (slot_get(state.hp, side, i) > 0)
+    return state._replace(volatiles=set_at(state.volatiles, (side, C.V_CONFUSION), turns, ok))
+
+
+def is_trapped(state, side):
+    """True if `side`'s active cannot choose to switch out.
+
+    A move it is locked into (charging Solar Beam) traps it outright. Shadow Tag,
+    Arena Trap, Magnet Pull, Ingrain and binding moves go through Showdown's
+    `tryTrap`, which Ghost types are immune to from Gen 6 on.
+    """
+    i = act(state, side)
+    other = 1 - side
+    oi = act(state, other)
+    types = active_types(state, side)
+    ab = slot_get(state.ability, side, i)
+    o_ab = slot_get(state.ability, other, oi)
+    foe_out = slot_get(state.hp, other, oi) > 0
+    by_ability = foe_out & (
+        ((o_ab == A.SHADOWTAG) & (ab != A.SHADOWTAG)) |
+        ((o_ab == A.ARENATRAP) & is_grounded(state, side)) |
+        ((o_ab == A.MAGNETPULL) & jnp.any(types == C.STEEL)))
+    held = (state.volatiles[side, C.V_PARTIALLYTRAPPED] > 0) | \
+        (state.volatiles[side, C.V_INGRAIN] > 0)
+    ghost = jnp.any(types == C.GHOST)
+    return (state.locked_slot[side] >= 0) | (jnp.logical_not(ghost) & (by_ability | held))
+
+
+# --- formes, Transform, and switching back -----------------------------------
+
+def species_stats(data, species, level, spread_zero):
+    """The `[6]` stat line `species` has at this Pokemon's level and EV/IV spread."""
+    base = data["species_base_stats"][species].astype(jnp.int32)
+    zeroed = ((spread_zero.astype(jnp.int32) >> jnp.arange(C.NUM_STATS)) & 1).astype(bool)
+    return compute_all_stats(base, level.astype(jnp.int32),
+                             jnp.where(zeroed, 0, 31), jnp.where(zeroed, 0, 85))
+
+
+def forme_change(data, state, side, slot, species, when=True, permanent=False,
+                 ability=None):
+    """Showdown's `formeChange`: new species, types and stats.
+
+    Max HP is untouched unless the change is `permanent`, which also makes the
+    new forme what the Pokemon reverts to and keeps the damage it has taken
+    (`updateMaxHp`). `ability`, when given, replaces the current ability -- and
+    the one it reverts to, if permanent.
+    """
+    species = jnp.asarray(species, jnp.int16)
+    level = slot_get(state.level, side, slot)
+    spread = slot_get(state.spread_zero, side, slot)
+    old_species = slot_get(state.species, side, slot)
+    fresh = species_stats(data, species, level, spread)
+    stats = slot_get(state.stats, side, slot).astype(jnp.int32)
+    stats = jnp.concatenate([stats[:1], fresh[1:].astype(jnp.int32)])
+    state = state._replace(
+        species=slot_set(state.species, side, slot, species, when),
+        types=slot_set(state.types, side, slot, data["species_types"][species], when),
+        stats=slot_set(state.stats, side, slot, stats, when))
+    if permanent is not False:
+        # `permanent` may be traced, so that several possible forme changes can
+        # share one call.
+        perm = when & permanent
+        # Max HP moves by the difference between the two formes' HP. The mask
+        # does not record HP EVs, which the generator sometimes trims, but the
+        # difference is exact whenever the base HP is shared (Mimikyu, Eiscue)
+        # and Terapagos, whose base HP is not, always has the full spread.
+        old_max = slot_get(state.maxhp, side, slot).astype(jnp.int32)
+        was = compute_hp(data["species_base_stats"][old_species, C.HP], level,
+                         jnp.where(spread & 1, 0, 31), jnp.where(spread & 1, 0, 85))
+        new_max = old_max + fresh[C.HP].astype(jnp.int32) - was.astype(jnp.int32)
+        hp = slot_get(state.hp, side, slot).astype(jnp.int32)
+        hp = jnp.where(hp <= 0, 0, jnp.maximum(1, new_max - (old_max - hp)))
+        state = state._replace(
+            base_species=slot_set(state.base_species, side, slot, species, perm),
+            maxhp=slot_set(state.maxhp, side, slot, new_max, perm),
+            hp=slot_set(state.hp, side, slot, hp, perm))
+    if ability is not None:
+        state = state._replace(ability=slot_set(state.ability, side, slot, ability, when))
+        if permanent is not False:
+            state = state._replace(base_ability=slot_set(
+                state.base_ability, side, slot, ability, when & permanent))
+    return state
+
+
+def revert_on_switch_out(data, state, side, slot, when=True):
+    """Undo everything that does not survive leaving the field.
+
+    Showdown's `clearVolatile`: Transform ends (its own moves and PP come back),
+    the ability returns to the base one (Trace, Transform), and the species is
+    reset to the base forme, which also resets its types (Protean, Burn Up,
+    Roost) and stats (Meloetta, Minior, Transform). Called on the Pokemon that
+    is leaving, before the slot state is cleared.
+    """
+    species = slot_get(state.species, side, slot)
+    base = slot_get(state.base_species, side, slot)
+    base = jnp.where(base >= 0, base, species)
+    base_ab = slot_get(state.base_ability, side, slot)
+    base_ab = jnp.where(base_ab >= 0, base_ab, slot_get(state.ability, side, slot))
+    transformed = state.transformed[side] & when
+    state = forme_change(data, state, side, slot, base,
+                         when=when & (transformed | (species != base)))
+    return state._replace(
+        types=slot_set(state.types, side, slot, data["species_types"][base], when),
+        ability=slot_set(state.ability, side, slot, base_ab, when),
+        moves=slot_set(state.moves, side, slot, state.tf_moves[side], transformed),
+        pp=slot_set(state.pp, side, slot, state.tf_pp[side], transformed),
+        maxpp=slot_set(state.maxpp, side, slot, state.tf_maxpp[side], transformed))
+
+
+# --- held items --------------------------------------------------------------
+
+def item_locked(data, state, side, slot):
+    """True if the held item belongs to its holder's species (a plate on Arceus).
+
+    Nothing can take such an item, and Knock Off gets no bonus for trying.
+    """
+    num = data["item_locked_num"][slot_get(state.item, side, slot)]
+    return (num > 0) & (data["species_num"][slot_get(state.species, side, slot)] == num)
+
+
+def can_lose_item(data, state, side, slot, by_opponent=True, ignore_ability=False):
+    """Whether an item can be taken from `side` (Knock Off, Trick, Bug Bite, ...).
+
+    Sticky Hold keeps it out of an opponent's hands; Mold Breaker gets past that.
+    """
+    ab = slot_get(state.ability, side, slot)
+    sticky = by_opponent & (ab == A.STICKYHOLD) & jnp.logical_not(ignore_ability) & \
+        (slot_get(state.hp, side, slot) > 0)
+    return (slot_get(state.item, side, slot) != 0) & \
+        jnp.logical_not(item_locked(data, state, side, slot)) & jnp.logical_not(sticky)
+
+
+def lose_item(state, side, slot, when=True):
+    """Remove the held item. Losing one is what arms Unburden."""
+    had = when & (slot_get(state.item, side, slot) != 0)
+    return state._replace(
+        item=slot_set(state.item, side, slot, jnp.int16(0), had),
+        volatiles=set_at(state.volatiles, (side, C.V_UNBURDEN), 1,
+                         had & (act(state, side) == slot)))
+
+
+# --- berries -----------------------------------------------------------------
+
+def unnerved(state, side):
+    """Unnerve (and As One) on the other side stops `side` eating berries."""
+    other = 1 - side
+    oi = act(state, other)
+    ab = slot_get(state.ability, other, oi)
+    return (slot_get(state.hp, other, oi) > 0) & (
+        (ab == A.UNNERVE) | (ab == A.ASONEGLASTRIER) | (ab == A.ASONESPECTRIER))
+
+
+def eat_berry(data, state, side, berry, when=True, consume=True, cud=2):
+    """`side`'s active eats `berry`, which it need not be holding (Bug Bite).
+
+    `consume` spends the held item (and remembers it for Harvest); `cud` is how
+    many residuals until Cud Chew eats it again, 0 for never -- Showdown's
+    counter is 2, or 1 when the berry went down during the residual phase.
+    Both may be traced, so every reason a side eats during one move can share a
+    single call.
+    """
+    i = act(state, side)
+    berry = jnp.asarray(berry, jnp.int16)
+    when = when & (berry != 0) & (slot_get(state.hp, side, i) > 0)
+    ab = slot_get(state.ability, side, i)
+
+    heal = jnp.where(berry == I.SITRUSBERRY, fraction_of_max(state, side, i, 1, 4), 0)
+    heal = jnp.where(berry == I.ORANBERRY, 10, heal)
+    heal = jnp.where(berry == I.FIGYBERRY, fraction_of_max(state, side, i, 1, 3), heal)
+    # Cheek Pouch tops up a third, whatever the berry was.
+    heal = heal + jnp.where(ab == A.CHEEKPOUCH, fraction_of_max(state, side, i, 1, 3), 0)
+    state, _ = heal_pokemon(state, side, i, jnp.where(when, heal, 0))
+
+    status = slot_get(state.status, side, i)
+    cures = when & ((berry == I.LUMBERRY) | ((berry == I.CHESTOBERRY) & (status == C.SLP)))
+    state = cure_status(state, side, i, when=cures)
+    state = state._replace(volatiles=set_at(
+        state.volatiles, (side, C.V_CONFUSION), 0, when & (berry == I.LUMBERRY)))
+
+    boost = jnp.zeros(C.NUM_BOOSTS, jnp.int32)
+    for item, stage in ((I.SALACBERRY, C.B_SPE), (I.PETAYABERRY, C.B_SPA),
+                        (I.LIECHIBERRY, C.B_ATK)):
+        boost = jnp.where(when & (berry == item), jnp.asarray(boost_delta((stage, 1))), boost)
+    state, _ = apply_boosts(state, side, boost)
+
+    # Leppa restores 10 PP to the first empty move, else the first one missing any.
+    moves = slot_get(state.moves, side, i)
+    pp = slot_get(state.pp, side, i).astype(jnp.int32)
+    maxpp = slot_get(state.maxpp, side, i).astype(jnp.int32)
+    empty = (moves >= 0) & (pp == 0)
+    short = (moves >= 0) & (pp < maxpp)
+    pick = jnp.where(jnp.any(empty), jnp.argmax(empty), jnp.argmax(short))
+    restore = when & (berry == I.LEPPABERRY) & jnp.any(short)
+    new_pp = jnp.where(jnp.arange(C.MOVES_PER_POKEMON) == pick,
+                       jnp.minimum(pp + 10, maxpp), pp)
+    state = state._replace(pp=slot_set(state.pp, side, i, new_pp, restore))
+
+    spent = when & consume
+    state = lose_item(state, side, i, spent)
+    state = state._replace(last_item=slot_set(state.last_item, side, i, berry, spent))
+    chew = when & (ab == A.CUDCHEW) & (jnp.asarray(cud) > 0)
+    return state._replace(cud_berry=set_at(state.cud_berry, side, berry, chew),
+                          cud_turns=set_at(state.cud_turns, side, cud, chew))
+
+
+def berry_update(data, state, side, during_residual=False):
+    """Eat the held berry if its trigger is met -- Showdown's berry `onUpdate`.
+
+    Run wherever Showdown runs Update: after each move, after the residuals and
+    after a switch-in.
+    """
+    return eat_berry(data, state, side, slot_get(state.item, side, act(state, side)),
+                     when=berry_wants(state, side), cud=1 if during_residual else 2)
+
+
+def berry_wants(state, side):
+    """True if the held berry's own trigger is met and nothing stops the eating."""
+    i = act(state, side)
+    it = slot_get(state.item, side, i)
+    hp = slot_get(state.hp, side, i).astype(jnp.int32)
+    maxhp = slot_get(state.maxhp, side, i).astype(jnp.int32)
+    status = slot_get(state.status, side, i)
+    half, quarter = hp * 2 <= maxhp, hp * 4 <= maxhp
+    moves = slot_get(state.moves, side, i)
+    wants = (
+        (((it == I.SITRUSBERRY) | (it == I.ORANBERRY)) & half) |
+        (((it == I.FIGYBERRY) | (it == I.SALACBERRY) | (it == I.PETAYABERRY) |
+          (it == I.LIECHIBERRY)) & quarter) |
+        ((it == I.LUMBERRY) & ((status != C.STATUS_NONE) |
+                               (state.volatiles[side, C.V_CONFUSION] > 0))) |
+        ((it == I.CHESTOBERRY) & (status == C.SLP)) |
+        ((it == I.LEPPABERRY) & jnp.any((moves >= 0) & (slot_get(state.pp, side, i) == 0))))
+    return wants & (hp > 0) & jnp.logical_not(unnerved(state, side))

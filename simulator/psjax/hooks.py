@@ -72,6 +72,10 @@ ABILITY_NAMES = [
     "battlebond", "pixilate", "liquidvoice", "queenlymajesty", "shieldsdown",
     "powerspot", "heavymetal", "lightmetal", "cutecharm", "refrigerate",
     "aerilate", "normalize", "steelyspirit",
+    # Terapagos's other formes. Tera Shift turns it into Terapagos-Terastal,
+    # whose ability is Tera Shell; Terastallizing makes it Terapagos-Stellar,
+    # whose ability is Teraform Zero.
+    "terashell", "teraformzero",
 ]
 
 # --- Items -------------------------------------------------------------------
@@ -135,6 +139,18 @@ I = _Namespace(ITEM_IDX)
 
 MOLD_BREAKER = {"moldbreaker", "turboblaze", "teravolt"}
 """Abilities that ignore the target's ability during a move."""
+
+PASSIVE_ABILITIES = {
+    "multitype": "Arceus's type comes from its plate, which the species already "
+                 "encodes; the plate's own rules (Judgment's type, and that it "
+                 "cannot be taken) live on the item",
+    "frisk": "only announces the foe's item, and no observation carries items",
+    "powerspot": "boosts allies' moves, and singles has no allies",
+}
+"""Abilities that are accounted for but have nothing to do in this engine.
+
+`coverage.py` reports them separately rather than as inert, with the reason.
+"""
 
 UNSUPPRESSABLE = {"asoneglastrier", "asonespectrier", "battlebond", "comatose", "disguise",
                   "gulpmissile", "iceface", "multitype", "rkssystem", "schooling",
@@ -219,6 +235,20 @@ TYPE_BOOST_ITEM = {
 }
 
 CHOICE_ITEMS = {"choicescarf", "choiceband", "choicespecs"}
+
+# Items only a particular species can hold onto: nothing can take them from it
+# (Knock Off neither removes them nor gains power from them). Keyed by the
+# National Dex number, as Showdown's `onTakeItem` checks are.
+SPECIES_LOCKED_ITEMS = {
+    **{plate: 493 for plate in (
+        "dracoplate", "dreadplate", "earthplate", "fistplate", "flameplate",
+        "icicleplate", "insectplate", "ironplate", "meadowplate", "mindplate",
+        "pixieplate", "skyplate", "splashplate", "spookyplate", "stoneplate",
+        "toxicplate", "zapplate")},
+    "wellspringmask": 1017, "hearthflamemask": 1017, "cornerstonemask": 1017,
+    "rustedsword": 888, "rustedshield": 889, "griseouscore": 487,
+    "adamantcrystal": 483, "lustrousglobe": 484,
+}
 
 # Abilities that switch the weather off entirely while their holder is out.
 # (`mechanics.weather_active` previously tested Neutralizing Gas here, which is

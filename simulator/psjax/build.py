@@ -70,6 +70,10 @@ def build_species(raw):
         "species_weight": np.zeros(n, np.float32),
         "species_abilities": np.zeros((n, 3), np.int16),
         "species_nfe": np.zeros(n, np.bool_),
+        # A fixed gender, or GENDER_NONE where Showdown picks one at random
+        # (see `species_random_gender`).
+        "species_gender": np.zeros(n, np.int8),
+        "species_random_gender": np.zeros(n, np.bool_),
     }
     for sid, i in idx.items():
         s = raw["species"][sid]
@@ -83,6 +87,11 @@ def build_species(raw):
         for k, a in enumerate(s["abilities"][:3]):
             out["species_abilities"][i, k] = H.ABILITY_IDX.get(to_id(a), 0)
         out["species_nfe"][i] = s["nfe"]
+        # Showdown ignores gender ratios outside the cartridge games: a species
+        # without a fixed gender is male or female with equal odds.
+        g = s["gender"]
+        out["species_gender"][i] = {"M": C.GENDER_M, "F": C.GENDER_F}.get(g, C.GENDER_NONE)
+        out["species_random_gender"][i] = g == ""
     return idx, out
 
 
@@ -135,6 +144,10 @@ def build_moves(raw):
         "move_sec_volatile": np.full((n, 2), -1, np.int8),
         "move_sec_boosts": np.zeros((n, 2, 7), np.int8),
         "move_sec_self_boosts": np.zeros((n, 2, 7), np.int8),
+        # Sheer Force removes a move's secondaries (and its `self` effect) and
+        # powers it up; a few moves get the power without losing anything.
+        "move_has_secondary": np.zeros(n, np.bool_),
+        "move_sheer_force": np.zeros(n, np.bool_),
         "move_force_switch": np.zeros(n, np.bool_),
         "move_self_switch": z8(),
         "move_selfdestruct": z8(),
@@ -229,9 +242,12 @@ def build_moves(raw):
             if s["self"]:
                 out["move_sec_self_boosts"][i, k] = _boost_vec(s["self"]["boosts"])
 
+        out["move_has_secondary"][i] = bool(m["secondaries"]) and not m["hasSheerForceBoost"]
+        out["move_sheer_force"][i] = bool(m["secondaries"]) or m["hasSheerForceBoost"]
         out["move_force_switch"][i] = m["forceSwitch"]
         ss = m["selfSwitch"]
-        out["move_self_switch"][i] = 0 if not ss else (2 if ss == "copyvolatile" else 1)
+        out["move_self_switch"][i] = {None: 0, True: 1, "copyvolatile": 2,
+                                      "shedtail": 3}.get(ss, 1 if ss else 0)
         sd = m["selfdestruct"]
         out["move_selfdestruct"][i] = 0 if not sd else (2 if sd == "ifHit" else 1)
         out["move_breaks_protect"][i] = m["breaksProtect"]
@@ -304,9 +320,20 @@ def build_abilities(raw):
         "ability_terrain": np.zeros(n, np.int8),
         "ability_status_immune": np.zeros(n, np.int64),   # bitmask over statuses
         "ability_ate_type": np.full(n, C.TYPE_NONE, np.int8),
+        # Mold Breaker and friends ignore a target's ability only if it is
+        # `breakable` -- Rough Skin still hurts, Levitate does not float.
+        "ability_breakable": np.zeros(n, np.bool_),
+        # Trace, Transform and Imposter cannot copy these.
+        "ability_notrace": np.zeros(n, np.bool_),
     }
     boost_name_to_idx = {"atk": C.B_ATK, "def": C.B_DEF, "spa": C.B_SPA,
                          "spd": C.B_SPD, "spe": C.B_SPE}
+    for name, i in H.ABILITY_IDX.items():
+        if i == 0:
+            continue
+        ab = raw["abilities"][name]
+        out["ability_breakable"][i] = bool(ab["breakable"] or ab["flags"].get("breakable"))
+        out["ability_notrace"][i] = bool(ab["flags"].get("notrace"))
     for name in H.MOLD_BREAKER:
         if name in H.ABILITY_IDX:
             out["ability_mold_breaker"][H.ABILITY_IDX[name]] = True
@@ -358,6 +385,11 @@ def build_items(raw):
         "item_boost_type": np.full(n, C.TYPE_NONE, np.int8),
         "item_boost_mod": np.full(n, 4096, np.int16),   # 4096 == x1
         "item_resist_type": np.full(n, C.TYPE_NONE, np.int8),
+        # Plates set Judgment's type.
+        "item_plate_type": np.full(n, C.TYPE_NONE, np.int8),
+        # National Dex number of the only species that can hold on to this item
+        # against Knock Off, Trick and the like; 0 if anyone can lose it.
+        "item_locked_num": np.zeros(n, np.int16),
     }
     for name, i in H.ITEM_IDX.items():
         if i == 0:
@@ -367,6 +399,12 @@ def build_items(raw):
         out["item_is_choice"][i] = it["isChoice"]
         if it["fling"]:
             out["item_fling_power"][i] = it["fling"].get("basePower", 0)
+    for name, i in H.ITEM_IDX.items():
+        if i and raw["items"][name]["onPlate"]:
+            out["item_plate_type"][i] = C.TYPE_IDX[to_id(raw["items"][name]["onPlate"])]
+    for name, num in H.SPECIES_LOCKED_ITEMS.items():
+        if name in H.ITEM_IDX:
+            out["item_locked_num"][H.ITEM_IDX[name]] = num
     for name, (t, mod) in H.TYPE_BOOST_ITEM.items():
         if name in H.ITEM_IDX:
             out["item_boost_type"][H.ITEM_IDX[name]] = C.TYPE_IDX[t]
@@ -442,7 +480,7 @@ def main() -> int:
     if not RAW.exists():
         print(f"missing {RAW}; run `node tools/dump_data.js` first", file=sys.stderr)
         return 1
-    raw = json.load(open(RAW))
+    raw = json.load(open(RAW, encoding="utf-8"))
 
     arrays = {"type_eff": build_typechart(raw)}
     species_idx, sp = build_species(raw)

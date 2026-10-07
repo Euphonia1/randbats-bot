@@ -42,6 +42,7 @@ BP_REPLACE_HANDLERS = [
     "furycutter",      # doubles on consecutive use, capped at 160
     "happiness",       # Return: floor(happiness * 10 / 25); 102 at max happiness
     "frustration",     # the inverse; 1 at max happiness
+    "beatup",          # 5 + base Attack / 10 of each healthy party member, one hit each
 ]
 BP_REPLACE_MOVES = {
     "acrobatics": ["acrobatics"],
@@ -69,6 +70,7 @@ BP_REPLACE_MOVES = {
     "furycutter": ["furycutter", "rollout", "iceball"],
     "happiness": ["return"],
     "frustration": ["frustration"],
+    "beatup": ["beatup"],
 }
 
 # --- Base power: chained modifiers -------------------------------------------
@@ -88,6 +90,10 @@ BP_MODIFY_HANDLERS = [
     "stompingtantrum", # x2 if the user's previous move failed
     "lashout",         # x2 if the user had a stat lowered this turn
     "supereffective_boost",   # x4/3 on a super-effective hit
+    "ficklebeam",      # x2 on a 30% roll
+    "gravapple",       # x1.5 under Gravity
+    "fusionflare",     # x2 if Fusion Bolt was the last move to succeed this turn
+    "fusionbolt",      # x2 if Fusion Flare was
 ]
 BP_MODIFY_MOVES = {
     "facade": ["facade"],
@@ -99,9 +105,14 @@ BP_MODIFY_MOVES = {
     "mistyexplosion": ["mistyexplosion"],
     "psyblade": ["psyblade"],
     "solarbeam": ["solarbeam", "solarblade"],
-    "stompingtantrum": ["stompingtantrum"],
+    # Temper Flare is Stomping Tantrum's callback, verbatim.
+    "stompingtantrum": ["stompingtantrum", "temperflare"],
     "lashout": ["lashout"],
     "supereffective_boost": ["collisioncourse", "electrodrift"],
+    "ficklebeam": ["ficklebeam"],
+    "gravapple": ["gravapple"],
+    "fusionflare": ["fusionflare"],
+    "fusionbolt": ["fusionbolt"],
 }
 
 # --- Weather-dependent accuracy ---------------------------------------------
@@ -160,6 +171,7 @@ TYPE_HANDLERS = [
     "ragingbull",      # type follows Tauros forme
     "aurawheel",       # type follows Morpeko forme
     "naturalgift",     # type follows the held berry
+    "terastarstorm",   # Stellar in Terapagos's Stellar forme
 ]
 TYPE_MOVES = {
     "weatherball": ["weatherball"],
@@ -173,6 +185,7 @@ TYPE_MOVES = {
     "ragingbull": ["ragingbull"],
     "aurawheel": ["aurawheel"],
     "naturalgift": ["naturalgift"],
+    "terastarstorm": ["terastarstorm"],
 }
 
 # --- Special move effects (on-try / on-hit) ----------------------------------
@@ -242,6 +255,21 @@ EFFECT_HANDLERS = [
     "fakeout",         # fails unless the user has not yet moved since switching in
     "icespinner",      # removes the terrain
     "auroraveil",      # only succeeds while it is snowing
+    "sparklingaria",   # cures the target's burn
+    "ceaselessedge",   # lays a layer of Spikes on hit
+    "stoneaxe",        # lays Stealth Rock on hit
+    "grassyglide",     # +1 priority on Grassy Terrain
+    "teleport",        # fails without a healthy bench
+    "hyperspacefury",  # only Hoopa-Unbound can use it
+    "takeheart",       # +1 SpA/SpD and cures status
+    "bugbite",         # eats the target's berry
+    "clangoroussoul",  # +1 to every stat for a third of max HP
+    "pollenpuff",      # heals an ally; in singles, just an attack
+    "relicsong",       # Meloetta changes forme after using it
+    "magnetrise",      # fails when grounded by Smack Down, Ingrain or Gravity
+    "transform",       # becomes a copy of the target
+    "focuspunch",      # fails if the user was hit first
+    "chargeboost",     # Meteor Beam / Electro Shot: +1 SpA while charging
 ]
 EFFECT_MOVES = {
     "substitute": ["substitute"],
@@ -307,6 +335,21 @@ EFFECT_MOVES = {
     "fakeout": ["fakeout", "firstimpression"],
     "icespinner": ["icespinner"],
     "auroraveil": ["auroraveil"],
+    "sparklingaria": ["sparklingaria"],
+    "ceaselessedge": ["ceaselessedge"],
+    "stoneaxe": ["stoneaxe"],
+    "grassyglide": ["grassyglide"],
+    "teleport": ["teleport"],
+    "hyperspacefury": ["hyperspacefury"],
+    "takeheart": ["takeheart"],
+    "bugbite": ["bugbite", "pluck"],
+    "clangoroussoul": ["clangoroussoul"],
+    "pollenpuff": ["pollenpuff"],
+    "relicsong": ["relicsong"],
+    "magnetrise": ["magnetrise"],
+    "transform": ["transform"],
+    "focuspunch": ["focuspunch"],
+    "chargeboost": ["meteorbeam", "electroshot"],
 }
 
 

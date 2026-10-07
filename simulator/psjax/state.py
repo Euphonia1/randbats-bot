@@ -40,6 +40,22 @@ class BattleState(NamedTuple):
     status_turns: jnp.ndarray   # [P,T] int8, sleep turns left / toxic counter
     tera_type: jnp.ndarray      # [P,T] int8
     terastallized: jnp.ndarray  # [P,T] bool
+    #: What a Pokemon reverts to on switching out. Forme changes, Transform,
+    #: Trace and type changes are all undone then; a permanent forme change
+    #: (Palafin-Hero, Mimikyu-Busted) rewrites these instead. -1 means "the
+    #: current value", so a hand-built state needs no bookkeeping.
+    base_species: jnp.ndarray   # [P,T] int16
+    base_ability: jnp.ndarray   # [P,T] int16
+    #: Bit k set: stat k was built with 0 IVs and 0 EVs. Showdown's generator
+    #: zeroes Attack on special sets and Speed on Trick Room sets and nothing
+    #: else, so this is enough to rebuild the stats of any forme exactly.
+    spread_zero: jnp.ndarray    # [P,T] int8
+    gender: jnp.ndarray         # [P,T] int8, C.GENDER_*
+    #: Position in Showdown's party order. Switching in swaps the newcomer with
+    #: the Pokemon at the front, and Illusion copies whoever is last.
+    party_pos: jnp.ndarray      # [P,T] int8
+    last_item: jnp.ndarray      # [P,T] int16, last berry eaten (Harvest)
+    bond_used: jnp.ndarray      # [P,T] bool, Battle Bond fires once a battle
 
     # --- active slot --------------------------------------------------------
     active: jnp.ndarray             # [P] int8, team index of the active Pokemon
@@ -62,6 +78,18 @@ class BattleState(NamedTuple):
     moves_since_switch: jnp.ndarray # [P] int8, gates Fake Out / First Impression
     last_move_failed: jnp.ndarray   # [P] bool, Stomping Tantrum
     stats_lowered: jnp.ndarray      # [P] bool, Lash Out (this turn)
+    illusion: jnp.ndarray           # [P] int8, team slot being impersonated; -1 none
+    transformed: jnp.ndarray        # [P] bool
+    #: The Pokemon's own moves while it is Transformed into something else.
+    tf_moves: jnp.ndarray           # [P,4] int16
+    tf_pp: jnp.ndarray              # [P,4] int8
+    tf_maxpp: jnp.ndarray           # [P,4] int8
+    type_changed: jnp.ndarray       # [P] bool, Protean / Libero already fired
+    cud_berry: jnp.ndarray          # [P] int16, berry Cud Chew will eat again
+    cud_turns: jnp.ndarray          # [P] int8, residuals until it does
+    #: How the last self-switch hands over: 0 plain, 2 Baton Pass (boosts and
+    #: volatiles), 3 Shed Tail (the Substitute).
+    pass_mode: jnp.ndarray          # [P] int8
 
     # --- field --------------------------------------------------------------
     weather: jnp.ndarray            # scalar int8
@@ -71,6 +99,17 @@ class BattleState(NamedTuple):
     trick_room: jnp.ndarray         # scalar int8, turns left
     gravity: jnp.ndarray            # scalar int8, turns left
     side_conditions: jnp.ndarray    # [P,NUM_SIDE_CONDITIONS] int8
+    #: Slot conditions, indexed by the side they will land on. Future Sight
+    #: remembers the move and the team slot of whoever used it, because the hit
+    #: is calculated with that Pokemon's stats even if it has left the field.
+    future_turns: jnp.ndarray       # [P] int8, residuals until it hits; 0 none
+    future_move: jnp.ndarray        # [P] int16
+    future_source: jnp.ndarray      # [P] int8, team slot on the other side
+    wish_turns: jnp.ndarray         # [P] int8, residuals until it heals; 0 none
+    wish_hp: jnp.ndarray            # [P] int16
+    #: Fusion Flare / Fusion Bolt: 1 or 2 if the last move to succeed this turn
+    #: was one of them, 0 otherwise.
+    fusion_last: jnp.ndarray        # scalar int8
 
     # --- bookkeeping --------------------------------------------------------
     turn: jnp.ndarray               # scalar int32
@@ -130,6 +169,22 @@ def add_at(field, index, amount, when=True):
     return set_at(field, index, field + jnp.asarray(amount, field.dtype), when)
 
 
+def barrier(*values):
+    """Materialise `values` once, where they stand.
+
+    XLA fuses cheap elementwise producers into their consumers, and when a value
+    at the end of a long chain -- a damage roll, whether a move connected --
+    has many consumers, it recomputes the whole chain inside each of them. The
+    move engine is exactly that shape, so its key intermediate values go through
+    here and their readers use the stored result.
+
+    Pass values, not the `BattleState`: a barrier on the whole state forces all
+    of it out to memory, which on a GPU, bound by memory traffic at large
+    batches, costs more than the recomputation it saves.
+    """
+    return jax.lax.optimization_barrier(values)
+
+
 def select_state(pred, if_true, if_false):
     """`if_true` where `pred`, else `if_false`, field by field.
 
@@ -169,6 +224,11 @@ def empty_state(key: jnp.ndarray) -> BattleState:
         item=i16(P, T), ability=i16(P, T), status=i8(P, T), status_turns=i8(P, T),
         tera_type=jnp.full((P, T), C.TYPE_NONE, jnp.int8),
         terastallized=jnp.zeros((P, T), bool),
+        base_species=jnp.full((P, T), -1, jnp.int16),
+        base_ability=jnp.full((P, T), -1, jnp.int16),
+        spread_zero=i8(P, T), gender=i8(P, T),
+        party_pos=jnp.broadcast_to(jnp.arange(T, dtype=jnp.int8), (P, T)),
+        last_item=i16(P, T), bond_used=jnp.zeros((P, T), bool),
         active=i8(P), boosts=i8(P, C.NUM_BOOSTS),
         volatiles=i8(P, C.NUM_VOLATILES), sub_hp=i16(P),
         disabled_slot=jnp.full((P,), -1, jnp.int8),
@@ -182,10 +242,16 @@ def empty_state(key: jnp.ndarray) -> BattleState:
         moved_this_turn=jnp.zeros((P,), bool), switched_this_turn=jnp.zeros((P,), bool),
         fainted_count=i8(P), moves_since_switch=i8(P),
         last_move_failed=jnp.zeros((P,), bool), stats_lowered=jnp.zeros((P,), bool),
+        illusion=jnp.full((P,), -1, jnp.int8), transformed=jnp.zeros((P,), bool),
+        tf_moves=jnp.full((P, M), -1, jnp.int16), tf_pp=i8(P, M), tf_maxpp=i8(P, M),
+        type_changed=jnp.zeros((P,), bool), cud_berry=i16(P), cud_turns=i8(P),
+        pass_mode=i8(P),
         weather=jnp.int8(0), weather_turns=jnp.int8(0),
         terrain=jnp.int8(0), terrain_turns=jnp.int8(0),
         trick_room=jnp.int8(0), gravity=jnp.int8(0),
         side_conditions=i8(P, C.NUM_SIDE_CONDITIONS),
+        future_turns=i8(P), future_move=i16(P), future_source=i8(P),
+        wish_turns=i8(P), wish_hp=i16(P), fusion_last=jnp.int8(0),
         turn=jnp.int32(0), phase=jnp.int8(C.PHASE_MOVE),
         force_switch=jnp.zeros((P,), bool), phazed=jnp.zeros((P,), bool),
         pending_side=jnp.int8(-1), pending_action=jnp.int8(0),
@@ -211,4 +277,7 @@ def reset_slot_state(state: BattleState, player: jnp.ndarray) -> BattleState:
         protect_streak=z(state.protect_streak),
         moves_since_switch=z(state.moves_since_switch),
         last_move_failed=z(state.last_move_failed, False),
+        illusion=z(state.illusion, -1), transformed=z(state.transformed, False),
+        type_changed=z(state.type_changed, False),
+        cud_berry=z(state.cud_berry), cud_turns=z(state.cud_turns),
     )

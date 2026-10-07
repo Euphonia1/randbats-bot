@@ -67,9 +67,10 @@ def test_censoring_leaves_the_viewer_untouched():
 
 
 def test_censoring_changes_only_moves_pp_and_hp():
+    """... and the active's typing, which only ever differs under Illusion."""
     fs = ENV.reset(jax.random.PRNGKey(4))
     hidden = ENV._censor(fs, 1)
-    allowed = {"moves", "pp", "hp", "maxhp"}
+    allowed = {"moves", "pp", "hp", "maxhp", "types"}
     for name in fs.battle._fields:
         if name in allowed:
             continue

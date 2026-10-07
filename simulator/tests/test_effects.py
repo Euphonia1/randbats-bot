@@ -31,31 +31,53 @@ SEEDS = 9
 _JIT_STEP = jax.jit(step)
 
 
+def _forced_step(state, actions):
+    """`step` with every random word pinned to zero.
+
+    The counterpart of the harness's `force`: Showdown then wins every
+    `randomChance` and rolls 0 on every `random`, and a zero word wins every
+    chance check here and gives the same top damage roll. Speed ties are the
+    one thing it does not pin, so forced scenarios avoid them.
+    """
+    import unittest.mock as mock
+    zeros = lambda key, shape: jnp.zeros(shape, jnp.uint32)
+    with mock.patch("psjax.engine.random_words", zeros):
+        return step(state, actions)
+
+
+_JIT_FORCED = jax.jit(_forced_step)
+
+
 def _action(choice):
     """Translate a Showdown choice string into a psjax action id.
 
-    'move 2' -> move slot 1; 'switch 2' -> the switch action for team slot 1.
+    'move 2' -> move slot 1; 'move 2 terastallize' -> the Tera action for it;
+    'switch 2' -> the switch action for team slot 1.
     """
     from psjax import consts as C
     if isinstance(choice, str) and choice.startswith("switch"):
         return C.ACTION_SWITCH_BASE + int(choice.split()[1]) - 1
     if isinstance(choice, str) and choice.startswith("move"):
-        return int(choice.split()[1]) - 1
+        slot = int(choice.split()[1]) - 1
+        return slot + (C.ACTION_TERA_BASE if "terastallize" in choice else 0)
     return 0
 
 
 def _run(case, seed):
     from psjax import consts as C
+    run = _JIT_FORCED if case.get("force") else _JIT_STEP
     state = build(case, jax.random.PRNGKey(seed))
     actions = jnp.array([_action(case.get("p1move")),
                          _action(case.get("p2move"))], jnp.int32)
-    state = _JIT_STEP(state, actions)
+    state = run(state, actions)
     # A self-switch suspends the turn to ask for a replacement; answer it so the
     # rest of the turn runs, exactly as the Showdown harness does.
     if case.get("p1switchAfter") and int(state.phase) == C.PHASE_SWITCH:
         reply = jnp.array([C.ACTION_SWITCH_BASE + case["p1switchAfter"] - 1, 0],
                           jnp.int32)
-        state = _JIT_STEP(state, reply)
+        state = run(state, reply)
+    for a, b in case.get("turns") or []:
+        state = run(state, jnp.array([_action(a), _action(b)], jnp.int32))
     return snapshot(state)
 
 

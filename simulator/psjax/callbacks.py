@@ -19,6 +19,7 @@ import jax.numpy as jnp
 
 from . import consts as C
 from . import effects as E
+from .data import species_index
 from .stats import chain_modify, floordiv, idiv
 
 
@@ -66,6 +67,14 @@ class CbCtx(NamedTuple):
     type_exp: jnp.ndarray            # type effectiveness, for Collision Course
     dfn_def: jnp.ndarray             # boosted, unmodified Defence ...
     dfn_spd: jnp.ndarray             # ... and Sp. Def, for Shell Side Arm
+    # Added later, with defaults so a context built by hand still works.
+    gravity: jnp.ndarray = False     # Grav Apple
+    fickle: jnp.ndarray = False      # Fickle Beam's 30% roll came up
+    fusion_last: jnp.ndarray = 0     # 1/2: Fusion Flare/Bolt succeeded last this turn
+    user_base_atk: jnp.ndarray = 0   # species base Attack, for Beat Up's first hit
+    user_species: jnp.ndarray = -1   # signature moves that follow the user's forme
+    plate_type: jnp.ndarray = C.TYPE_NONE   # type of the user's plate (Judgment)
+    dfn_item_locked: jnp.ndarray = False    # target's item cannot be taken (Knock Off)
 
 M1 = 4096
 
@@ -181,6 +190,15 @@ def _bp_happiness(c): return jnp.int32(102)
 def _bp_frustration(c): return jnp.int32(1)
 
 
+def _bp_beatup(c):
+    """5 + base Attack / 10 of the party member landing this hit.
+
+    This is the first hit, the user's own; `execute_move` supplies the rest,
+    since each comes from a different party member.
+    """
+    return 5 + floordiv(jnp.asarray(c.user_base_atk, jnp.int32), 10)
+
+
 BP_REPLACE_FNS = {
     "none": _bp_none, "acrobatics": _bp_acrobatics, "assurance": _bp_assurance,
     "avalanche": _bp_avalanche, "payback": _bp_payback, "boltbeak": _bp_boltbeak,
@@ -193,6 +211,7 @@ BP_REPLACE_FNS = {
     "terrainpulse": _bp_terrainpulse, "risingvoltage": _bp_risingvoltage,
     "multihit_scaling": _bp_multihit_scaling, "furycutter": _bp_furycutter,
     "happiness": _bp_happiness, "frustration": _bp_frustration,
+    "beatup": _bp_beatup,
 }
 
 
@@ -214,7 +233,9 @@ def _m_venoshock(c):
 
 
 def _m_brine(c): return jnp.where(c.dfn_hp * 2 <= c.dfn_maxhp, 8192, M1)
-def _m_knockoff(c): return jnp.where(c.dfn_item != 0, 6144, M1)
+def _m_knockoff(c):
+    # No bonus against an item that cannot be removed (a plate on Arceus).
+    return jnp.where((c.dfn_item != 0) & jnp.logical_not(c.dfn_item_locked), 6144, M1)
 
 
 def _m_expandingforce(c):
@@ -247,12 +268,20 @@ def _m_supereffective_boost(c):
     return jnp.where(c.type_exp > 0, 5461, M1)
 
 
+def _m_ficklebeam(c): return jnp.where(c.fickle, 8192, M1)
+def _m_gravapple(c): return jnp.where(c.gravity, 6144, M1)
+def _m_fusionflare(c): return jnp.where(c.fusion_last == 2, 8192, M1)
+def _m_fusionbolt(c): return jnp.where(c.fusion_last == 1, 8192, M1)
+
+
 BP_MODIFY_FNS = {
     "none": _m_none, "facade": _m_facade, "hex": _m_hex, "venoshock": _m_venoshock,
     "brine": _m_brine, "knockoff": _m_knockoff, "expandingforce": _m_expandingforce,
     "mistyexplosion": _m_mistyexplosion, "psyblade": _m_psyblade,
     "solarbeam": _m_solarbeam, "stompingtantrum": _m_stompingtantrum,
     "lashout": _m_lashout, "supereffective_boost": _m_supereffective_boost,
+    "ficklebeam": _m_ficklebeam, "gravapple": _m_gravapple,
+    "fusionflare": _m_fusionflare, "fusionbolt": _m_fusionbolt,
 }
 
 
@@ -323,10 +352,41 @@ def _t_terablast(c):
     return jnp.where(c.terastallized, c.tera_type, c.move_type).astype(jnp.int8)
 
 
-# Judgment / Techno Blast / Multi-Attack read the held plate, drive or memory.
-# Those items are not in the modelled item set, so the move keeps its base type;
-# `coverage.py` reports this rather than silently pretending otherwise.
+# Techno Blast / Multi-Attack / Natural Gift read a drive, memory or berry,
+# none of which the engine's item set includes, so they keep their base type.
 def _t_item_typed(c): return c.move_type
+
+
+def _t_judgment(c):
+    """Judgment takes the type of the held plate."""
+    plate = jnp.asarray(c.plate_type, jnp.int8)
+    return jnp.where(plate != C.TYPE_NONE, plate, c.move_type).astype(jnp.int8)
+
+
+def _by_species(c, table):
+    t = c.move_type
+    for species, typ in table:
+        t = jnp.where(c.user_species == species_index(species), jnp.int8(typ), t)
+    return t.astype(jnp.int8)
+
+
+def _t_ivycudgel(c):
+    return _by_species(c, (("ogerponwellspring", C.WATER), ("ogerponhearthflame", C.FIRE),
+                           ("ogerponcornerstone", C.ROCK)))
+
+
+def _t_ragingbull(c):
+    return _by_species(c, (("taurospaldeacombat", C.FIGHTING),
+                           ("taurospaldeablaze", C.FIRE), ("taurospaldeaaqua", C.WATER)))
+
+
+def _t_aurawheel(c):
+    """Electric in Full Belly Mode, Dark once Hunger Switch has made it Hangry."""
+    return _by_species(c, (("morpekohangry", C.DARK),))
+
+
+def _t_terastarstorm(c):
+    return _by_species(c, (("terapagosstellar", C.STELLAR),))
 
 
 def _t_revelationdance(c):
@@ -336,10 +396,11 @@ def _t_revelationdance(c):
 
 TYPE_FNS = {
     "none": _t_none, "weatherball": _t_weatherball, "terrainpulse": _t_terrainpulse,
-    "terablast": _t_terablast, "judgment": _t_item_typed,
+    "terablast": _t_terablast, "judgment": _t_judgment,
     "technoblast": _t_item_typed, "multiattack": _t_item_typed,
-    "revelationdance": _t_revelationdance, "ivycudgel": _t_item_typed,
-    "ragingbull": _t_none, "aurawheel": _t_none, "naturalgift": _t_item_typed,
+    "revelationdance": _t_revelationdance, "ivycudgel": _t_ivycudgel,
+    "ragingbull": _t_ragingbull, "aurawheel": _t_aurawheel,
+    "naturalgift": _t_item_typed, "terastarstorm": _t_terastarstorm,
 }
 
 

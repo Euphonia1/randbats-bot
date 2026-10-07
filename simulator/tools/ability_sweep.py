@@ -33,6 +33,11 @@ CONTEXTS = [
     ("phys burned pinch sun", "closecombat",
      {"status": "brn", "hpPercent": 0.3}, {"weather": "sunnyday"}),
     ("spec rain", "surf", {}, {"weather": "raindance"}),
+    # A burned special attacker in a pinch using a Fire move with a secondary:
+    # Blaze, Flare Boost and Sheer Force, none of which the first two reach.
+    ("spec burned pinch fire", "flamethrower", {"status": "brn", "hpPercent": 0.3}, {}),
+    # A poisoned physical attacker: Toxic Boost.
+    ("phys poisoned", "closecombat", {"status": "psn"}, {}),
 ]
 
 cases = []

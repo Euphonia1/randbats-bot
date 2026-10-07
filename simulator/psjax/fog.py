@@ -138,11 +138,18 @@ class FogOfWarEnv:
         maxhp = jnp.maximum(st.maxhp[you], 1)
         pct = jnp.ceil(st.hp[you].astype(jnp.float32) * 100.0 / maxhp)
 
+        # Illusion: until it is hit, the active Pokemon looks like the party
+        # member it is impersonating, so the opponent sees that one's typing.
+        active = st.active[you].astype(jnp.int32)
+        disguise = st.illusion[you].astype(jnp.int32)
+        shown = st.types[you, jnp.where(disguise >= 0, disguise, active)]
+
         return st._replace(
             moves=set_at(st.moves, you, moves),
             pp=set_at(st.pp, you, pp),
             hp=set_at(st.hp, you, pct),
-            maxhp=set_at(st.maxhp, you, 100))
+            maxhp=set_at(st.maxhp, you, 100),
+            types=set_at(st.types, (you, active), shown))
 
     @functools.partial(jax.jit, static_argnums=0)
     def observe(self, fs: FogState) -> jnp.ndarray:
