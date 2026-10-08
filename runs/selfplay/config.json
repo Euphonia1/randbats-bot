@@ -1,0 +1,20 @@
+{
+  "num_envs": 1024,
+  "rollout_steps": 64,
+  "max_turns": 500,
+  "lr": 0.0003,
+  "epochs": 4,
+  "minibatch_size": 4096,
+  "clip": 0.2,
+  "gae_lambda": 0.95,
+  "value_coef": 0.5,
+  "entropy_coef": 0.01,
+  "zero_avoid_coef": 0.01,
+  "max_grad_norm": 0.5,
+  "target_kl": 0.0,
+  "iterations": 5000,
+  "eval_every": 20,
+  "save_every": 10,
+  "seed": 0,
+  "device": "auto"
+}
