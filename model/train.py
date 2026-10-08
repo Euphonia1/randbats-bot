@@ -262,6 +262,10 @@ class Trainer:
         self.device = torch.device(("cuda" if torch.cuda.is_available() else "cpu")
                                    if cfg.device == "auto" else cfg.device)
         torch.manual_seed(cfg.seed)
+        # TF32 matrix multiplies on the tensor cores of Ampere and later GPUs
+        # (an A100, a 4070): several times plain fp32's speed, at 10 bits of
+        # mantissa. Without it an A100 is slower than a 4070.
+        torch.set_float32_matmul_precision("high")
         self.env = env if env is not None else FogOfWarEnv()
         self.net = GameNetwork().to(self.device)
         self.opt = torch.optim.Adam(self.net.parameters(), lr=cfg.lr, eps=1e-5)
