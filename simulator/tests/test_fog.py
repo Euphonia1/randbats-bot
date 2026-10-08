@@ -13,7 +13,9 @@ import jax.numpy as jnp
 from psjax import consts as C
 from psjax.data import load_data
 from psjax.env import BattleEnv
-from psjax.fog import FogOfWarEnv, FogState
+from psjax.fog import HIST_TURN, HISTORY_LEN, FogOfWarEnv, FogState, empty_history
+from psjax.data import names
+from scenario import build
 
 DATA = load_data()
 ENV = FogOfWarEnv(BattleEnv(DATA))
@@ -207,3 +209,59 @@ def test_fog_state_is_a_pytree():
     leaves = jax.tree.leaves(fs)
     assert leaves, "FogState must flatten for vmap and scan"
     assert isinstance(jax.tree.map(lambda x: x, fs), FogState)
+
+
+# --- history ------------------------------------------------------------------
+
+def _events(fs):
+    """The history's rows that hold an event, as lists."""
+    return [row for row in fs.history.tolist() if row[C.EV_SIDE] >= 0]
+
+
+def test_history_starts_with_the_leads_coming_in():
+    fs = ENV.reset(jax.random.PRNGKey(16))
+    st = fs.battle
+    assert _events(fs) == [[p, 0, int(st.species[p, max(int(st.illusion[p]), 0)]), -1, 0]
+                           for p in range(C.NUM_PLAYERS)]
+
+
+def test_history_keeps_the_newest_events_in_order():
+    fs = ENV.reset(jax.random.PRNGKey(17))
+    for fs in _rollout(ENV, fs, jax.random.PRNGKey(18), 40)[1:]:
+        rows = fs.history.tolist()
+        filled = [r[C.EV_SIDE] >= 0 for r in rows]
+        assert filled == sorted(filled), "empty rows only at the front"
+        turns = [r[HIST_TURN] for r in rows if r[C.EV_SIDE] >= 0]
+        assert turns == sorted(turns) and turns[-1] <= int(fs.battle.turn)
+    assert len(_events(fs)) == HISTORY_LEN, "forty steps fill it"
+
+
+def test_a_finished_battle_adds_nothing_more():
+    fs = ENV.reset(jax.random.PRNGKey(19))
+    for i in range(500):
+        if bool(fs.battle.phase == C.PHASE_END):
+            break
+        fs, _, _, _ = ENV.step(fs, ENV.sample_actions(fs, jax.random.PRNGKey(i)))
+    assert bool(fs.battle.phase == C.PHASE_END)
+    after, _, _, _ = ENV.step(fs, jnp.zeros(2, jnp.int32))
+    assert bool(jnp.array_equal(after.history, fs.history))
+
+
+def test_a_self_switch_logs_the_replacement_before_the_held_over_move():
+    n = names()
+    chomp = {"species": "Garchomp", "ability": "Rough Skin", "moves": ["uturn"]}
+    blissey = {"species": "Blissey", "ability": "Natural Cure", "moves": ["softboiled"]}
+    gholdengo = {"species": "Gholdengo", "ability": "Good as Gold", "moves": ["nastyplot"]}
+    state = build({"p1": chomp, "p1team": [chomp, blissey], "p2": gholdengo},
+                  jax.random.PRNGKey(0))
+    fs = FogState(battle=state, revealed=jnp.zeros((2, 6), bool),
+                  revealed_moves=jnp.zeros((2, 6, 4), bool), history=empty_history())
+
+    # Garchomp is faster: its U-turn suspends the turn for a replacement
+    fs, _, _, _ = ENV.step(fs, jnp.array([0, 0], jnp.int32))
+    uturn, plot = n.move_id("uturn"), n.move_id("nastyplot")
+    assert _events(fs) == [[0, 0, n.species_id("garchomp"), uturn, 1]]
+    # Blissey comes in, then Gholdengo's held-over Nasty Plot runs, same turn
+    fs, _, _, _ = ENV.step(fs, jnp.array([C.ACTION_SWITCH_BASE + 1, 0], jnp.int32))
+    assert _events(fs)[1:] == [[0, 1, n.species_id("blissey"), -1, 1],
+                               [1, 0, n.species_id("gholdengo"), plot, 1]]

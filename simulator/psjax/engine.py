@@ -29,15 +29,16 @@ from . import consts as C
 from . import effects as E
 from .damage import (Attacker, MoveCtx, CRIT_RATES, calc_damage, current_types,
                      type_effectiveness)
-from .data import load_data, species_index
+from .data import load_data, move_index, species_index
 from .hooks import A, ABILITY_IDX, I
-from .mechanics import (act, active_types, actives_alive, apply_boosts, below,
+from .mechanics import (_actives, act, active_types, actives_alive, apply_boosts, below,
                         berry_update, berry_wants, boost_delta, cure_status, eat_berry,
                         forme_change, revert_on_switch_out, slot_get, slot_set,
                         soul_heart, damage_pokemon, effective_speed,
                         effective_weather, fraction_of_max, heal_pokemon,
-                        is_grounded, random_words, set_status, set_terrain,
-                        set_weather, uniform, paradox_update, usable_moves, white_herb)
+                        is_grounded, log_event, random_words, set_status, set_terrain,
+                        set_weather, shown_species, uniform, unnerved, paradox_update,
+                        usable_moves, white_herb, lose_item)
 from .moves import (MOVE_WORDS, build_defender, execute_move, move_priority,
                     transform_into)
 from .stats import boost_multiply
@@ -72,20 +73,46 @@ def action_priority(data, state, side, action):
     Switches outrank every move; otherwise move priority plus ability bonuses
     (`moves.move_priority`). Doubling keeps it an integer while letting Mycelium
     Might's status moves go last within their bracket. A move the user is
-    locked into (charging Solar Beam) or encored into is what counts.
+    locked into (charging Solar Beam) or encored into is what counts, and so
+    is Struggle for a Pokemon with nothing usable -- whatever sits in slot 0.
+    A Custap Berry ready to go adds one, ahead of its own bracket.
     """
     ai = act(state, side)
-    slot = move_slot(action)
-    slot = jnp.where(state.locked_slot[side] >= 0, state.locked_slot[side].astype(jnp.int32),
-                     jnp.where((state.volatiles[side, C.V_ENCORE] > 0) &
-                               (state.encore_slot[side] >= 0),
-                               state.encore_slot[side].astype(jnp.int32), slot))
-    mid = jnp.maximum(state.moves[side, ai, slot], 0)
+    mid = _action_move(data, state, side, action)
     pri = 2 * move_priority(data, state, side, mid)
     mycelium = (state.ability[side, ai] == A.MYCELIUMMIGHT) & \
         (data["move_category"][mid] == C.CAT_STATUS)
-    pri = pri - jnp.where(mycelium, 1, 0)
+    pri = pri - jnp.where(mycelium, 1, 0) + jnp.where(custap_fires(data, state, side, action), 1, 0)
     return jnp.where(is_switch(action), jnp.int32(20), pri)
+
+
+def _action_move(data, state, side, action):
+    """The move a move action will use: a locked or encored move overrides the
+    chosen slot, and Struggle stands in when nothing is usable."""
+    ai = act(state, side)
+    slot = move_slot(action)
+    locked = state.locked_slot[side] >= 0
+    slot = jnp.where(locked, state.locked_slot[side].astype(jnp.int32),
+                     jnp.where((state.volatiles[side, C.V_ENCORE] > 0) &
+                               (state.encore_slot[side] >= 0),
+                               state.encore_slot[side].astype(jnp.int32), slot))
+    struggles = jnp.logical_not(jnp.any(usable_moves(data, state, side))) & \
+        jnp.logical_not(locked)
+    return jnp.where(struggles, move_index("struggle"),
+                     jnp.maximum(state.moves[side, ai, slot], 0))
+
+
+def custap_fires(data, state, side, action):
+    """Custap Berry: at a quarter HP or less, a move of priority 0 or lower goes
+    first in its bracket, and the berry is eaten as the order is settled
+    (Showdown's onFractionalPriority). Unnerve keeps it uneaten."""
+    ai = act(state, side)
+    hp = state.hp[side, ai].astype(jnp.int32)
+    mid = _action_move(data, state, side, action)
+    return (state.item[side, ai] == I.CUSTAPBERRY) & (hp > 0) & \
+        (hp * 4 <= state.maxhp[side, ai].astype(jnp.int32)) & \
+        jnp.logical_not(unnerved(state, side)) & jnp.logical_not(is_switch(action)) & \
+        (action >= 0) & (move_priority(data, state, side, mid) <= 0)
 
 
 def turn_order(data, state, actions, key):
@@ -139,10 +166,11 @@ def apply_entry_hazards(data, state, side):
                              fraction_of_max(state, side, i, 1, denom), 0)
     state, _ = damage_pokemon(state, side, i, spike_damage)
 
-    # Toxic Spikes: poison (or badly poison at two layers); Poison types absorb.
+    # Toxic Spikes: poison (or badly poison at two layers); Poison types absorb
+    # them -- if the Stealth Rock and Spikes before them left one standing.
     tspikes = sc[C.SC_TOXICSPIKES].astype(jnp.int32)
     is_poison = jnp.any(types == C.POISON)
-    absorb = (tspikes > 0) & grounded & is_poison
+    absorb = (tspikes > 0) & grounded & is_poison & (state.hp[side, i] > 0)
     state = state._replace(side_conditions=set_at(
         state.side_conditions, (side, C.SC_TOXICSPIKES), 0, when=absorb))
     poison_status = jnp.where(tspikes >= 2, jnp.int8(C.TOX), jnp.int8(C.PSN))
@@ -336,6 +364,7 @@ def swap_in(data, state, side, slot):
         party_pos=set_at(state.party_pos, side, pos, valid),
         illusion=set_at(state.illusion, side, disguise,
                         slot_get(state.ability, side, slot) == A.ILLUSION))
+    state = log_event(state, side, slot, shown_species(state, side, slot), -1, when=valid)
     return state, valid
 
 
@@ -350,6 +379,10 @@ def arrive(data, state, side, when=True):
 
 
 def _arrive(data, state, side, valid):
+    # Showdown runs Update after the switch itself, before anything of the
+    # newcomer's starts: a foe kept from its berry by the Unnerve that just
+    # left eats it now, whatever the newcomer's own ability.
+    state = berry_update(data, state, 1 - side, when=valid, foe_started=False)
     # A Healing Wish waiting on this side restores the newcomer in full if it
     # is hurt or statused -- before the hazards, as Showdown runs slot
     # conditions ahead of side conditions. Lunar Dance restores its PP too,
@@ -365,6 +398,12 @@ def _arrive(data, state, side, valid):
         status=set_at(state.status, (side, i), jnp.int8(C.STATUS_NONE), restores),
         pp=set_at(state.pp, (side, i), state.maxpp[side, i], restores & lunar),
         healing_wish=set_at(state.healing_wish, side, 0, restores))
+    # Tera Shift (switch-in priority 2) takes Terapagos to its Terastal Form,
+    # and its larger max HP, before the hazards measure it.
+    shift = valid & (state.ability[side, i] == A.TERASHIFT) & \
+        (state.species[side, i] == species_index("terapagos"))
+    state = forme_change(data, state, side, i, species_index("terapagosterastal"),
+                         when=shift, permanent=True, ability=A.TERASHELL)
     state = apply_entry_hazards(data, state, side)
     # A newcomer the hazards knocked out does nothing on arrival (no Intimidate).
     state = select_state(state.hp[side, i] > 0,
@@ -374,34 +413,44 @@ def _arrive(data, state, side, valid):
         state.overlord_count, side, jnp.sum(state.hp[side] <= 0).astype(jnp.int8)))
     state = berry_update(data, state, side)
     # White Herb answers a drop from the arrival (Intimidate, Sticky Web).
-    return white_herb(state)
+    return trace_update(data, white_herb(state))
+
+
+def trace_update(data, state):
+    """Trace keeps looking until it has something to copy (Showdown's
+    `onUpdate`): a Trace user that came in facing nobody, or an ability it
+    could not copy, takes the next foe's. Both sides at once. Only the ability
+    is copied here; its entry effect, if it has one, does not run."""
+    foe = jnp.arange(C.NUM_PLAYERS)[::-1]
+    ab = _actives(state, state.ability)
+    foe_ab = ab[foe]
+    foe_alive = (_actives(state, state.hp) > 0)[foe]
+    tracing = (ab == A.TRACE) & (_actives(state, state.hp) > 0) & foe_alive & \
+        (foe_ab != 0) & jnp.logical_not(data["ability_notrace"][foe_ab])
+    on = (jnp.arange(C.TEAM_SIZE)[None, :] == state.active.astype(jnp.int32)[:, None]) & \
+        tracing[:, None]
+    return state._replace(ability=jnp.where(on, foe_ab[:, None], state.ability))
 
 
 # --- residuals ---------------------------------------------------------------
-
-#: Every field `residuals` writes. A suspended turn runs them with `when=False`,
-#: which selects the old value back for each -- cheaper than branching around the
-#: whole function, which under vmap would select over the entire BattleState.
-RESIDUAL_WRITES = ("hp", "last_faint", "status", "status_turns", "sleep_attempts", "rest_sleep",
-                   "volatiles", "boosts", "stats_raised", "stats_lowered",
-                   "weather", "weather_turns", "terrain", "terrain_turns",
-                   "trick_room", "gravity", "side_conditions", "item",
-                   "last_item", "cud_berry", "cud_turns", "future_turns",
-                   "wish_turns", "sub_hp", "species", "types", "stats", "pp",
-                   "encore_slot", "locked_slot")
-
 
 def residuals(data, state, key, when=True):
     """End-of-turn effects, in Showdown's residual order.
 
     `when=False` makes the whole thing a no-op, for a turn that was suspended
-    partway through so a self-switch could pick its replacement.
+    partway through so a self-switch could pick its replacement. The old value
+    is selected back for every field the residuals wrote -- found at trace
+    time, since an untouched field is the very same array -- which is cheaper
+    than branching around the whole function, which under vmap would select
+    over the entire BattleState. (A hand-kept list of the written fields once
+    missed `boosted_stat`: a replacement's Protosynthesis was switched off by a
+    sun that, in the residuals that were then thrown away, had just ended.)
     """
     original = state
     state = _residuals(data, state, key)
-    return state._replace(**{f: jnp.where(when, getattr(state, f),
-                                          getattr(original, f))
-                             for f in RESIDUAL_WRITES})
+    return original._replace(**{
+        f: jnp.where(when, getattr(state, f), getattr(original, f))
+        for f in state._fields if getattr(state, f) is not getattr(original, f)})
 
 
 def future_hit(data, state, side, when, words):
@@ -482,89 +531,124 @@ def _residuals(data, state, key):
         weather=jnp.where(weather_turns <= 0, jnp.int8(C.WEATHER_NONE), state.weather),
         weather_turns=weather_turns)
 
-    def side_residual(side, state):
-        i = act(state, side)
-        alive = state.hp[side, i] > 0
+    # Showdown runs the residuals effect by effect -- each one for both sides,
+    # fastest first -- and stops the moment a side has nobody left. So they are
+    # split into phases by Showdown's residual order, each a `fori_loop` over
+    # the two sides in speed order (one compiled copy apiece), and a side's turn
+    # in a phase is skipped once the battle is decided. Running all of one
+    # side's residuals before the other's had Bad Dreams land before the
+    # victim's Leftovers, and one side's poison knock it out before its Leech
+    # Seed had finished the other off.
+    first = speed_order(state)
+
+    def phased(phase, state):
+        def body(k, st):
+            side = jnp.where(k == 0, first, 1 - first)
+            i = act(st, side)
+            live = jnp.logical_not(_battle_over(st))
+            return phase(side, i, (st.hp[side, i] > 0) & live, st)
+        return jax.lax.fori_loop(0, C.NUM_PLAYERS, body, state)
+
+    # Order 1-4: the weather's chip and the abilities that answer it, then
+    # Future Sight / Doom Desire and Wish (slot conditions).
+    def weather_and_slots(side, i, alive, state):
         ab = state.ability[side, i]
         magic_guard = ab == A.MAGICGUARD
         types = active_types(state, side)
         w = effective_weather(state)
         words = residual_words[side]
-
-        # 1. Sandstorm chips everything but Rock, Ground and Steel.
+        # Sandstorm chips everything but Rock, Ground and Steel.
         sand_immune = (jnp.any(types == C.ROCK) | jnp.any(types == C.GROUND) |
                        jnp.any(types == C.STEEL) | (ab == A.SANDVEIL) |
                        (ab == A.SANDRUSH) | (ab == A.SANDFORCE) |
                        (ab == A.OVERCOAT) | (state.item[side, i] == I.SAFETYGOGGLES))
         sand = (w == C.SAND) & alive & jnp.logical_not(sand_immune) & \
-               jnp.logical_not(magic_guard)
+            jnp.logical_not(magic_guard)
         state, _ = damage_pokemon(state, side, i,
                                   jnp.where(sand, fraction_of_max(state, side, i, 1, 16), 0))
-        # Abilities that answer the weather: Ice Body heals a sixteenth in snow
-        # and Rain Dish in rain; Dry Skin heals an eighth in rain and loses one
-        # in sun, as Solar Power does. At most one applies.
+        # Ice Body heals a sixteenth in snow and Rain Dish in rain; Dry Skin
+        # heals an eighth in rain and loses one in sun, as Solar Power does.
         sunny = (w == C.SUN) | (w == C.HARSH_SUN)
         rainy = (w == C.RAIN) | (w == C.HEAVY_RAIN)
         sixteenth = ((ab == A.ICEBODY) & (w == C.SNOW)) | ((ab == A.RAINDISH) & rainy)
         wet = (ab == A.DRYSKIN) & rainy
-        scorched = (((ab == A.DRYSKIN) | (ab == A.SOLARPOWER)) & sunny) &             jnp.logical_not(magic_guard)
+        scorched = (((ab == A.DRYSKIN) | (ab == A.SOLARPOWER)) & sunny) & \
+            jnp.logical_not(magic_guard)
         state, _ = heal_pokemon(state, side, i, jnp.where(
             alive & (sixteenth | wet),
             fraction_of_max(state, side, i, 1, jnp.where(wet, 8, 16)), 0))
         state, _ = damage_pokemon(state, side, i, jnp.where(
             alive & scorched, fraction_of_max(state, side, i, 1, 8), 0))
-
-        # Future Sight and Doom Desire land, then Wish heals: slot conditions,
-        # counting down in residuals.
+        # Showdown runs Update after the weather's turn (the only residual that
+        # does), so a berry the chip has triggered is eaten now -- before
+        # Harvest, which can grow it back the same turn.
+        state = berry_update(data, state, side, during_residual=True,
+                             when=alive & (state.weather != C.WEATHER_NONE))
+        # Future Sight lands, then Wish heals, counting down as they go.
         future = state.future_turns[side]
-        state = future_hit(data, state, side, future == 1, words[2:])
+        state = future_hit(data, state, side, (future == 1) & jnp.logical_not(
+            _battle_over(state)), words[2:])
         wish = state.wish_turns[side]
-        state, _ = heal_pokemon(state, side, i,
-                                jnp.where((wish == 1) & alive, state.wish_hp[side], 0))
-        state = state._replace(
+        state, _ = heal_pokemon(state, side, i, jnp.where(
+            (wish == 1) & alive & (state.hp[side, i] > 0), state.wish_hp[side], 0))
+        return state._replace(
             future_turns=set_at(state.future_turns, side, jnp.maximum(future - 1, 0)),
             wish_turns=set_at(state.wish_turns, side, jnp.maximum(wish - 1, 0)))
 
-        alive = state.hp[side, i] > 0
-
-        # 2. Grassy Terrain heals grounded Pokemon.
+    # Order 5-7: Grassy Terrain, Shed Skin / Hydration, Leftovers, Aqua Ring and
+    # Ingrain.
+    def healing(side, i, alive, state):
+        ab = state.ability[side, i]
+        w = effective_weather(state)
+        words = residual_words[side]
         grassy = (state.terrain == C.GRASSY_TERRAIN) & alive & is_grounded(state, side)
         state, _ = heal_pokemon(state, side, i,
                                 jnp.where(grassy, fraction_of_max(state, side, i, 1, 16), 0))
-
-        # 3. Leftovers.
+        # Shed Skin / Hydration (5.3) come before Leftovers and the poison or
+        # burn damage the status would have dealt.
+        shed = (ab == A.SHEDSKIN) & alive & (slot_get(state.status, side, i) != 0) & \
+            (uniform(words[0]) < (1.0 / 3.0))
+        hydrated = (ab == A.HYDRATION) & alive & ((w == C.RAIN) | (w == C.HEAVY_RAIN))
+        state = cure_status(state, side, i, when=shed | hydrated)
         lefto = (state.item[side, i] == I.LEFTOVERS) & alive
         state, _ = heal_pokemon(state, side, i,
                                 jnp.where(lefto, fraction_of_max(state, side, i, 1, 16), 0))
-
-        # 4. Aqua Ring and Ingrain.
         for vol in (C.V_AQUARING, C.V_INGRAIN):
             on = (state.volatiles[side, vol] > 0) & alive
             state, _ = heal_pokemon(state, side, i,
                                     jnp.where(on, fraction_of_max(state, side, i, 1, 16), 0))
+        return state
 
-        # 5. Leech Seed drains to the opponent's active slot.
+    # Order 8: Leech Seed drains to the opponent's active slot.
+    def leech_seed(side, i, alive, state):
+        ab = state.ability[side, i]
         other = 1 - side
         oi = act(state, other)
         seeded = (state.volatiles[side, C.V_LEECHSEED] > 0) & alive & \
-                 jnp.logical_not(magic_guard) & (state.hp[other, oi] > 0)
+            (ab != A.MAGICGUARD) & (state.hp[other, oi] > 0)
         drain = jnp.where(seeded, fraction_of_max(state, side, i, 1, 8), 0)
         state, dealt = damage_pokemon(state, side, i, drain)
         # Liquid Ooze turns the seeder's healing into damage.
         ooze = ab == A.LIQUIDOOZE
         state, _ = heal_pokemon(state, other, oi, jnp.where(ooze, 0, dealt))
         state, _ = damage_pokemon(state, other, oi, jnp.where(ooze, dealt, 0))
+        return state
 
-        # 6. Burn and poison damage. Toxic ramps by 1/16 per turn.
+    # Order 9-10: poison, then burn. Toxic ramps by a sixteenth a turn.
+    def status_damage(side, i, alive, state):
+        ab = state.ability[side, i]
+        magic_guard = ab == A.MAGICGUARD
         status = state.status[side, i]
         counter = state.status_turns[side, i].astype(jnp.int32)
         poison_heal = ab == A.POISONHEAL
         burn = (status == C.BRN) & alive & jnp.logical_not(magic_guard)
         psn = (status == C.PSN) & alive & jnp.logical_not(magic_guard) & \
-              jnp.logical_not(poison_heal)
+            jnp.logical_not(poison_heal)
         tox = (status == C.TOX) & alive & jnp.logical_not(magic_guard) & \
-              jnp.logical_not(poison_heal)
-        burn_dmg = jnp.where(burn, fraction_of_max(state, side, i, 1, 16), 0)
+            jnp.logical_not(poison_heal)
+        # Heatproof halves the burn's sixteenth.
+        burn_dmg = jnp.where(burn, fraction_of_max(state, side, i, 1,
+                                                   jnp.where(ab == A.HEATPROOF, 32, 16)), 0)
         psn_dmg = jnp.where(psn, fraction_of_max(state, side, i, 1, 8), 0)
         # Showdown floors the sixteenth first and then multiplies by the stage.
         tox_dmg = jnp.where(tox, fraction_of_max(state, side, i, 1, 16) *
@@ -576,64 +660,68 @@ def _residuals(data, state, key):
             jnp.where(poison_heal & ((status == C.PSN) | (status == C.TOX)) & alive,
                       fraction_of_max(state, side, i, 1, 8), 0))
         # The count climbs even when Poison Heal or Magic Guard takes the damage.
-        state = state._replace(status_turns=set_at(
+        return state._replace(status_turns=set_at(
             state.status_turns, (side, i), jnp.minimum(counter + 1, 16),
             when=(status == C.TOX) & alive))
 
-        # 7. Salt Cure: 1/4 against Water and Steel, else 1/8.
+    # Order 12-14: Curse, binding moves, Salt Cure, Syrup Bomb.
+    def lingering(side, i, alive, state):
+        magic_guard = state.ability[side, i] == A.MAGICGUARD
+        types = active_types(state, side)
+        cursed = (state.volatiles[side, C.V_CURSE] > 0) & alive & jnp.logical_not(magic_guard)
+        state, _ = damage_pokemon(state, side, i,
+                                  jnp.where(cursed, fraction_of_max(state, side, i, 1, 4), 0))
+        # Binding moves chip an eighth each residual -- Showdown counts the
+        # turn down first and ends it there, so not on the last.
+        alive = state.hp[side, i] > 0
+        # (Not once the binder has fainted, earlier in the residuals.)
+        binder_up = state.hp[1 - side, act(state, 1 - side)] > 0
+        bound = (state.volatiles[side, C.V_PARTIALLYTRAPPED] > 1) & alive & binder_up & \
+            jnp.logical_not(magic_guard)
+        state, _ = damage_pokemon(state, side, i,
+                                  jnp.where(bound, fraction_of_max(state, side, i, 1, 8), 0))
+        # Salt Cure: 1/4 against Water and Steel, else 1/8.
+        alive = state.hp[side, i] > 0
         salted = (state.volatiles[side, C.V_SALTCURE] > 0) & alive & \
-                 jnp.logical_not(magic_guard)
+            jnp.logical_not(magic_guard)
         weak = jnp.any(types == C.WATER) | jnp.any(types == C.STEEL)
         state, _ = damage_pokemon(
             state, side, i,
             jnp.where(salted, fraction_of_max(state, side, i, 1, jnp.where(weak, 4, 8)), 0))
+        # Syrup Bomb takes a stage of Speed each residual it has left.
+        syrup = (state.volatiles[side, C.V_SYRUPBOMB] > 1) & (state.hp[side, i] > 0)
+        state, _ = apply_boosts(state, side, jnp.where(syrup, boost_delta((C.B_SPE, -1)), 0),
+                                from_opponent=True)
+        return state
 
-        # 8. Shed Skin / Hydration shake off status at the end of the turn.
-        shed = (ab == A.SHEDSKIN) & alive & (slot_get(state.status, side, i) != 0) & \
-            (uniform(words[0]) < (1.0 / 3.0))
-        hydrated = (ab == A.HYDRATION) & alive & \
-            ((w == C.RAIN) | (w == C.HEAVY_RAIN))
-        state = cure_status(state, side, i, when=shed | hydrated)
-
-        # 9. Speed Boost raises Speed at the end of every turn.
+    # Order 16-26: Encore ending on an empty move, Yawn, Speed Boost.
+    def late_volatiles(side, i, alive, state):
+        ab = state.ability[side, i]
+        words = residual_words[side]
+        encore_pp = state.pp[side, i, jnp.maximum(state.encore_slot[side], 0)]
+        state = state._replace(volatiles=set_at(
+            state.volatiles, (side, C.V_ENCORE), 0,
+            (state.volatiles[side, C.V_ENCORE] > 0) & (encore_pp <= 0)))
+        # Yawn puts its target to sleep as it runs out.
+        drowsy = (state.volatiles[side, C.V_YAWN] == 1) & alive
+        state, _ = set_status(data, state, side,
+                              jnp.where(drowsy, jnp.int8(C.SLP), jnp.int8(C.STATUS_NONE)),
+                              words[1])
+        # Speed Boost, though not on the turn its holder came in.
         state, _ = apply_boosts(
             state, side,
             jnp.where((ab == A.SPEEDBOOST) & alive & jnp.logical_not(
                 state.switched_this_turn[side]),
                 boost_delta((C.B_SPE, 1)), 0))
+        return state
 
-        # 10. Curse.
-        cursed = (state.volatiles[side, C.V_CURSE] > 0) & alive & \
-                 jnp.logical_not(magic_guard)
-        state, _ = damage_pokemon(state, side, i,
-                                  jnp.where(cursed, fraction_of_max(state, side, i, 1, 4), 0))
-
-
-        # Binding moves chip an eighth each residual -- Showdown counts the
-        # turn down first and ends it there, so not on the last.
-        bound = (state.volatiles[side, C.V_PARTIALLYTRAPPED] > 1) & alive & \
-            jnp.logical_not(magic_guard)
-        state, _ = damage_pokemon(state, side, i,
-                                  jnp.where(bound, fraction_of_max(state, side, i, 1, 8), 0))
-
-        # 11. Syrup Bomb takes a stage of Speed each residual it has left.
-        syrup = (state.volatiles[side, C.V_SYRUPBOMB] > 1) & alive
-        state, _ = apply_boosts(state, side, jnp.where(syrup, boost_delta((C.B_SPE, -1)), 0),
-                                from_opponent=True)
-
-        # 12. Yawn puts its target to sleep as it runs out.
-        drowsy = (state.volatiles[side, C.V_YAWN] == 1) & alive
-        state, _ = set_status(data, state, side,
-                              jnp.where(drowsy, jnp.int8(C.SLP), jnp.int8(C.STATUS_NONE)),
-                              words[1])
-
-        # 13. Encore ends early once the encored move is out of PP.
-        encore_pp = state.pp[side, i, jnp.maximum(state.encore_slot[side], 0)]
-        state = state._replace(volatiles=set_at(
-            state.volatiles, (side, C.V_ENCORE), 0,
-            (state.volatiles[side, C.V_ENCORE] > 0) & (encore_pp <= 0)))
-
-        # 14. Bad Dreams: a sleeping foe loses an eighth.
+    # Order 28-29: Bad Dreams, Harvest and the berries, Flame / Toxic Orb, and
+    # the formes that follow the turn.
+    def end_of_turn(side, i, alive, state):
+        ab = state.ability[side, i]
+        w = effective_weather(state)
+        words = residual_words[side]
+        # Bad Dreams: a sleeping foe loses an eighth.
         other = 1 - side
         oi = act(state, other)
         nightmare = (ab == A.BADDREAMS) & alive & (state.hp[other, oi] > 0) & \
@@ -641,9 +729,7 @@ def _residuals(data, state, key):
             (state.ability[other, oi] != A.MAGICGUARD)
         state, _ = damage_pokemon(state, other, oi, jnp.where(
             nightmare, fraction_of_max(state, other, oi, 1, 8), 0))
-
-
-        # 15. Harvest regrows the last berry eaten: always in sun, else half the
+        # Harvest regrows the last berry eaten: always in sun, else half the
         # time. Cud Chew eats the same berry again, a turn after the first time.
         alive = state.hp[side, i] > 0
         sunny = (w == C.SUN) | (w == C.HARSH_SUN)
@@ -654,7 +740,8 @@ def _residuals(data, state, key):
             last_item=set_at(state.last_item, (side, i), 0, regrows))
         # Either way, a side eats at most once here: Cud Chew's second helping,
         # or its held berry if the residuals have met its trigger (Sitrus after
-        # poison). Only a berry first eaten here restarts Cud Chew at one turn.
+        # poison) -- Showdown's Update after them, so after Harvest too. Only a
+        # berry first eaten here restarts Cud Chew at one turn.
         chewing = (state.cud_turns[side] > 0) & alive
         chewed = chewing & (state.cud_turns[side] == 1)
         second_helping = state.cud_berry[side]
@@ -665,20 +752,19 @@ def _residuals(data, state, key):
                           jnp.where(chewed, second_helping, state.item[side, i]),
                           when=chewed | berry_wants(state, side),
                           consume=jnp.logical_not(chewed), cud=jnp.where(chewed, 0, 1))
-
-        # Flame Orb and Toxic Orb, late in the residuals -- after the burn and
-        # poison damage, so the holder takes none until the next turn. Safeguard
-        # does not stop a status the holder gives itself.
+        # Flame Orb and Toxic Orb, after the burn and poison damage, so the holder
+        # takes none until the next turn. Safeguard does not stop a status the
+        # holder gives itself.
         held = state.item[side, i]
         orb = jnp.where(held == I.FLAMEORB, jnp.int8(C.BRN),
                         jnp.where(held == I.TOXICORB, jnp.int8(C.TOX), jnp.int8(C.STATUS_NONE)))
         state, _ = set_status(data, state, side,
                               jnp.where(state.hp[side, i] > 0, orb, jnp.int8(C.STATUS_NONE)),
                               words[1], self_inflicted=True)
-
-        # 16. Formes that follow the turn: Morpeko's Hunger Switch flips between
-        # Full Belly and Hangry (not once Terastallized); Minior's Shields Down
-        # drops its shell at half HP and grows it back above.
+        # Morpeko's Hunger Switch flips between Full Belly and Hangry (not once
+        # Terastallized); Minior's Shields Down drops its shell at half HP and
+        # grows it back above.
+        alive = state.hp[side, i] > 0
         species = state.species[side, i]
         morpeko = (ab == A.HUNGERSWITCH) & alive & jnp.logical_not(state.terastallized[side, i]) & (
             (species == species_index("morpeko")) | (species == species_index("morpekohangry")))
@@ -692,10 +778,14 @@ def _residuals(data, state, key):
             jnp.where(shell, species_index("miniormeteor"), jnp.where(base >= 0, base, species))),
             when=morpeko | minior)
 
-    # One copy of the per-side residuals in the compiled program, not two.
-    state = jax.lax.fori_loop(0, C.NUM_PLAYERS, side_residual, state)
+    for phase in (weather_and_slots, healing, leech_seed, status_damage, lingering,
+                  late_volatiles):
+        state = phased(phase, state)
 
-    # Tick down timed field effects and per-slot volatiles. Terrain, unlike the
+    # Tick down timed field effects and per-slot volatiles -- Showdown's orders
+    # 15-27, so after the Yawn and Speed Boost above and before the berries and
+    # Harvest below: a Sitrus Berry held back by Heal Block is eaten the moment
+    # the block ends. Terrain, unlike the
     # weather, ends after its last turn's Grassy Terrain healing.
     terrain_turns = dec(state.terrain_turns)
     state = state._replace(
@@ -736,6 +826,8 @@ def _residuals(data, state, key):
         volatiles=jnp.where((jnp.arange(C.NUM_VOLATILES) == C.V_LOCKEDMOVE)[None, :] &
                             raging_asleep[:, None], jnp.int8(0), state.volatiles),
         locked_slot=jnp.where(raging_asleep, jnp.int8(-1), state.locked_slot))
+
+    state = phased(end_of_turn, state)
 
     # White Herb checks once more at the end of the turn (a Syrup Bomb drop),
     # and the sun or terrain may have ended.
@@ -926,6 +1018,14 @@ def run_turn(data, state, actions, key, resuming):
     state = start_turn(state, when=jnp.logical_not(resuming))
     first = turn_order(data, state, actions, k_order)
     second = 1 - first
+    # A Custap Berry that moved its holder up is eaten as the order is settled
+    # (and remembered, for Harvest).
+    for side in range(C.NUM_PLAYERS):
+        ai = act(state, side)
+        custap = jnp.logical_not(resuming) & custap_fires(data, state, side, actions[side])
+        state = lose_item(state, side, ai, custap)
+        state = state._replace(last_item=slot_set(state.last_item, side, ai,
+                                                  jnp.int16(I.CUSTAPBERRY), custap))
 
     # Struggle is settled when the move is chosen: whoever has no usable move
     # now struggles this turn, whatever happens to its moves before it acts.
@@ -1133,7 +1233,7 @@ def step(state: BattleState, actions, data=None) -> BattleState:
         data = load_data()
     actions = jnp.asarray(actions, jnp.int32)
     key, subkey = jax.random.split(state.key)
-    state = state._replace(key=key)
+    state = state._replace(key=key, events=jnp.full_like(state.events, -1))
 
     # A switch prompt means the chosen replacements come in before anything else;
     # `run_turn` then either finishes a suspended turn or does nothing further.

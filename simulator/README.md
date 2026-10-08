@@ -163,10 +163,12 @@ only when the two have diverged structurally (a Pokemon fainted in one and not
 the other).
 
 Before the fixes below, 82% of decisions in 900 games matched Showdown exactly
-and only 6 games matched throughout. After them, 99.7% match (99.6% on a fresh
-recording with other teams), 792 of the 900 games match from first decision to
-last, and almost every game replays to its end. What it caught, beyond what the
-scenario harnesses could see:
+and only 6 games matched throughout. A first pass took that to 99.7%; a second,
+to 99.93-99.97%; a third, to 99.99% (seed 1), 99.996% (seed 7), 99.993% (seed
+13) and 99.999% on 2,700 games recorded for it (seed 21, about 142,000
+decisions) -- 12 differing decisions in 282,659, every one of them a known
+case below, and every game of all four replayed to the end. What it caught,
+beyond what the scenario harnesses could see:
 
 - **Items that did nothing.** Life Orb never took its recoil (only the boost
   existed). White Herb, Flame Orb, Toxic Orb, Weakness Policy, Light Clay,
@@ -200,12 +202,112 @@ scenario harnesses could see:
   above `m(1.3)`; Pressure only charges moves that target its holder; the 2-5
   hit table is 35/35/15/15, and Loaded Dice re-rolls rather than flooring at 4.
 
-Still different, and known: on-hit abilities that change Defense mid
-multi-hit (Weak Armor, Stamina) are counted per hit but the later hits'
-damage does not see them, nor a burn or berry triggered mid-move; Dancer only
-copies status dances; residuals run side by side rather than interleaved by
-effect; Lunar Dance does not restore PP; Stellar's version of the Tera
-60-power floor is not modelled.
+The second pass:
+
+- **Ground immunity.** Nothing made an Air Balloon or Magnet Rise holder
+  immune to Ground moves -- only the type chart and Levitate did -- and a
+  Flying type grounded by Gravity or Smack Down was still immune. Ground moves
+  now go by `isGrounded`, as Showdown's `runImmunity` does.
+- **The residuals** ran all of one side's, then all of the other's. Showdown
+  runs them effect by effect, fastest first, and stops at the knockout that
+  decides the battle -- which decides who wins when both sides are on their
+  last legs. They now run in phases by Showdown's residual order, and so do
+  Shed Skin (before poison) and Leftovers (before Bad Dreams).
+- **What a player may choose.** Recharging offered moves, switches and Tera;
+  Mean Look, Block, Spirit Shackle, Anchor Shot and Thousand Waves never
+  trapped; a Choice lock outlived the item that set it (Trick, Switcheroo);
+  a side's Tera came back after its Terastallized Pokemon fainted and was
+  revived, and was offered to Ditto transformed into Ogerpon.
+- **Damage.** Adaptability doubled a Terastallized user's old types; Body
+  Press missed Choice Band and Tablets of Ruin (Showdown keys attack modifiers
+  on the category, not the stat); Sacred Sword kept the target's Defense drops;
+  Ivy Cudgel lost its mask's type once Terastallized; burn halved Facade; the
+  Forces of Nature's storms took Hurricane's sun penalty; Unaware's accuracy
+  rule was backwards; Double Shock stripped a Terastallized user's Electric
+  type, which `setType` refuses, and never failed without it.
+- **Moves.** Disable lasted a turn too long; a Hyper Beam that missed still
+  needed recharging, and recharging did not count as Truant's idle turn;
+  Struggle used the priority of whatever sat in slot 0; Rage Fist forgot hits
+  on switching and counted moves, not hits; a phazed slower Pokemon still
+  used its move; Dragon Tail dragged through a Substitute; Stomping Tantrum
+  doubled after Protect but not after a status move that failed; Poltergeist,
+  Aurora Veil without snow, Strength Sap at -6 and a second Tailwind did not
+  fail; Burning Jealousy and Alluring Voice ignored their condition; Lunar
+  Dance did not restore PP.
+- **Abilities and items.** Defiant and Competitive answered once per move,
+  not once per stat lowered; Mold Breaker did not get past Clear Body;
+  Booster Energy could be Knocked Off a Paradox Pokemon; a Terastallized
+  Ogerpon's Embody Aspect did not boost again on re-entry; Heatproof did not
+  halve burns; healing berries were eaten (to no effect) under Heal Block; a
+  Lum Berry did not cure Outrage's fatigue; a lead's White Herb ignored
+  Intimidate; Gooey and Tangling Hair answered once per multi-hit move.
+
+The harness itself gained the cases above, items recorded as the sets have
+them (a lead's White Herb may be spent before the first turn), and a stop to
+comparing anything but the outcome once a battle is won: Showdown stops at the
+deciding knockout, where psjax finishes the move and the residuals.
+
+The third pass, on the 2,700 seed-21 games:
+
+- **Destiny Bond did nothing**: the volatile went on, but knocking out its
+  user never took the attacker down. It now does (the attacker faints second,
+  which wins a double knockout for its side), ends when its user next tries
+  to move, and fails used twice in a row.
+- **Multi-hit moves** now play out hit by hit where it shows: Weak Armor,
+  Stamina and Water Compaction move the Defense the later hits meet;
+  Multiscale and Shadow Shield halve only the first hit; Static, Flame Body,
+  Effect Spore and Cursed Body roll on every hit (they rolled once per move),
+  and a Flame Body burn halves the hits after it; a Sitrus, Oran or Figy
+  Berry is eaten between hits and the rest land on the healed HP; Toxic
+  Debris lays a layer per hit; the hits after Ice Face breaks meet Noice
+  Eiscue's Defense; Seed Sower's terrain powers the hits after the first.
+- **Beat Up** took each hit's power from the party member's current forme
+  (Terapagos-Terastal) where Showdown reads the species its set names, and
+  went through the party in team order rather than Showdown's (which
+  switching reshuffles).
+- **Berries and Updates.** Showdown eats a berry at an Update: after each
+  action, and in the residuals only after the weather's turn. So a berry
+  the Sandstorm chip triggers goes down before Harvest, which can grow it
+  back that same turn, while one that poison triggers waits until after
+  Harvest. And when a Pokemon with Unnerve leaves, the foe eats the berry it
+  held back at once -- before the newcomer's own Unnerve has started.
+- **Sandstorm and Snow** raise Sp. Def and Defense with Showdown's `modify`
+  on the stat itself, ahead of the chained modifiers; folded into the chain,
+  as they were, an Assault Vest in the sand came out a point off.
+- **Moves.** Counter and Mirror Coat with nothing to return did a point of
+  damage instead of failing; Parting Shot switched out against Clear Body;
+  Psychic Fangs and Brick Break hit through the screens they were breaking;
+  Avalanche doubled against a replacement that had not hit; Shell Side Arm
+  took a tie as Physical rather than a coin flip; Strength Sap healed off
+  Liquid Ooze; a status move that changed nothing (Sunny Day in the sun) did
+  not count as failed for Stomping Tantrum; Rapid Spin and Ice Spinner did not
+  clear hazards or terrain through a Substitute; Beak Blast burned contact
+  after it had gone off; Taunt lasted a turn too long on a Pokemon that had
+  just switched in; Endeavor at no less HP than its target did nothing
+  rather than failing, so it still made contact (Gooey); a secondary's stat
+  drop landed on a target the hit had knocked out (and Mirror Armor bounced
+  it); a Choice-locked Ditto stayed locked after Transform, where Showdown
+  drops a lock on a move the Pokemon no longer has.
+- **Abilities and items.** Trace now waits for a target to copy (the copied
+  ability's entry effect does not run); Thermal Exchange, Custap Berry and
+  Water Bubble's burn immunity were missing; Reckless did not power High Jump
+  Kick; Libero changed type for a move with nobody to aim at; Magic Bounce
+  bounced from a fainted holder, and a bounced Roar dragged out the wrong side;
+  Gulp Missile transformed a Ditto; an Air Lock that had fainted still kept
+  the weather off; Tera Shift came after the hazards; the Stellar Tera
+  60-power floor was missing. Healing berries held back by Heal Block are now
+  eaten the turn it ends, and drain heals before Gulp Missile or Rough Skin
+  answer the hit.
+
+Still different, and known: Dancer only copies status dances (a damaging
+dance would need a third pass of the move engine every turn); the per-hit
+Defense, burn, berry and terrain effects assume each earlier hit reached the
+Pokemon (exact without a Substitute). Two volatiles end at the residuals in
+Showdown and earlier here, which shows only at a decision mid-turn: a binding
+move's hold once the binder has left (inert by then in both), and a two-turn
+move's charge after its second turn. Under the pinned word, Showdown settles a
+Speed tie between two switches the other way from moves, which the harness
+does not model.
 
 `tools/lockstep.py` prints these as a table of differing fields, with the
 battles and decisions each one touched, and writes every differing decision
@@ -282,7 +384,7 @@ Actions are a single integer per player:
 | `4..7` | terastallize, then use move `n - 4` |
 | `8..13` | switch to team slot `n - 8` |
 
-`env.observe` returns `[2, 566]` floats — each row is one player's view.
+`env.observe` returns `[2, 568]` floats — each row is one player's view.
 
 ## Leaving the field
 
@@ -472,7 +574,24 @@ context:
   out both boost rows and writes them once.
 
 With those, and switch-ins taking two arrivals per step rather than three, the
-step is back to 17.5 ms and compile to 15.8 s (from 14.9 s) on that machine.
+step was back to 17.5 ms. The second pass of fixes then made `apply_boosts`
+twelve times slower in one line: four updates of the turn's raised / lowered
+flags, each reading a change vector at the end of the boost chain -- the
+recomputation pattern above. Barriering the four vectors and folding the flags
+into one write took the step to 14.6 ms, faster than before any of this, with
+compile at 15.5 s (from 13.9 s) on that machine.
+
+The third pass made multi-hit moves play out hit by hit, and the first try --
+rebuilding the defender's state inside the per-hit `vmap` so Weak Armor's
+Defense drop reached the next hit -- added 5 s of compile, because every value
+that read the defender became per-hit. `calc_damage` now takes the few things
+that vary per hit as small deltas (`def_stage_delta`, `full_hp`, `burned`)
+and the rest stays shared. The move's `src` / `recv` sides, read by every
+effect handler, are barriered for the same reason as above. Ice Face's
+Defense goes in the same way (`def_raw`), and Seed Sower's terrain as a
+second copy of just the terrain links of the base-power chain, picked per hit.
+The step ended about 13% under the last commit's, run alternately on the same
+machine (15.9-16.2 ms against 17.8-19.4 ms), with compile level with it.
 
 ### Compiling for GPU
 
@@ -731,6 +850,17 @@ because it is easy to hide too much:
 - **Illusion** is the one ability whose whole effect is on what the opponent
   sees, so the wrapper applies it: while it holds, the opponent's view of the
   active Pokemon carries the disguise's typing.
+
+`FogState.history` is the battle log a player reads back: the last
+`HISTORY_LEN` (32) moves used and Pokemon switched in, by both sides, oldest
+first, each a row of (side, team slot, species shown, move or -1 for a
+switch-in, turn). It is all public, so both players share it. Unlike the rest
+of the wrapper's bookkeeping it is instrumented into the engine, because
+before-and-after states lose the order within a turn -- which is how a player
+tells who moved first. Each `engine.step` writes that step's events to
+`BattleState.events` as they happen (the leads' entries come from
+`new_battle`), with a Pokemon behind an Illusion logged as its disguise, and
+the wrapper appends them.
 
 One approximation is left in place and noted rather than fixed: the opponent's
 effective speed is exposed exactly, where a real player infers it from turn order.

@@ -172,13 +172,19 @@ def new_battle(key, data=None, pool=None):
         active=jnp.zeros(C.NUM_PLAYERS, jnp.int8),
     )
     state = finish_teams(data, state, jax.random.fold_in(k_state, 1))
+    from .mechanics import log_event, shown_species
+    for side in range(C.NUM_PLAYERS):
+        state = log_event(state, side, 0, shown_species(state, side, 0), -1)
     # Leads arrive: entry abilities fire, fastest first (it decides a weather
     # war), but there are no hazards on turn one.
     from .engine import speed_order
     from .state import select_state
     p0_first = apply_switch_in_ability(data, apply_switch_in_ability(data, state, 0), 1)
     p1_first = apply_switch_in_ability(data, apply_switch_in_ability(data, state, 1), 0)
-    return select_state(speed_order(state) == 0, p0_first, p1_first)
+    state = select_state(speed_order(state) == 0, p0_first, p1_first)
+    # A White Herb answers a lead's Intimidate before the first turn.
+    from .mechanics import white_herb
+    return white_herb(state)
 
 
 def finish_teams(data, state, key):

@@ -122,11 +122,12 @@ ACC_HANDLERS = [
     "none",
     "rain_perfect",   # never misses in rain, 50% accurate in sun
     "snow_perfect",   # never misses in snow
+    "rain_only",      # never misses in rain; the sun does nothing to it
 ]
 ACC_MOVES = {
-    "rain_perfect": ["hurricane", "thunder", "bleakwindstorm", "wildboltstorm",
-                     "sandsearstorm"],
+    "rain_perfect": ["hurricane", "thunder"],
     "snow_perfect": ["blizzard"],
+    "rain_only": ["bleakwindstorm", "wildboltstorm", "sandsearstorm"],
 }
 
 # --- Fixed-damage callbacks --------------------------------------------------

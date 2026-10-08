@@ -27,9 +27,14 @@ slots, HP as a whole percent):
 
 Everything else -- status, sleep and toxic counts, boosts, volatiles, the last
 move used, Encore, Disable, Outrage locks, the field -- is public. Unknown
-values are -1, which the embedding layers turn into zeros.
+values are UNKNOWN, which the embedding layers give a learned vector of
+its own; -1 means none.
 
-`matchups` holds damage calcs, made with the engine's own damage formula on
+`history` is the battle log's recent moves and switch-ins, which are public
+(see `psjax.fog`): your Pokemon as they are, the opponent's as they were shown,
+so a Zoroark that came in disguised stays logged as its disguise.
+
+`matchups` holds damage calcs and speed, made with the engine's own formulas on
 what you believe about the battle: your side as it is, and the opponent's
 Pokemon as shown, with the stats, HP and ability above and no item. See
 `_matchups` for what is calculated.
@@ -49,11 +54,14 @@ import torch
 from psjax import callbacks as cb
 from psjax import consts as C
 from psjax.damage import calc_damage, resolve_move_ctx, type_effectiveness
-from psjax.fog import FogOfWarEnv, FogState
+from psjax.fog import HIST_TURN, FogOfWarEnv, FogState
 from psjax.hooks import A
 from psjax.mechanics import act, slot_get, species_stats
 from psjax.moves import build_attacker, build_cb_ctx, build_defender
+from psjax.mechanics import effective_speed
 from psjax.teams import legal_action_mask
+
+from architechture import UNKNOWN
 
 
 def game_inputs(env: FogOfWarEnv, fs: FogState, player: int,
@@ -86,10 +94,10 @@ def _view(env: FogOfWarEnv, fs: FogState, player: int) -> dict:
     def one(fs: FogState) -> dict:
         st = env._censor(fs, them)  # the opponent's unused moves and exact HP
 
-        def team(side, species, item, ability, tera_type, level, stats):
+        def team(side, species, item, ability, tera_type, level, stats, moves):
             return dict(
                 species_ids=species, item_ids=item, ability_ids=ability,
-                move_ids=st.moves[side], pp=st.pp[side], maxpp=st.maxpp[side],
+                move_ids=moves, pp=st.pp[side], maxpp=st.maxpp[side],
                 tera_type_ids=tera_type, terastallized=st.terastallized[side],
                 hp=st.hp[side], maxhp=st.maxhp[side], status=st.status[side],
                 sleep_attempts=st.sleep_attempts[side], rest_sleep=st.rest_sleep[side],
@@ -106,7 +114,7 @@ def _view(env: FogOfWarEnv, fs: FogState, player: int) -> dict:
                         locked_slot=st.locked_slot[side])
 
         mine = team(me, st.species[me], st.item[me], st.ability[me], st.tera_type[me],
-                    st.level[me], st.stats[me, :, 1:])
+                    st.level[me], st.stats[me, :, 1:], st.moves[me])
 
         # Who the opponent's Pokemon appear to be: unseen ones are unknown, and
         # the active one wears Illusion's disguise while it holds.
@@ -115,17 +123,20 @@ def _view(env: FogOfWarEnv, fs: FogState, player: int) -> dict:
         disguised = is_active & (disguise >= 0)
         shown = jnp.where(disguised, jnp.maximum(disguise, 0), jnp.arange(C.TEAM_SIZE))
         known = fs.revealed[them]
-        species = jnp.where(known, st.species[them, shown], -1)
+        species = jnp.where(known, st.species[them, shown], UNKNOWN)
         level = jnp.where(known, st.level[them, shown], 0)
         stats = jax.vmap(lambda s, lv: species_stats(env.data, s, lv, jnp.int8(0)))(
             jnp.maximum(species, 0), level)  # (6, 6), HP first
         abilities = env.data["species_abilities"][jnp.maximum(species, 0)]
         only_ability = known & (abilities[:, 1] == 0) & (abilities[:, 2] == 0)
-        ability = jnp.where(only_ability, abilities[:, 0], -1)
+        ability = jnp.where(only_ability, abilities[:, 0], UNKNOWN)
+        # Every move slot they have not used is unknown, even an empty one:
+        # telling them apart would give away a set with fewer than four moves.
         theirs = team(them, species,
-                      jnp.where(st.item[them] == 0, 0, -1), ability,
-                      jnp.where(st.terastallized[them], st.tera_type[them], -1),
-                      level, jnp.where(known[:, None], stats[:, 1:], 0))
+                      jnp.where(known & (st.item[them] == 0), 0, UNKNOWN), ability,
+                      jnp.where(st.terastallized[them], st.tera_type[them], UNKNOWN),
+                      level, jnp.where(known[:, None], stats[:, 1:], 0),
+                      jnp.where(fs.revealed_moves[them], st.moves[them], UNKNOWN))
 
         # The battle as you believe it to be, for the damage calcs: the
         # opponent's HP percent becomes HP out of the max you would expect.
@@ -151,9 +162,25 @@ def _view(env: FogOfWarEnv, fs: FogState, player: int) -> dict:
                        force_switch=jnp.stack([st.force_switch[me],
                                                st.force_switch[them]])),
             legal_actions=legal_action_mask(env.data, fs.battle)[me],
-            matchups=_matchups(env.data, belief, me, them, known))
+            matchups=_matchups(env.data, belief, me, them, known),
+            history=_history(fs, me))
 
     return jax.vmap(one)(fs)
+
+
+def _history(fs: FogState, me: int) -> dict:
+    """`fs.history` for GameNetwork, from `me`'s side: see
+    HistoryEmbeddingLayer.forward. The log records each Pokemon as the
+    opponent saw it; your own are shown as they really are."""
+    h = fs.history.astype(jnp.int32)
+    present = h[:, C.EV_SIDE] >= 0
+    mine = present & (h[:, C.EV_SIDE] == me)
+    species = jnp.where(mine, fs.battle.species[me, jnp.maximum(h[:, C.EV_SLOT], 0)],
+                        h[:, C.EV_SPECIES])
+    return dict(present=present, mine=mine,
+                species_ids=jnp.where(present, species, -1),
+                move_ids=jnp.where(present, h[:, C.EV_MOVE], -1),
+                turns_ago=jnp.where(present, fs.battle.turn - h[:, HIST_TURN], 0))
 
 
 # --- damage calcs ------------------------------------------------------------
@@ -164,24 +191,27 @@ BENCH_TARGETS = 3
 
 
 def _matchups(data, state, me: int, them: int, seen) -> dict:
-    """Damage calcs for GameNetwork's action tokens, from what `me` believes.
+    """Damage calcs and speed for GameNetwork's action tokens, from what `me`
+    believes.
 
-    Each calc is (min, max): the lowest and highest damage roll, as fractions
-    of the target's max HP; see `_calc`. -1 marks a calc with nothing to
-    calculate against, unlike 0 for a move that does no damage. `seen` marks
-    the opponent's revealed slots.
+    Each damage calc is (min, max): the lowest and highest damage roll, as
+    fractions of the target's max HP; see `_calc`. A calc with nothing to
+    calculate against is zeros, with its present or known bit 0. Speed is +1
+    if yours moves first (by Speed and Trick Room, before priority), -1 if
+    theirs does, 0 on a tie. `seen` marks the opponent's revealed slots.
 
     Returns:
-        moves: (4, 8) for each of your active Pokemon's moves, the calc
-            against the opponent's active Pokemon, then against up to
-            BENCH_TARGETS of their other revealed, living Pokemon, the first
-            ones in team order: how safely they could switch into it
-        tera_moves: (4, 8) the same, as if you Terastallized first
-        switches: (6, 4) for each of your Pokemon, its best calc against the
-            opponent's active Pokemon, then the opponent's best calc against it
-            from the moves they have revealed. "Best" is the move with the
-            highest max roll. -1 once fainted, or before the opponent has
-            revealed a move.
+        moves: (4, 13) for each of your active Pokemon's moves, (min, max,
+            present) against the opponent's active Pokemon, then against up
+            to BENCH_TARGETS of their other revealed, living Pokemon, the first
+            ones in team order -- how safely they could switch into it -- and
+            last, who moves first
+        tera_moves: (4, 13) the same, as if you Terastallized first
+        switches: (6, 6) for each of your Pokemon, (min, max) for its best move
+            into the opponent's active Pokemon; (min, max, known) for their
+            best revealed move into it, known being 0 until they reveal one;
+            and who would move first if it came in. "Best" is the move with
+            the highest max roll. Zeros once fainted.
     """
     M, T = C.MOVES_PER_POKEMON, C.TEAM_SIZE
     mine, theirs = state.active[me].astype(jnp.int32), state.active[them].astype(jnp.int32)
@@ -211,24 +241,39 @@ def _matchups(data, state, me: int, them: int, seen) -> dict:
     bench = seen & (state.hp[them] > 0) & (slots != theirs)
     picks = jnp.argsort(jnp.where(bench, slots, T))[:BENCH_TARGETS]
     targets = jnp.concatenate([theirs[None], picks])
-    present = jnp.concatenate([jnp.ones(1, bool), bench[picks]])
-    move_calcs = jnp.stack([low_1[..., targets], high_1[..., targets]], axis=-1)
-    move_calcs = jnp.where(present[:, None], move_calcs, -1.0).reshape(2, M, -1)
+    present = jnp.concatenate([jnp.ones(1, bool), bench[picks]]).astype(jnp.float32)
+    per_target = jnp.stack([low_1[..., targets], high_1[..., targets],
+                            jnp.broadcast_to(present, low_1[..., targets].shape)], axis=-1)
+    per_target = (per_target * present[:, None]).reshape(2, M, -1)
+    speed = jnp.broadcast_to(_moves_first(state, me, them, mine), (2, M, 1))
+    move_calcs = jnp.concatenate([per_target, speed], axis=-1)
 
-    # 2-3. Each of your Pokemon: its best move into their active, and their
-    # active's best revealed move into it
+    # 2-3. Each of your Pokemon: its best move into their active, their
+    # active's best revealed move into it, and which of the two is faster
     def best(low, high, axis):
         pick = jnp.expand_dims(jnp.argmax(high, axis=axis), axis)
         return jnp.stack([jnp.take_along_axis(low, pick, axis).squeeze(axis),
                           jnp.take_along_axis(high, pick, axis).squeeze(axis)], axis=-1)
 
-    revealed = jnp.any(state.moves[them, theirs] >= 0)
+    known = jnp.any(state.moves[them, theirs] >= 0).astype(jnp.float32)
     switch_calcs = jnp.concatenate([
         best(low_3, high_3, axis=1),
-        jnp.where(revealed, best(low_2, high_2, axis=0), -1.0),
+        best(low_2, high_2, axis=0) * known, jnp.full((T, 1), known),
+        jax.vmap(lambda slot: _moves_first(state, me, them, slot))(slots)[:, None],
     ], axis=-1)
-    switch_calcs = jnp.where((state.hp[me] > 0)[:, None], switch_calcs, -1.0)
+    switch_calcs = jnp.where((state.hp[me] > 0)[:, None], switch_calcs, 0.0)
     return dict(moves=move_calcs[0], tera_moves=move_calcs[1], switches=switch_calcs)
+
+
+def _moves_first(state, me: int, them: int, my_slot) -> jnp.ndarray:
+    """+1 if `me`'s Pokemon in `my_slot` would move before the opponent's
+    active one, -1 if after, 0 on a Speed tie: effective Speed (boosts, Choice
+    Scarf, Tailwind, paralysis, ...), reversed under Trick Room. Priority is
+    left to the move features."""
+    state = _put_in(state, me, my_slot)
+    order = jnp.sign(effective_speed(state, me).astype(jnp.float32)
+                     - effective_speed(state, them).astype(jnp.float32))
+    return jnp.where(state.trick_room > 0, -order, order)
 
 
 def _put_in(state, side, slot):

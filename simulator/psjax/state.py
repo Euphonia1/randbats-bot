@@ -83,7 +83,9 @@ class BattleState(NamedTuple):
     overlord_count: jnp.ndarray     # [P] int8
     #: That boost came from Booster Energy, so it outlasts the sun or terrain.
     paradox_booster: jnp.ndarray    # [P] bool
-    times_hit: jnp.ndarray          # [P] int8, Rage Fist
+    #: Hits taken, for Rage Fist: Showdown's `timesAttacked`, kept for the
+    #: whole battle, switching included.
+    times_hit: jnp.ndarray          # [P,T] int8
     protect_streak: jnp.ndarray     # [P] int8, consecutive protects
     damage_taken: jnp.ndarray       # [P] int16, damage this turn (Counter/Avalanche)
     damage_category: jnp.ndarray    # [P] int8, category of that damage; -1 none
@@ -145,6 +147,13 @@ class BattleState(NamedTuple):
     #: The side whose Pokemon fainted most recently, -1 if none has. When both
     #: sides run out together, Showdown (Gen 5+) gives the win to that side.
     last_faint: jnp.ndarray         # scalar int8
+    #: This decision point's public actions, in the order they happened: rows
+    #: of (side, team slot, species shown, move) indexed by `C.EV_*`, and -1
+    #: throughout for an unused row. A move used has its move ID; a switch-in
+    #: -- chosen, a replacement, or dragged in by Roar -- has move -1. The
+    #: species is the one the opponent sees: Illusion's disguise while it
+    #: holds. Cleared by every `engine.step`; `fog.FogState` keeps the history.
+    events: jnp.ndarray             # [MAX_EVENTS,4] int16
     key: jnp.ndarray                # PRNG key
 
     # --- convenience --------------------------------------------------------
@@ -262,7 +271,7 @@ def empty_state(key: jnp.ndarray) -> BattleState:
         last_move=jnp.full((P,), -1, jnp.int16),
         boosted_stat=jnp.full((P,), -1, jnp.int8), paradox_booster=jnp.zeros((P,), bool),
         overlord_count=i8(P),
-        times_hit=i8(P), protect_streak=i8(P), damage_taken=i16(P),
+        times_hit=i8(P, T), protect_streak=i8(P), damage_taken=i16(P),
         damage_category=jnp.full((P,), -1, jnp.int8),
         moved_this_turn=jnp.zeros((P,), bool), switched_this_turn=jnp.zeros((P,), bool),
         fainted_count=i8(P), moves_since_switch=i8(P),
@@ -282,7 +291,8 @@ def empty_state(key: jnp.ndarray) -> BattleState:
         turn=jnp.int32(0), phase=jnp.int8(C.PHASE_MOVE),
         force_switch=jnp.zeros((P,), bool), phazed=jnp.zeros((P,), bool),
         pending_side=jnp.int8(-1), pending_action=jnp.int8(0),
-        winner=jnp.int8(-1), last_faint=jnp.int8(-1), key=key,
+        winner=jnp.int8(-1), last_faint=jnp.int8(-1),
+        events=jnp.full((C.MAX_EVENTS, C.NUM_EVENT_COLUMNS), -1, jnp.int16), key=key,
     )
 
 
@@ -301,7 +311,7 @@ def reset_slot_state(state: BattleState, player: jnp.ndarray) -> BattleState:
         encore_slot=z(state.encore_slot, -1), locked_slot=z(state.locked_slot, -1),
         choice_slot=z(state.choice_slot, -1), last_move=z(state.last_move, -1),
         boosted_stat=z(state.boosted_stat, -1),
-        paradox_booster=z(state.paradox_booster, False), times_hit=z(state.times_hit),
+        paradox_booster=z(state.paradox_booster, False),
         protect_streak=z(state.protect_streak),
         moves_since_switch=z(state.moves_since_switch),
         last_move_failed=z(state.last_move_failed, False),

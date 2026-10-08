@@ -29,13 +29,14 @@ from .hooks import A, I
 from .mechanics import (act, active_types, actives_alive, apply_boosts, below,
                         berry_wants, boost_delta, can_lose_item, confuse,
                         cure_status, eat_berry, forme_change, get_indexed, has_type,
-                        item_locked, lose_item, set_indexed, slot_get, slot_set,
+                        item_locked, log_event, lose_item, set_indexed, shown_species,
+                        slot_get, slot_set,
                         soul_heart, damage_pokemon, effective_speed,
                         effective_weather, fraction_of_max, heal_pokemon,
                         is_grounded, round_fraction, set_status, set_terrain,
                         status_immune,
-                        set_volatile, set_weather, unnerved, uniform, paradox_update,
-                        usable_moves, white_herb)
+                        set_volatile, set_weather, species_stats, unnerved, uniform,
+                        paradox_update, usable_moves, white_herb)
 from .state import add_at, barrier, set_at
 from .stats import boost_multiply, chain_modify, floordiv, idiv
 
@@ -50,15 +51,17 @@ MAX_HITS = 10
 (W_THAW, W_FULL_PARALYSIS, W_CONFUSED, W_CONFUSION_ROLL, W_ACCURACY, W_CRIT,
  W_HIT_COUNT, W_STATUS, W_CONTACT, W_POISON_TOUCH, W_EFFECT,
  W_CALL, W_FICKLE, W_ATTRACT, W_CONFUSE) = range(15)
-# W_CONTACT is shared by every defender ability that rolls on being hit (Static,
-# Cursed Body, Effect Spore, ...) and W_POISON_TOUCH by the attacker's (Poison
-# Touch, Toxic Chain): a Pokemon has one ability, so at most one of each rolls.
+# The defender abilities that roll on being hit (Static, Cursed Body, Effect
+# Spore, ...) share one word per hit, `W_CONTACT_HITS` below (W_CONTACT is no
+# longer read); W_POISON_TOUCH serves the attacker's (Poison Touch, Toxic
+# Chain). A Pokemon has one ability, so at most one of each rolls.
 W_SECONDARY = 15                      # two per secondary: the chance, then sleep
 W_DAMAGE_ROLL = W_SECONDARY + 2 * 2   # one per hit
 W_LOADED_DICE = W_DAMAGE_ROLL + MAX_HITS
 W_RAMPAGE = W_LOADED_DICE + 1         # Outrage's 2-3 turns
 W_HIT_ACCURACY = W_RAMPAGE + 1        # one per hit (Population Bomb, Triple Axel)
-MOVE_WORDS = W_HIT_ACCURACY + MAX_HITS
+W_CONTACT_HITS = W_HIT_ACCURACY + MAX_HITS   # one per hit: Static, Flame Body, Effect Spore
+MOVE_WORDS = W_CONTACT_HITS + MAX_HITS
 
 
 # --- building the calculation contexts ---------------------------------------
@@ -113,7 +116,7 @@ def weight(data, state, side, ignore_ability=False):
 
 
 def build_cb_ctx(data, state, user, target, moves_first, pp_left, hit_number=1,
-                 fickle=False):
+                 fickle=False, coin=True):
     ui, ti = act(state, user), act(state, target)
     user_species = slot_get(state.species, user, ui)
     # The target's weight abilities are breakable.
@@ -138,7 +141,7 @@ def build_cb_ctx(data, state, user, target, moves_first, pp_left, hit_number=1,
         grounded_user=is_grounded(state, user),
         grounded_target=is_grounded(state, target),
         pp_left=pp_left.astype(jnp.int32),
-        times_hit=state.times_hit[user].astype(jnp.int32),
+        times_hit=slot_get(state.times_hit, user, ui).astype(jnp.int32),
         fainted_count=state.fainted_count[user].astype(jnp.int32),
         terastallized=slot_get(state.terastallized, user, ui),
         tera_type=slot_get(state.tera_type, user, ui),
@@ -156,7 +159,7 @@ def build_cb_ctx(data, state, user, target, moves_first, pp_left, hit_number=1,
         type_exp=jnp.int32(0),
         dfn_def=boosted(d_stats, state.boosts[target], C.DEF),
         dfn_spd=boosted(d_stats, state.boosts[target], C.SPD),
-        gravity=state.gravity > 0, fickle=fickle, fusion_last=state.fusion_last,
+        gravity=state.gravity > 0, fickle=fickle, coin=coin, fusion_last=state.fusion_last,
         target_switched=state.switched_this_turn[target],
         user_base_atk=data["species_base_stats"][user_species, C.ATK],
         user_species=user_species,
@@ -507,7 +510,11 @@ def _eff_trick(data, state, user, target, word):
     # Whoever ends up empty-handed has lost an item, which arms Unburden.
     vols = set_at(state.volatiles, (user, C.V_UNBURDEN), 1, ok & (b == 0))
     vols = set_at(vols, (target, C.V_UNBURDEN), 1, ok & (a == 0))
-    return state._replace(item=item, volatiles=vols)
+    # Whoever receives an item is freed of any Choice lock -- the item's onStart
+    # clears it, even when it is the same Choice item it gave away.
+    choice = set_at(state.choice_slot, user, -1, ok & (b != 0))
+    choice = set_at(choice, target, -1, ok & (a != 0))
+    return state._replace(item=item, volatiles=vols, choice_slot=choice)
 
 
 def _eff_knockoff(data, state, user, target, word):
@@ -564,10 +571,15 @@ def _eff_shoreup(data, state, user, target, word):
 
 
 def _eff_strengthsap(data, state, user, target, word):
-    """Heals by the target's current Attack, then drops it."""
+    """Heals by the target's current Attack, then drops it. Fails outright on a
+    target already at -6 Attack."""
     ui, ti = act(state, user), act(state, target)
     amount = boost_multiply(state.stats[target, ti, C.ATK], state.boosts[target, C.B_ATK])
-    state, _ = heal_pokemon(state, user, ui, amount)
+    amount = jnp.where(state.boosts[target, C.B_ATK] <= -6, 0, amount)
+    # Liquid Ooze turns the drink into damage.
+    ooze = slot_get(state.ability, target, ti) == A.LIQUIDOOZE
+    state, _ = heal_pokemon(state, user, ui, jnp.where(ooze, 0, amount))
+    state, _ = damage_pokemon(state, user, ui, jnp.where(ooze, amount, 0))
     state, _ = apply_boosts(state, target, boost_delta((C.B_ATK, -1)),
                             from_opponent=True)
     return state
@@ -671,10 +683,11 @@ def _eff_icespinner(data, state, user, target, word):
 
 
 def _eff_partingshot(data, state, user, target, word):
-    """Drops the target's offences, then the user switches out."""
+    """Drops the target's offences. The switch out is the move's `selfSwitch`,
+    which `execute_move` grants only if a stat actually changed."""
     drop = boost_delta((C.B_ATK, -1), (C.B_SPA, -1))
     state, _ = apply_boosts(state, target, drop, from_opponent=True)
-    return state._replace(force_switch=set_at(state.force_switch, user, True))
+    return state
 
 
 def _eff_chillyreception(data, state, user, target, word):
@@ -726,18 +739,23 @@ def _eff_shedtail(data, state, user, target, word):
 
 
 def _eff_burnup(data, state, user, target, word):
-    """The user loses the move's own type (Fire for Burn Up, Electric for Double Shock)."""
+    """The user loses the move's own type (Fire for Burn Up, Electric for Double
+    Shock) -- unless it is Terastallized: Showdown's `setType` refuses to touch
+    a Terastallized Pokemon's types, so it keeps the type, and the 2x STAB of a
+    Tera type it already had."""
     ui = act(state, user)
     lost = jnp.where(slot_get(state.types, user, ui) == C.FIRE, jnp.int8(C.TYPE_NONE),
                      slot_get(state.types, user, ui))
-    return state._replace(types=slot_set(state.types, user, ui, lost))
+    return state._replace(types=slot_set(state.types, user, ui, lost,
+                                         jnp.logical_not(slot_get(state.terastallized, user, ui))))
 
 
 def _eff_doubleshock(data, state, user, target, word):
     ui = act(state, user)
     lost = jnp.where(slot_get(state.types, user, ui) == C.ELECTRIC, jnp.int8(C.TYPE_NONE),
                      slot_get(state.types, user, ui))
-    return state._replace(types=slot_set(state.types, user, ui, lost))
+    return state._replace(types=slot_set(state.types, user, ui, lost,
+                                         jnp.logical_not(slot_get(state.terastallized, user, ui))))
 
 
 def _eff_smackdown(data, state, user, target, word):
@@ -772,10 +790,10 @@ def _eff_fakeout(data, state, user, target, word):
 
 
 def _eff_auroraveil(data, state, user, target, word):
-    """Aurora Veil only sets while it is snowing."""
-    ok = effective_weather(state) == C.SNOW
-    return state._replace(side_conditions=set_at(
-        state.side_conditions, (user, C.SC_AURORAVEIL), 0, when=jnp.logical_not(ok)))
+    """Nothing here: Aurora Veil fails without snow, which `execute_move`
+    checks before anything is set. (Undoing the veil here instead wiped out
+    one already up.)"""
+    return state
 
 
 def transform_into(data, state, side, when=True):
@@ -823,6 +841,9 @@ def transform_into(data, state, side, when=True):
         # The critical-hit volatiles come along too.
         volatiles=set_at(state.volatiles, (side, C.V_FOCUSENERGY),
                          state.volatiles[other, C.V_FOCUSENERGY], ok),
+        # A Choice lock is on Transform, which the new moves lack, so Showdown
+        # drops it at the next choice.
+        choice_slot=set_at(state.choice_slot, side, -1, ok),
     ), ok
 
 
@@ -991,13 +1012,16 @@ UNIMPLEMENTED_EFFECTS = tuple(h for h in E.EFFECT_HANDLERS if h not in EFFECT_FN
 EFFECT_ON_HIT = frozenset({
     "defog",                      # all of it in `onHit`: Protect stops the lot
     "knockoff", "trick", "painsplit", "leechseed", "clearsmog", "spectralthief",
-    "partingshot", "mortalspin", "rapidspin", "saltcure", "smackdown",
-    "thousandarrows", "icespinner", "strengthsap", "topsyturvy",
+    "partingshot", "saltcure", "smackdown",
+    "thousandarrows", "strengthsap", "topsyturvy",
     "burnup", "doubleshock", "sparklingaria", "transform", "encore", "disable",
 })
 #: Handlers that act once a damaging move connects, even into a Substitute:
 #: Showdown runs them from `onTryHit` or `onAfterSubDamage` as well.
-EFFECT_ON_CONNECT = frozenset({"ceaselessedge", "stoneaxe", "screenbreak"})
+EFFECT_ON_CONNECT = frozenset({"ceaselessedge", "stoneaxe", "screenbreak",
+                               "glaiverush",    # a `self` effect: needs a hit
+                               # hazards / terrain cleared from onAfterSubDamage too
+                               "rapidspin", "mortalspin", "icespinner"})
 
 #: Every BattleState field an effect handler can write. Keep in sync with
 #: EFFECT_FNS -- a handler writing anything outside this list would have its
@@ -1010,7 +1034,7 @@ EFFECT_WRITES = (
     "weather", "weather_turns", "force_switch", "protect_streak", "trick_room",
     "species", "stats", "ability", "moves", "pp", "maxpp", "transformed",
     "tf_moves", "tf_pp", "tf_maxpp", "wish_turns", "wish_hp", "healing_wish", "encore_slot",
-    "pass_mode", "last_faint", "stats_raised", "stats_lowered",
+    "pass_mode", "last_faint", "stats_raised", "stats_lowered", "choice_slot",
     "disabled_slot", "last_item", "cud_berry", "cud_turns",
 )
 
@@ -1067,8 +1091,7 @@ HANDLED_ELSEWHERE = frozenset({
     "freezedry", "flyingpress",   # damage.type_effectiveness
     "photongeyser", "shellsidearm",   # resolve_move_ctx (category switch)
     "taunt", "yawn", "perishsong", "destinybond",
-    "poltergeist",                # applied through the declarative volatile column
-    "suckerpunch",                # the fail check lives in execute_move
+    "poltergeist", "suckerpunch",  # their fail checks live in execute_move
     "grassyglide",                # move_priority
     # execute_move: fail checks, and moves that replace or defer the hit
     "teleport", "hyperspacefury", "magnetrise", "focuspunch", "chargeboost",
@@ -1106,7 +1129,8 @@ def _apply_hit_damage(state, user, target, amount, bypass_sub):
 
 
 def _apply_secondaries(data, state, user, target, move_id, words, landed=True,
-                       target_ability=None, connected=None, target_grounded=None):
+                       target_ability=None, connected=None, target_grounded=None,
+                       target_raised=None):
     """Roll each of the move's up-to-two secondary effects.
 
     `words` is the move's random words; each secondary reads two from
@@ -1145,7 +1169,8 @@ def _apply_secondaries(data, state, user, target, move_id, words, landed=True,
     target_ghost = has_type(state, target, C.GHOST)
     # Burning Jealousy and Alluring Voice only work on a target whose stats
     # rose this turn.
-    envious = jnp.logical_not(data["move_sec_if_raised"][move_id]) | state.stats_raised[target]
+    raised = state.stats_raised[target] if target_raised is None else target_raised
+    envious = jnp.logical_not(data["move_sec_if_raised"][move_id]) | raised
     for k in range(2):
         chance = data["move_sec_chance"][move_id, k].astype(jnp.int32)
         chance = jnp.where(serene, jnp.minimum(chance * 2, 100), chance)
@@ -1200,15 +1225,17 @@ def _beat_up_powers(data, state, user):
     """Beat Up's per-hit base powers and hit count.
 
     One hit for the user and one for each other party member that is neither
-    fainted nor statused, each at 5 + its species' base Attack / 10. The user
-    goes first; the rest follow in party order.
+    fainted nor statused, each at 5 + the base Attack / 10 of the species its
+    set names (not a forme it has since taken, nor a Transform), in Showdown's
+    party order -- which puts the user, being active, first.
     """
     ui = act(state, user)
     slots = jnp.arange(C.TEAM_SIZE)
     joins = ((state.hp[user] > 0) & (state.status[user] == C.STATUS_NONE)) | (slots == ui)
-    key = jnp.where(slots == ui, -1, slots)
+    key = state.party_pos[user]
     rank = jnp.sum(joins[None, :] & (key[None, :] < key[:, None]), axis=1)
-    power = 5 + floordiv(data["species_base_stats"][state.species[user], C.ATK]
+    base = jnp.where(state.base_species[user] >= 0, state.base_species[user], state.species[user])
+    power = 5 + floordiv(data["species_base_stats"][data["species_set"][base], C.ATK]
                          .astype(jnp.int32), 10)
     hits = jnp.arange(MAX_HITS)
     per_hit = jnp.sum(jnp.where(joins[None, :] & (rank[None, :] == hits[:, None]),
@@ -1233,7 +1260,16 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     # Tricked it into the user's hands.
     held_at_start = slot_get(state.item, user, ui)
     t_held_at_start = slot_get(state.item, target, ti)
+    # Burning Jealousy and Alluring Voice ask about rises before this move:
+    # Showdown runs the secondaries ahead of DamagingHit (Stamina, Weak Armor).
+    t_raised_at_start = state.stats_raised[target]
+    # The field as the move found it, to tell a field move that did nothing
+    # (Sunny Day in the sun) -- a failure, for Stomping Tantrum.
+    field_before = (state.weather, state.terrain, state.side_conditions)
     alive_before = actives_alive(state)
+    # Who the opponent sees using the move: an Illusion broken by an earlier
+    # hit this turn is already gone, and a Transform the move makes is not yet.
+    shown_at_start = shown_species(state, user, ui)
 
     # A move the user is locked into (the second turn of Solar Beam), or encored
     # into, replaces whatever was chosen. The action mask normally forces it
@@ -1262,6 +1298,14 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     lost_focus = fx(data["move_effect_cb"][chosen_id], "focuspunch") & \
         (state.volatiles[user, C.V_FOCUSPUNCH] >= 2)
     can_act = can_act & jnp.logical_not(lost_focus)
+
+    # Destiny Bond holds until its user next tries to move: any other move, or
+    # not managing to move at all, ends it -- and a second Destiny Bond in a
+    # row fails, removing it (Showdown's onPrepareHit).
+    bonded = state.volatiles[user, C.V_DESTINYBOND] > 0
+    rebond = bonded & (chosen_id == move_index("destinybond")) & can_act
+    state = state._replace(volatiles=set_at(state.volatiles, (user, C.V_DESTINYBOND), 0,
+                                            bonded))
 
     # Sleep Talk uses one of the user's other moves at random, still asleep.
     u_ab = slot_get(state.ability, user, ui)
@@ -1321,16 +1365,22 @@ def execute_move(data, state, user, move_slot, moves_first, words,
 
     cb_ctx = build_cb_ctx(data, state, user, target, moves_first,
                           state.pp[user, ui, move_slot],
-                          fickle=below(words[W_FICKLE], 10) < 3)
+                          fickle=below(words[W_FICKLE], 10) < 3,
+                          # (Fickle Beam and Shell Side Arm never share a move.)
+                          coin=below(words[W_FICKLE], 2) == 0)
     grounded_of = lambda side: jnp.where(side == user, cb_ctx.grounded_user,
                                          cb_ctx.grounded_target)
     mv = resolve_move_ctx(data, move_id, cb_ctx)
     is_status = mv.category == C.CAT_STATUS
 
     # Protean / Libero: the user becomes the move's type before using it, once
-    # per entry. Not while Terastallized, and not for Future Sight.
+    # per entry. Not while Terastallized, not for Future Sight, and not for a
+    # move with nobody to aim at (U-turn after the foe fainted), which fails
+    # before Showdown's PrepareHit.
     my_types = slot_get(state.types, user, ui)
-    protean = can_act & ((u_ab == A.PROTEAN) | (u_ab == A.LIBERO)) & \
+    has_target = (slot_get(state.hp, target, ti) > 0) | \
+        jnp.logical_not(_at_foe(data, move_id) & jnp.logical_not(self_curse))
+    protean = can_act & has_target & ((u_ab == A.PROTEAN) | (u_ab == A.LIBERO)) & \
         jnp.logical_not(state.type_changed[user]) & \
         jnp.logical_not(slot_get(state.terastallized, user, ui)) & \
         jnp.logical_not(has_flag(mv.flags, "futuremove")) & \
@@ -1352,8 +1402,11 @@ def execute_move(data, state, user, move_slot, moves_first, words,
 
     # --- can the move connect at all? ---
     target_alive = slot_get(state.hp, target, ti) > 0
-    at_foe = _at_foe(data, move_id)
-    blocked = move_blocked_by_protect(data, state, user, target, move_id)
+    # A non-Ghost Curse aims at its user: Good as Gold, Protect and Magic
+    # Bounce have nothing to say about it.
+    at_foe = _at_foe(data, move_id) & jnp.logical_not(self_curse)
+    blocked = move_blocked_by_protect(data, state, user, target, move_id) & \
+        jnp.logical_not(self_curse)
     # Only a move aimed at the foe needs one standing there: Swords Dance, a
     # screen, Stealth Rock or Trick Room works after the foe has fainted.
     reached = attacks & (target_alive | jnp.logical_not(at_foe)) & jnp.logical_not(blocked)
@@ -1404,7 +1457,12 @@ def execute_move(data, state, user, move_slot, moves_first, words,
         (fx(effect, "shedtail") & jnp.logical_not(shed_ok)) | \
         (fx(effect, "healingwish") & jnp.logical_not(bench)) | \
         (fx(effect, "filletaway") & (hp_now * 2 <= maxhp_now)) | \
-        (fx(effect, "revivalblessing") & jnp.logical_not(jnp.any(state.hp[user] <= 0)))
+        (fx(effect, "revivalblessing") & jnp.logical_not(jnp.any(state.hp[user] <= 0))) | \
+        (fx(effect, "poltergeist") & (slot_get(state.item, target, ti) == 0)) | \
+        (fx(effect, "auroraveil") & (w != C.SNOW)) | \
+        (fx(effect, "doubleshock") & jnp.logical_not(has_type(state, user, C.ELECTRIC))) | \
+        (fx(effect, "burnup") & jnp.logical_not(has_type(state, user, C.FIRE))) | rebond | \
+        (cb.fixed_damage(data["move_dmg_cb"][move_id], cb_ctx) == -2)   # Counter / Endeavor
     # Queenly Majesty stops priority moves aimed at its holder; Prankster's
     # boosted status moves fail against Dark types; Good as Gold is immune to
     # the opponent's status moves.
@@ -1448,8 +1506,10 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     had_sub = (state.volatiles[target, C.V_SUBSTITUTE] > 0) & jnp.logical_not(bypass_sub)
 
     # Magic Bounce reflects a reflectable status move back at its user.
+    # (Only from a Pokemon still standing: Spikes aimed at a side whose
+    # Hatterene just fell to them is not bounced back.)
     bounces = (t_ab == A.MAGICBOUNCE) & has_flag(mv.flags, "reflectable") & reached & \
-        jnp.logical_not(fails)
+        jnp.logical_not(fails) & target_alive
 
     connects = (reached & hits_acc & jnp.logical_not(powder) & jnp.logical_not(flagged) &
                 jnp.logical_not(terrain_block) & jnp.logical_not(type_immune) &
@@ -1518,7 +1578,10 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     # arrays, and that is what made `vmap(execute_move)` take minutes to compile.
     hit_weather = effective_weather(state)
     hit_terrain = state.terrain
-    hit_side_conditions = state.side_conditions[target]
+    # Brick Break, Psychic Fangs and Raging Bull shatter the screens in
+    # onTryHit, before their own damage is worked out.
+    hit_side_conditions = jnp.where(jnp.asarray(_SCREENS) & fx(effect, "screenbreak"), 0,
+                                    state.side_conditions[target])
     hit_fainted_count = state.overlord_count[user].astype(jnp.int32)
     hit_analytic = jnp.logical_not(moves_first)
     hit_target_switched = state.switched_this_turn[target]
@@ -1551,7 +1614,54 @@ def execute_move(data, state, user, move_slot, moves_first, words,
                             terastallized=jnp.bool_(False))
     atk_hit = jax.tree.map(lambda a, b: jnp.where(struggling, a, b), typeless, atk)
 
-    def damage_for_hit(roll, i, beat_up_power):
+    # Weak Armor, Stamina and Water Compaction change the target's Defense with
+    # every hit that reaches it, and the later hits of the move meet the new
+    # stage. Counted as if each earlier hit got through -- exact unless a
+    # Substitute is in the way, when the stage is left alone.
+    def_step = jnp.where(
+        t_ab_raw == A.STAMINA, 1,
+        jnp.where((t_ab_raw == A.WEAKARMOR) & (mv.category == C.CAT_PHYSICAL), -1,
+                  jnp.where((t_ab_raw == A.WATERCOMPACTION) & (mv.type == C.WATER), 2, 0)))
+    def_step = jnp.where(had_sub, 0, def_step)
+    # Ice Face takes the first hit and breaks into Noice Eiscue before the
+    # next, which meets Noice's Defense. (Behind a Substitute, left alone.)
+    noice_def = species_stats(data, species_index("eiscuenoice"), slot_get(state.level, target, ti),
+                              slot_get(state.spread_zero, target, ti))[C.DEF]
+    ice_breaks = shield & (dfn.ability == A.ICEFACE) & jnp.logical_not(had_sub)
+    # Seed Sower lays Grassy Terrain at the first hit, under the rest.
+    sows = (t_ab_raw == A.SEEDSOWER) & jnp.logical_not(had_sub)
+
+    # Which hits happen does not depend on their damage: Population Bomb and
+    # the Triple kicks roll accuracy again for every hit after the first and
+    # stop at a miss -- unless Loaded Dice or Skill Link.
+    multi_acc = data["move_multiaccuracy"][move_id] & \
+        (slot_get(state.item, user, ui) != I.LOADEDDICE) & (u_ab != A.SKILLLINK)
+    hit_lands = accuracy_check(
+        data, mv, atk, dfn, state.boosts[user, C.B_ACC], state.boosts[target, C.B_EVA],
+        below(words[W_HIT_ACCURACY:W_HIT_ACCURACY + MAX_HITS], 100), state.gravity,
+        weather_acc) | (state.volatiles[target, C.V_GLAIVERUSH] > 0)
+    keeps_hitting = jnp.cumprod((hit_index == 0) | jnp.logical_not(multi_acc) | hit_lands)
+    active = (hit_index < n_hits) & connects & jnp.logical_not(is_status) & \
+        keeps_hitting.astype(bool)
+
+    # Static, Flame Body, Effect Spore and Cursed Body roll on every hit that
+    # reaches the Pokemon. A Flame Body burn halves the rest of a physical
+    # multi-hit move: counted, like the Defense changes, as if each earlier hit
+    # got through, and not with a Substitute in the way.
+    contact_words = words[W_CONTACT_HITS:W_CONTACT_HITS + MAX_HITS]
+    contact_rolls = uniform(contact_words) < 0.3
+    u_types_now = active_types(state, user)
+    burnable = (slot_get(state.status, user, ui) == C.STATUS_NONE) & \
+        jnp.logical_not(jnp.any(u_types_now == C.FIRE)) & \
+        (u_ab != A.WATERVEIL) & (u_ab != A.WATERBUBBLE) & (u_ab != A.THERMALEXCHANGE) & \
+        (u_ab != A.COMATOSE) & (u_ab != A.PURIFYINGSALT) & \
+        (state.side_conditions[user, C.SC_SAFEGUARD] <= 0)
+    flame = active & contact_rolls & has_flag(mv.flags, "contact") & \
+        (t_ab_raw == A.FLAMEBODY) & burnable & jnp.logical_not(had_sub)
+    burned_by_hit = (atk.status == C.BRN) | \
+        (jnp.cumsum(flame.astype(jnp.int32)) - flame.astype(jnp.int32) > 0)
+
+    def damage_for_hit(roll, i, beat_up_power, burned_now):
         mv_i = scale_power_for_hit(data, move_id, mv, i + 1)
         mv_i = mv_i._replace(base_power=jnp.where(beat_up, beat_up_power, mv_i.base_power))
         return calc_damage(
@@ -1562,22 +1672,18 @@ def execute_move(data, state, user, move_slot, moves_first, words,
             grounded_target=cb_ctx.grounded_target,
             analytic_ok=hit_analytic, fainted_count=hit_fainted_count,
             target_switched_in=hit_target_switched,
-            technician_power=mv.base_power, berry_ok=berry_ok)
+            technician_power=mv.base_power, berry_ok=berry_ok,
+            def_stage_delta=def_step * i,
+            def_raw=jnp.where(ice_breaks & (i > 0), noice_def, dfn.stats[C.DEF]),
+            sown=sows & (i > 0),
+            # Only the first hit finds the target at full HP (Multiscale) --
+            # unless a Substitute is taking them.
+            full_hp=(dfn.hp == dfn.maxhp) & ((i == 0) | had_sub),
+            burned=burned_now)
 
-    dmgs = jax.vmap(damage_for_hit)(rolls, hit_index, beat_up_powers)
+    dmgs = jax.vmap(damage_for_hit)(rolls, hit_index, beat_up_powers, burned_by_hit)
     dmgs = jnp.where(is_fixed, fixed, dmgs)
     dmgs = jnp.where(ohko, target_maxhp, dmgs)
-    # Population Bomb and the Triple kicks roll accuracy again for every hit
-    # after the first and stop at a miss -- unless Loaded Dice or Skill Link.
-    multi_acc = data["move_multiaccuracy"][move_id] & \
-        (slot_get(state.item, user, ui) != I.LOADEDDICE) & (u_ab != A.SKILLLINK)
-    hit_lands = accuracy_check(
-        data, mv, atk, dfn, state.boosts[user, C.B_ACC], state.boosts[target, C.B_EVA],
-        below(words[W_HIT_ACCURACY:W_HIT_ACCURACY + MAX_HITS], 100), state.gravity,
-        weather_acc) | (state.volatiles[target, C.V_GLAIVERUSH] > 0)
-    keeps_hitting = jnp.cumprod((hit_index == 0) | jnp.logical_not(multi_acc) | hit_lands)
-    active = (hit_index < n_hits) & connects & jnp.logical_not(is_status) & \
-        keeps_hitting.astype(bool)
     dmgs = jnp.where(active, dmgs, 0)
 
     # Rough Skin, Iron Barbs and Rocky Helmet hurt the attacker on every contact
@@ -1609,19 +1715,51 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     endures = can_endure & (start_hp == target_maxhp) & first(direct > 0) & \
         (direct >= start_hp)
     direct = jnp.where(endures, start_hp - 1, direct)
-    direct = jnp.minimum(direct, jnp.maximum(start_hp - before(direct), 0))
+    # A healing berry is eaten the moment a hit takes its holder past its
+    # threshold -- Sitrus and Oran at half, Figy at a quarter, Cheek Pouch on
+    # top -- and the later hits of the move land on the healed HP. Only taken
+    # here when more hits follow; after the last hit, the berry step below
+    # (which also keeps Cud Chew's count) eats it as for any single hit.
+    t_berry = slot_get(state.item, target, ti)
+    half_berry = (t_berry == I.SITRUSBERRY) | (t_berry == I.ORANBERRY)
+    quarter_berry = t_berry == I.FIGYBERRY
+    berry_heal = jnp.where(t_berry == I.SITRUSBERRY, fraction_of_max(state, target, ti, 1, 4),
+                           jnp.where(t_berry == I.ORANBERRY, 10,
+                                     fraction_of_max(state, target, ti, 1, 3)))
+    berry_heal = berry_heal + jnp.where(t_ab_raw == A.CHEEKPOUCH,
+                                        fraction_of_max(state, target, ti, 1, 3), 0)
+    hp_after = start_hp - jnp.cumsum(direct)
+    crossed = jnp.where(quarter_berry, hp_after * 4 <= target_maxhp, hp_after * 2 <= target_maxhp)
+    more_hits = (jnp.cumsum(active[::-1].astype(jnp.int32))[::-1] -
+                 active.astype(jnp.int32)) > 0
+    can_eat = (half_berry | quarter_berry) & jnp.logical_not(unnerved(state, target)) & \
+        (state.volatiles[target, C.V_HEALBLOCK] <= 0)
+    eat_now = first(can_eat & (direct > 0) & (hp_after > 0) & crossed & more_hits)
+    eat_at = jnp.argmax(eat_now)
+    ate_mid = jnp.any(eat_now)
+    mid_heal = jnp.minimum(berry_heal, target_maxhp - hp_after[eat_at])
+    bonus = jnp.where(ate_mid & (hit_index > eat_at), mid_heal, 0)
+    direct = jnp.minimum(direct, jnp.maximum(start_hp + bonus - before(direct), 0))
     # Rough Skin, Iron Barbs and Rocky Helmet: nothing more lands once the
     # attacker has fallen to them. The hits that do land are a prefix, and
     # cutting off the rest changes nothing before it.
     start_user_hp = slot_get(state.hp, user, ui).astype(jnp.int32)
     standing = start_user_hp - chip * before((direct > 0).astype(jnp.int32)) > 0
     direct = jnp.where(standing, direct, 0)
+    # (A berry hit cut off by the attacker's fall is the last one after all.)
+    ate_mid = ate_mid & jnp.any(standing & active & (hit_index > eat_at))
+    bonus = jnp.where(ate_mid, bonus, 0)
     total_damage = jnp.sum(direct)
-    final_hp = start_hp - total_damage
+    final_hp = start_hp + jnp.where(ate_mid, mid_heal, 0) - total_damage
     final_sub = jnp.maximum(start_sub - jnp.sum(jnp.where(standing, dmgs, 0)), 0)
     final_shield = shield & jnp.logical_not(jnp.any(absorbed & standing))
     endured = jnp.any(endures & standing)
-    hits_reached = jnp.sum((direct > 0).astype(jnp.int32))
+    reached_vec = direct > 0                        # the hits that reached the Pokemon
+    hits_reached = jnp.sum(reached_vec.astype(jnp.int32))
+    # Every hit made, a Substitute's included, until either side falls (Showdown's
+    # hit loop): what Rage Fist counts.
+    hits_made = jnp.sum((active & standing &
+                         (start_hp + bonus - before(direct) > 0)).astype(jnp.int32))
     contact_chip = chip * hits_reached
     busted = shield & jnp.logical_not(final_shield)
 
@@ -1633,11 +1771,26 @@ def execute_move(data, state, user, move_slot, moves_first, words,
         sub_hp=set_at(state.sub_hp, target, final_sub, when=jnp.logical_not(bypass_sub)),
         volatiles=set_at(state.volatiles, (target, C.V_SUBSTITUTE), 0,
                          when=jnp.logical_not(bypass_sub) & (final_sub <= 0)))
+    # Destiny Bond: knocking out its user takes the attacker down with it (not
+    # Future Sight). The attacker faints second, which settles a double
+    # knockout in its side's favour, as in Showdown.
+    bonded_ko = (start_hp > 0) & (final_hp <= 0) & \
+        (state.volatiles[target, C.V_DESTINYBOND] > 0) & jnp.logical_not(future)
+    state, _ = damage_pokemon(state, user, ui, jnp.where(
+        bonded_ko, slot_get(state.hp, user, ui).astype(jnp.int32), 0))
 
     # Focus Sash is used up by the hit it saves its holder from. Sturdy, which
     # Showdown asks first, saves it instead and keeps the Sash.
     state = lose_item(state, target, ti, endured & (dfn.ability != A.STURDY) &
                       (slot_get(state.item, target, ti) == I.FOCUSSASH))
+    # The berry eaten between hits is gone (and remembered, for Harvest), and
+    # Cud Chew will eat it again a turn later, as after any bite.
+    state = lose_item(state, target, ti, ate_mid)
+    chews = ate_mid & (t_ab_raw == A.CUDCHEW)
+    state = state._replace(
+        last_item=slot_set(state.last_item, target, ti, t_berry, ate_mid),
+        cud_berry=set_at(state.cud_berry, target, t_berry, chews),
+        cud_turns=set_at(state.cud_turns, target, 2, chews))
 
     landed = connects & jnp.logical_not(is_status)
     # Whether the hit reached the Pokemon rather than stopping at its Substitute:
@@ -1646,11 +1799,24 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     state = state._replace(
         damage_taken=add_at(state.damage_taken, target, total_damage),
         damage_category=set_at(state.damage_category, target, mv.category, when=landed),
-        times_hit=add_at(state.times_hit, target, 1, when=landed))
+        times_hit=add_at(state.times_hit, (target, ti), hits_made, when=landed))
 
     took_damage = hit_pokemon & (total_damage > 0)
     d_ab = t_ab_raw
     attacker_guarded = u_ab == A.MAGICGUARD
+
+    # Drain heals with the damage itself, before anything answers the hit
+    # (Gulp Missile's spit, Rough Skin's chip at the end of the move). Showdown
+    # drains a hit on a Substitute rounding up, any other rounding to nearest.
+    sub_damage = jnp.where(bypass_sub, 0, start_sub - final_sub)
+    drain = data["move_drain"][move_id].astype(jnp.int32)
+    drained = jnp.where((drain[0] > 0) & landed,
+                        round_fraction(total_damage, drain[0], drain[1]) +
+                        idiv(sub_damage * drain[0] + drain[1] - 1, drain[1]), 0)
+    # Liquid Ooze makes draining moves hurt the user instead.
+    ooze = t_ab_raw == A.LIQUIDOOZE
+    state, _ = heal_pokemon(state, user, ui, jnp.where(ooze, 0, drained))
+    state, _ = damage_pokemon(state, user, ui, jnp.where(ooze, drained, 0))
 
     # The target's forme changes from being hit -- at most one applies, so they
     # share a call. Disguise breaks into Busted Mimikyu, which costs it an
@@ -1686,15 +1852,7 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     # Both count what a Substitute soaked as well as what reached the Pokemon.
     # Showdown drains a hit on a Substitute rounding up, any other rounding to
     # nearest, and rounds recoil to nearest.
-    sub_damage = jnp.where(bypass_sub, 0, start_sub - final_sub)
-    drain = data["move_drain"][move_id].astype(jnp.int32)
-    drained = jnp.where((drain[0] > 0) & landed,
-                        round_fraction(total_damage, drain[0], drain[1]) +
-                        idiv(sub_damage * drain[0] + drain[1] - 1, drain[1]), 0)
-    # Liquid Ooze makes draining moves hurt the user instead.
-    ooze = t_ab_raw == A.LIQUIDOOZE
-    state, _ = heal_pokemon(state, user, ui, jnp.where(ooze, 0, drained))
-    state, _ = damage_pokemon(state, user, ui, jnp.where(ooze, drained, 0))
+    # (Drain itself came earlier, with the damage.)
     recoil = data["move_recoil"][move_id].astype(jnp.int32)
     magic_guard = (u_ab == A.MAGICGUARD) | (u_ab == A.ROCKHEAD)
     dealt = total_damage + sub_damage
@@ -1773,17 +1931,25 @@ def execute_move(data, state, user, move_slot, moves_first, words,
          jnp.any(jnp.where(vol_side == user, u_types, dfn.types) == C.GHOST)) |
         # Yawn fails on anything that would refuse the sleep itself -- a status,
         # Insomnia and friends, Electric or Misty Terrain, Safeguard -- though
-        # not on Sleep Clause, which only stops the sleep when it comes.
+        # not on Sleep Clause, which only stops the sleep when it comes, nor on
+        # Comatose, which only refuses the sleep itself (it has no status, and
+        # nothing like Insomnia's block on the Yawn).
         ((vol == C.V_YAWN) & (
-            status_immune(data, state, vol_side, jnp.int8(C.SLP),
-                          ignore_ability=breaks & jnp.logical_not(bounce_lands),
-                          self_inflicted=True, grounded=grounded_of(vol_side)) |
+            (status_immune(data, state, vol_side, jnp.int8(C.SLP),
+                           ignore_ability=breaks & jnp.logical_not(bounce_lands),
+                           self_inflicted=True, grounded=grounded_of(vol_side)) &
+             (recv_ab != A.COMATOSE)) |
             (state.side_conditions[vol_side, C.SC_SAFEGUARD] > 0))))
     duration = jnp.maximum(data["move_duration"][move_id], 1)
     # Binding moves hold on for Showdown's `random(5, 7)` residuals.
     duration = jnp.where(vol == C.V_PARTIALLYTRAPPED, 5 + below(words[W_EFFECT], 2), duration)
     # Taunt counts the turn it lands on only if its target has yet to move.
-    duration = jnp.where((vol == C.V_TAUNT) & state.moved_this_turn[vol_side],
+    # (A replacement that came in this turn after a U-turn has not: Showdown
+    # also asks for `activeTurns`. A Taunt bounced back by Magic Bounce lands on
+    # the Pokemon using it, which is moving now.)
+    already_moved = state.moved_this_turn[vol_side] | (vol_side == user)
+    duration = jnp.where((vol == C.V_TAUNT) & already_moved &
+                         jnp.logical_not(state.switched_this_turn[vol_side]),
                          duration + 1, duration)
     state = confuse(state, vol_side, words[W_CONFUSE], applied & (vol == C.V_CONFUSION),
                     grounded_of(vol_side))
@@ -1799,6 +1965,10 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     self_vol = data["move_self_volatile"][move_id]
     rampage_move = self_vol == C.V_LOCKEDMOVE
     self_vol = jnp.where(rampage_move, -1, self_vol)
+    # A Terastallized Pokemon's Roost heals but leaves its type alone: there is
+    # no `roost` volatile for it (Showdown's condition refuses to start).
+    self_vol = jnp.where((self_vol == C.V_ROOST) & slot_get(state.terastallized, user, ui),
+                         -1, self_vol)
     # A damaging move's `self` effect comes with a hit: Hyper Beam that misses
     # or is blocked leaves nothing to recharge from.
     state = state._replace(volatiles=set_at(
@@ -1846,11 +2016,13 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     self_sc = data["move_self_side_condition"][move_id]
     state = _set_side_condition(state, user, self_sc, attacks & (self_sc >= 0))
     own_sc = jnp.where(data["move_target"][move_id] == C.TGT_ALLY_SIDE, sc, jnp.int8(-1))
+    tailwind_before = state.side_conditions[user, C.SC_TAILWIND] > 0
     state = _set_side_condition(state, user, own_sc, applied & (own_sc >= 0),
                                 light_clay=slot_get(state.item, user, ui) == I.LIGHTCLAY)
-    # Wind Rider: a Tailwind on its own side is +1 Attack.
-    tailwind = attacks & ((own_sc == C.SC_TAILWIND) | (self_sc == C.SC_TAILWIND)) & \
-        (u_ab == A.WINDRIDER)
+    # Wind Rider: a Tailwind starting on its own side is +1 Attack -- not one
+    # already blowing, which makes the move fail.
+    tailwind = applied & ((own_sc == C.SC_TAILWIND) | (self_sc == C.SC_TAILWIND)) & \
+        (u_ab == A.WINDRIDER) & jnp.logical_not(tailwind_before)
     state, _ = apply_boosts(state, user, jnp.where(tailwind, boost_delta((C.B_ATK, 1)), 0))
 
     state = set_weather(state, data["move_weather"][move_id], attacks)
@@ -1880,9 +2052,12 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     # Abilities that inflict something on whoever hit them. The defender has one
     # ability, so these share a single random word; the status they settle on
     # goes into the one `set_status` call the attacker gets, further down.
-    roll = words[W_CONTACT]
-    rolls_contact = uniform(roll) < 0.3
-    spore = below(roll, 100)
+    # Each hit that reached the Pokemon rolls its own word; the first to come up
+    # decides (a status, once given, is not given again).
+    rolls_contact = jnp.any(reached_vec & contact_rolls)
+    spore_k = below(contact_words, 100)
+    spore_hit = reached_vec & (spore_k < 30)
+    spore = jnp.where(jnp.any(spore_hit), spore_k[jnp.argmax(spore_hit)], 100)
     u_types = active_types(state, user)
     spore_immune = jnp.any(u_types == C.GRASS) | (u_ab == A.OVERCOAT) | \
         (slot_get(state.item, user, ui) == I.SAFETYGOGGLES)
@@ -1921,10 +2096,13 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     state, _ = apply_boosts(state, user, user_drops, from_opponent=True)
     # Toxic Debris scatters Toxic Spikes on a physical hit; Seed Sower raises
     # Grassy Terrain; Electromorphosis charges up.
+    # Toxic Debris answers every physical hit, up to the two layers.
     physical_hit = took_damage & (mv.category == C.CAT_PHYSICAL)
-    layers = state.side_conditions[user, C.SC_TOXICSPIKES]
-    state = _set_side_condition(state, user, jnp.int32(C.SC_TOXICSPIKES),
-                                physical_hit & (d_ab == A.TOXICDEBRIS) & (layers < 2))
+    for k in range(2):
+        layers = state.side_conditions[user, C.SC_TOXICSPIKES]
+        state = _set_side_condition(state, user, jnp.int32(C.SC_TOXICSPIKES),
+                                    physical_hit & (d_ab == A.TOXICDEBRIS) & (layers < 2) &
+                                    (hits_reached > k))
     state = set_terrain(state, jnp.int8(C.GRASSY_TERRAIN), took_damage & (d_ab == A.SEEDSOWER))
     state = state._replace(volatiles=set_at(
         state.volatiles, (target, C.V_CHARGE), 1, took_damage & (d_ab == A.ELECTROMORPHOSIS)))
@@ -1954,6 +2132,7 @@ def execute_move(data, state, user, move_slot, moves_first, words,
             (A.WEAKARMOR, {C.B_DEF: -1, C.B_SPE: 2}, phys_hit),
             (A.WATERCOMPACTION, {C.B_DEF: 2}, took_damage & (mv.type == C.WATER)),
             (A.JUSTIFIED, {C.B_ATK: 1}, took_damage & (mv.type == C.DARK)),
+            (A.THERMALEXCHANGE, {C.B_ATK: 1}, took_damage & (mv.type == C.FIRE)),
             (A.RATTLED, {C.B_SPE: 1}, took_damage &
              ((mv.type == C.BUG) | (mv.type == C.DARK) | (mv.type == C.GHOST))),
             (A.ANGERPOINT, {C.B_ATK: 12}, phys_hit & is_crit),
@@ -1969,7 +2148,7 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     # hit of a multi-hit move. (The damage of the later hits does not see the
     # Defense they change.)
     per_hit = (d_ab == A.STAMINA) | (d_ab == A.WEAKARMOR) | (d_ab == A.WATERCOMPACTION) | \
-        (d_ab == A.JUSTIFIED) | (d_ab == A.RATTLED)
+        (d_ab == A.JUSTIFIED) | (d_ab == A.RATTLED) | (d_ab == A.THERMALEXCHANGE)
     target_boosts = jnp.where(per_hit, target_boosts * jnp.maximum(hits_reached, 1),
                               target_boosts)
     # Weakness Policy: +2 Attack and Sp. Atk from a super-effective hit it
@@ -2010,8 +2189,9 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     # Missile catches something when Cramorant uses Surf (an Arrokuda above half
     # HP, a Pikachu at or below it), and Relic Song flips Meloetta between Aria
     # and Pirouette Forme.
+    # (Not a Ditto that has transformed into Cramorant.)
     catches = connects & (u_ab == A.GULPMISSILE) & (species == species_index("cramorant")) & \
-        (move_id == move_index("surf"))
+        (move_id == move_index("surf")) & jnp.logical_not(state.transformed[user])
     aria, pirouette = species_index("meloetta"), species_index("meloettapirouette")
     sings = hit_pokemon & fx(effect, "relicsong") & ((species == aria) | (species == pirouette)) & \
         jnp.logical_not(state.transformed[user]) & (slot_get(state.hp, user, ui) > 0)
@@ -2023,17 +2203,43 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     # --- secondaries and the special-effect handler ---
     state, sec_status, sec_word, sec_drops = _apply_secondaries(
         data, state, user, target, move_id, words, landed=hit_pokemon, target_ability=t_ab,
-        connected=landed, target_grounded=cb_ctx.grounded_target)
+        connected=landed, target_grounded=cb_ctx.grounded_target,
+        target_raised=t_raised_at_start)
     # The recipient's stat changes -- the move's own (Growl, or a bounced one)
-    # and its secondaries' (Icy Wind) -- in one call, and Defiant and
+    # and its secondaries' (Icy Wind; not on a target the hit knocked out, so
+    # no Mirror Armor bounce either) -- in one call, and Defiant and
     # Competitive answer whatever the opponent lowered.
+    sec_drops = jnp.where(slot_get(state.hp, target, ti) > 0, sec_drops, 0)
     state, lowered = apply_boosts(
         state, recv,
         jnp.where(applied & jnp.logical_not(self_targeting), tgt_boosts, 0) + sec_drops,
-        from_opponent=True)
-    state = run_effect(effect, data, state, user, target, words[W_EFFECT],
+        from_opponent=True,
+        ignore_ability=breaks & jnp.logical_not(bounce_lands) &
+        data["ability_breakable"][t_ab_raw])
+    # A move Magic Bounce reflects is used by the bouncer on the original user:
+    # Strength Sap, Leech Seed's Grass check and Defog run the other way round.
+    boosts_before = state.boosts
+    # Choice items lock the user into the move it is using, if it was holding
+    # one as the move began -- set here, at the start of the move as Showdown's
+    # onModifyMove does, so that a Trick below can clear it again. Compared
+    # directly rather than through `data["item_is_choice"]`: a gather whose
+    # index is itself a gathered value is a compile cliff under vmap.
+    held = held_at_start
+    choiced = ((held == I.CHOICESCARF) | (held == I.CHOICEBAND) |
+               (held == I.CHOICESPECS))
+    state = state._replace(choice_slot=set_indexed(
+        state.choice_slot, user, move_slot.astype(jnp.int8),
+        when=choiced & can_act & jnp.logical_not(struggling)))
+    # Every handler indexes with these, and they sit at the end of the bounce
+    # chain: materialise them once rather than in each handler's kernels.
+    src, recv = barrier(src, recv)
+    state = run_effect(effect, data, state, src, recv, words[W_EFFECT],
                        when=attacks & jnp.logical_not(fails) & (effect > 0),
-                       connected=connects, hit=jnp.where(is_status, connects, hit_pokemon))
+                       connected=connects | bounce_lands,
+                       hit=jnp.where(is_status, connects | bounce_lands, hit_pokemon))
+    # Whether Parting Shot changed a stat -- read now, before a White Herb
+    # puts the drops back.
+    stats_moved = jnp.any(state.boosts != boosts_before)
 
 
     # --- the status each side ends up with: one `set_status` call apiece ---
@@ -2130,7 +2336,12 @@ def execute_move(data, state, user, move_slot, moves_first, words,
                          jnp.where(goes_on, left, 0), starts | rampaging),
         locked_slot=set_at(state.locked_slot, user,
                            jnp.where(goes_on, move_slot, -1), starts | rampaging))
+    # A berry the user already wants before the fatigue (Lum, for a Flame Body
+    # burn from this very hit) is eaten on Showdown's Update after the hit --
+    # so the confusion that comes as the move ends stays.
+    early_bite = berry_wants(state, user)
     state = confuse(state, user, words[W_CONFUSE], fatigue, cb_ctx.grounded_user)
+    fatigue_confusion = state.volatiles[user, C.V_CONFUSION]
 
     # --- berries: at most one bite per side per move, whatever the reason ---
     # Bug Bite takes the target's berry first and eats it on the spot.
@@ -2152,6 +2363,8 @@ def execute_move(data, state, user, move_slot, moves_first, words,
                       jnp.where(bites, stolen, slot_get(state.item, user, ui)),
                       when=bites | cheeks | berry_wants(state, user),
                       consume=jnp.logical_not(bites), cud=jnp.where(bites, 0, 2))
+    state = state._replace(volatiles=set_at(state.volatiles, (user, C.V_CONFUSION),
+                                            fatigue_confusion, early_bite & fatigue))
 
     # Protect's streak only survives consecutive protecting turns.
     # Protect's streak only survives a stalling move that went ahead (its
@@ -2170,26 +2383,30 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     state = state._replace(fusion_last=jnp.where(connects, fusion, state.fusion_last)
                            .astype(jnp.int8))
 
-    # Stomping Tantrum's "failed": missed, immune, fizzled -- but not stopped by
-    # Protect, which Showdown records as NOT_FAIL rather than false.
-    move_failed = attacks & jnp.logical_not(connects) & jnp.logical_not(is_status) & \
-        jnp.logical_not(deferred) & jnp.logical_not(blocked)
+    # Stomping Tantrum's "failed": missed, immune, fizzled, or a status move
+    # whose status did not take (Spore into Sleep Clause) -- but not stopped by
+    # Protect or bounced back, which Showdown records as NOT_FAIL, not false.
+    # A field move that changed nothing failed too: a weather or terrain
+    # already up, a screen or hazard already at its limit.
+    weather_before, terrain_before, sc_before = field_before
+    field_move = (data["move_weather"][move_id] > 0) | (data["move_terrain"][move_id] > 0) | \
+        (data["move_side_condition"][move_id] >= 0) | \
+        (data["move_self_side_condition"][move_id] >= 0)
+    field_unchanged = (state.weather == weather_before) & (state.terrain == terrain_before) & \
+        jnp.all(state.side_conditions == sc_before)
+    move_failed = attacks & jnp.logical_not(deferred) & jnp.logical_not(blocked) & \
+        jnp.logical_not(bounces) & (
+            jnp.logical_not(connects) |
+            (is_status & (data["move_status"][move_id] != C.STATUS_NONE) &
+             jnp.logical_not(status_landed)) |
+            (is_status & field_move & field_unchanged))
     state = state._replace(
         last_move=set_at(state.last_move, user, chosen_id, when=can_act),
         moved_this_turn=set_at(state.moved_this_turn, user, True),
         moves_since_switch=add_at(state.moves_since_switch, user, 1, when=can_act),
         last_move_failed=set_at(state.last_move_failed, user, move_failed))
+    state = log_event(state, user, ui, shown_at_start, chosen_id, when=can_act)
 
-    # Choice items lock the user into the move it just used, if it was holding
-    # one as the move began. Compared directly rather than through
-    # `data["item_is_choice"]`: a gather whose index is itself a gathered value
-    # is a compile cliff under vmap.
-    held = held_at_start
-    choiced = ((held == I.CHOICESCARF) | (held == I.CHOICEBAND) |
-               (held == I.CHOICESPECS))
-    state = state._replace(choice_slot=set_indexed(
-        state.choice_slot, user, move_slot.astype(jnp.int8),
-        when=choiced & can_act & jnp.logical_not(struggling)))
     # A Pokemon that comes by a new item -- Trick, Switcheroo, Pickpocket --
     # is freed of any Choice lock: a Choice item's `onStart` clears it, so even
     # Tricking one Choice item for another leaves the user unlocked.
@@ -2207,6 +2424,11 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     # Whirlwind, Roar, Parting Shot and Teleport are all status moves. Baton
     # Pass and Shed Tail record what they hand over in `pass_mode`.
 
+    # Beak Blast only burns attackers while it heats up: once its user has
+    # moved, a contact hit is safe again (Showdown's onAfterMove).
+    state = state._replace(volatiles=set_at(state.volatiles, (user, C.V_BEAKBLAST), 0,
+                                            attacks))
+
     # White Herb answers any stat drop once the move is over, on either side,
     # and Protosynthesis and Quark Drive answer any change of weather or terrain.
     state = white_herb(state)
@@ -2215,14 +2437,22 @@ def execute_move(data, state, user, move_slot, moves_first, words,
     mode = data["move_self_switch"][move_id]
     # A user that fainted on the way (Rocky Helmet, Life Orb) is not switched
     # out: its replacement arrives after the turn, like any fainted Pokemon's.
+    # Parting Shot only switches its user out if a stat actually changed --
+    # not against Clear Body, or a target already at -6 (Mirror Armor's
+    # bounce counts).
+    parting_ok = jnp.logical_not(fx(effect, "partingshot")) | stats_moved
     self_switch = (mode > 0) & connects & (slot_get(state.hp, user, ui) > 0) & \
-        jnp.logical_not(fx(effect, "revivalblessing"))
-    phazing = data["move_force_switch"][move_id] & connects & \
-        (slot_get(state.hp, target, ti) > 0)
+        jnp.logical_not(fx(effect, "revivalblessing")) & parting_ok
+    # Dragon Tail and Circle Throw drag out only a target they hit -- one
+    # behind a Substitute stays in.
+    # A Roar reflected by Magic Bounce drags out its user instead.
+    phazing = data["move_force_switch"][move_id] & \
+        jnp.where(is_status, applied, hit_pokemon) & \
+        (slot_get(state.hp, recv, act(state, recv)) > 0)
     players = jnp.arange(C.NUM_PLAYERS)
     state = state._replace(
         force_switch=state.force_switch | ((players == user) & self_switch),
-        phazed=state.phazed | ((players == target) & phazing),
+        phazed=state.phazed | ((players == recv) & phazing),
         pass_mode=set_at(state.pass_mode, user, mode, self_switch))
     return state
 

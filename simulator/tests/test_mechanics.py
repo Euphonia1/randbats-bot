@@ -16,7 +16,7 @@ from psjax import consts as C
 from psjax.data import load_data, load_team_pool, names
 from psjax.engine import step, switch_to
 from psjax.env import BattleEnv
-from psjax.fog import FogOfWarEnv, FogState
+from psjax.fog import FogOfWarEnv, FogState, empty_history
 from psjax.mechanics import set_status, species_stats
 from psjax.teams import legal_action_mask, new_battle
 from scenario import build
@@ -229,7 +229,7 @@ def test_illusion_shows_the_disguise_until_hit():
 
     env = FogOfWarEnv(BattleEnv(DATA))
     fs = FogState(battle=state, revealed=jnp.zeros((2, 6), bool),
-                  revealed_moves=jnp.zeros((2, 6, 4), bool))
+                  revealed_moves=jnp.zeros((2, 6, 4), bool), history=empty_history())
     seen = env._censor(fs, 0)
     assert bool(jnp.all(seen.types[0, 0] == state.types[0, 2])), \
         "the opponent sees Corviknight's typing"
@@ -308,7 +308,7 @@ def test_the_opponent_sees_how_long_a_pokemon_has_slept_but_not_how_long_is_left
     state = _asleep("Run Away", 2)
     env = FogOfWarEnv(BattleEnv(DATA))
     fs = FogState(battle=state, revealed=jnp.zeros((2, 6), bool),
-                  revealed_moves=jnp.zeros((2, 6, 4), bool))
+                  revealed_moves=jnp.zeros((2, 6, 4), bool), history=empty_history())
     seen = lambda st: env.observe(fs._replace(battle=st))[1]   # player 1's view
     base = seen(state)
     assert not bool(jnp.allclose(base, seen(state._replace(
@@ -317,3 +317,108 @@ def test_the_opponent_sees_how_long_a_pokemon_has_slept_but_not_how_long_is_left
         rest_sleep=state.rest_sleep.at[0, 0].set(True)))))
     assert bool(jnp.allclose(base, seen(state._replace(
         status_turns=state.status_turns.at[0, 0].set(1))))), "turns left stay hidden"
+
+
+# --- found replaying whole battles against Showdown -------------------------------
+
+def _hp_lost(before, after, side):
+    return int(before.hp[side, before.active[side]]) - int(after.hp[side, after.active[side]])
+
+
+def test_beat_up_reads_each_sets_species_in_party_order():
+    """5 + base Attack / 10 of the species the set names -- Terapagos (65), not the
+    Terastal Form (95) it has become -- user first, then by party position."""
+    from psjax.moves import _beat_up_powers
+    team = [mon("Fezandipiti", "Technician", ["beatup"]), mon("Haxorus", "Mold Breaker"),
+            mon("Terapagos", "Tera Shift")]
+    state = battle(team[0], BENCH, p1team=team)
+    terastal = N.species_id("terapagosterastal")
+    state = state._replace(species=state.species.at[0, 2].set(terastal),
+                           base_species=state.base_species.at[0, 2].set(terastal),
+                           party_pos=state.party_pos.at[0].set(jnp.array([0, 2, 1, 3, 4, 5],
+                                                                         jnp.int8)))
+    powers, hits = _beat_up_powers(DATA, state, 0)
+    assert int(hits) == 3
+    assert [int(p) for p in powers[:3]] == [5 + 91 // 10, 5 + 65 // 10, 5 + 147 // 10]
+
+
+def test_hits_after_ice_face_breaks_meet_noice_defense():
+    cloyster = mon("Cloyster", "Skill Link", ["iciclespear"])
+    dealt = {}
+    for species in ("Eiscue", "Eiscue-Noice"):
+        state = battle(cloyster, mon(species, "Ice Face"))
+        after = JIT_STEP(state, jnp.array([0, 0], jnp.int32))
+        dealt[species] = _hp_lost(state, after, 1)
+    # The first of five hits is absorbed; the other four land on Noice's 70
+    # base Defense (on Eiscue's 110 they would come to barely half).
+    assert dealt["Eiscue"] > 0.7 * dealt["Eiscue-Noice"]
+
+
+def test_seed_sower_terrain_powers_the_rest_of_a_multi_hit_move():
+    cinccino = mon("Cinccino", "Skill Link", ["bulletseed"])
+    dealt = {}
+    for ability, terrain in (("Harvest", ""), ("Seed Sower", ""),
+                             ("Harvest", "grassyterrain")):
+        state = battle(cinccino, mon("Arboliva", ability), terrain=terrain)
+        after = JIT_STEP(state, jnp.array([0, 0], jnp.int32))
+        # Less the terrain's healing at the end of the turn.
+        healed = int(after.maxhp[1, 0]) // 16 if int(after.terrain) == C.GRASSY_TERRAIN else 0
+        dealt[ability, terrain] = _hp_lost(state, after, 1) + healed
+    assert dealt["Harvest", ""] < dealt["Seed Sower", ""] < dealt["Harvest", "grassyterrain"]
+
+
+def test_endeavor_fails_without_contact_unless_the_target_has_more_hp():
+    for user_hp, lands in ((1.0, False), (0.1, True)):
+        state = battle(mon("Luvdisc", "Hydration", ["endeavor"], hpPercent=user_hp),
+                       mon("Goodra", "Gooey", hpPercent=0.5))
+        after = JIT_STEP(state, jnp.array([0, 0], jnp.int32))
+        assert (_hp_lost(state, after, 1) > 0) == lands
+        assert int(after.boosts[0, C.B_SPE]) == (-1 if lands else 0), "Gooey needs contact"
+
+
+def test_transform_lets_go_of_a_choice_lock():
+    ditto = mon("Ditto", "Limber", ["transform"], item="Choice Scarf")
+    state = battle(ditto, mon("Blastoise", "Torrent",
+                              ["shellsmash", "hydropump", "icebeam", "earthquake"]))
+    state = JIT_STEP(state, jnp.array([0, 0], jnp.int32))
+    assert bool(state.transformed[0])
+    assert moves_offered(state, 0) == [0, 1, 2, 3]
+
+
+def test_a_berry_unnerve_held_back_is_eaten_as_soon_as_it_leaves():
+    """Before the newcomer's own Unnerve starts, too."""
+    pyroar = mon("Pyroar", "Unnerve")
+    state = battle(mon("Snorlax", "Thick Fat", item="Chesto Berry", status="slp",
+                       statusTurns=3), pyroar, p2team=[pyroar, pyroar])
+    after = JIT_STEP(state, jnp.array([0, C.ACTION_SWITCH_BASE + 1], jnp.int32))
+    assert int(after.item[0, 0]) == 0
+    assert int(after.status[0, 0]) == C.STATUS_NONE
+
+
+def test_a_berry_the_weather_triggers_is_eaten_before_harvest():
+    """Sandstorm's chip is followed by an Update; the berry goes down then, and
+    Harvest, later in the residuals, can grow it back the same turn."""
+    regrown = 0
+    for seed in range(8):
+        state = battle(mon("Exeggutor-Alola", "Harvest", item="Sitrus Berry", hpPercent=0.52),
+                       BENCH, weather="sandstorm")
+        state = state._replace(key=jax.random.PRNGKey(seed))
+        after = JIT_STEP(state, jnp.array([0, 0], jnp.int32))
+        sitrus = N.item_id("Sitrus Berry")
+        assert int(after.hp[0, 0]) > int(state.hp[0, 0]), "the Sitrus Berry was eaten"
+        if int(after.item[0, 0]) == sitrus:
+            assert int(after.last_item[0, 0]) == 0
+            regrown += 1
+        else:
+            assert int(after.last_item[0, 0]) == sitrus
+    assert regrown > 0
+
+
+def test_no_secondary_drop_lands_on_a_knocked_out_target():
+    """So Mirror Armor has nothing to bounce."""
+    for hp, bounced in ((1.0, True), (0.01, False)):
+        state = battle(mon("Blissey", "Natural Cure", ["mysticalfire"]),
+                       mon("Corviknight", "Mirror Armor", hpPercent=hp),
+                       p2team=[mon("Corviknight", "Mirror Armor", hpPercent=hp), BENCH])
+        after = JIT_STEP(state, jnp.array([0, 0], jnp.int32))
+        assert int(after.boosts[0, C.B_SPA]) == (-1 if bounced else 0)

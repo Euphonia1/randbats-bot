@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import config
 from psjax import consts as C
 from psjax.data import load_data, names
+from psjax.fog import HISTORY_LEN
 
 # Flag names in bit order, so flag column i is FLAG_NAMES[i].
 FLAG_NAMES = sorted(C.FLAG_BITS, key=C.FLAG_BITS.get)
@@ -15,6 +16,13 @@ STATUSES = (C.BRN, C.PAR, C.SLP, C.FRZ, C.PSN, C.TOX)
 # last a random number of turns that neither player is told.
 PUBLIC_VOLATILE_TURNS = (C.V_PERISHSONG, C.V_TAUNT, C.V_ENCORE, C.V_DISABLE, C.V_YAWN,
                          C.V_SLOWSTART, C.V_MAGNETRISE, C.V_THROATCHOP, C.V_SYRUPBOMB)
+# ID inputs use -1 for "none" (an empty move slot, a mono-type's second type),
+# which embeds as zeros, and UNKNOWN for something the opponent has not
+# revealed, which embeds as a learned vector of its own.
+UNKNOWN = -2
+# How far back the history tells turns apart: an event this turn, last turn,
+# ..., and anything older all alike.
+HISTORY_TURNS = 8
 
 
 def build_move_feature_table() -> tuple[torch.Tensor, torch.Tensor]:
@@ -115,12 +123,25 @@ def build_species_table() -> tuple[torch.Tensor, torch.Tensor]:
             torch.tensor(base_stats, dtype=torch.float32))
 
 
-def embed_or_zero(layer: nn.Module, ids: torch.Tensor) -> torch.Tensor:
-    """Apply `layer` to `ids`, giving a zero vector wherever an ID is -1
-    (a mono-type's missing second type, an empty move slot, or anything the
-    opponent has not revealed yet)."""
-    valid = ids >= 0
-    return layer(ids.clamp(min=0)) * valid.unsqueeze(-1)
+def unknown_vector(dim: int) -> nn.Parameter:
+    """The learned embedding for an UNKNOWN ID."""
+    return nn.Parameter(torch.randn(dim) * 0.02)
+
+
+def embed(layer: nn.Module, ids: torch.Tensor,
+          unknown: torch.Tensor | None = None) -> torch.Tensor:
+    """Apply `layer` to `ids`, with -1 (none) as zeros and UNKNOWN as the
+    learned `unknown` vector."""
+    out = layer(ids.clamp(min=0)) * (ids >= 0).unsqueeze(-1)
+    if unknown is not None:
+        out = torch.where((ids == UNKNOWN).unsqueeze(-1), unknown.to(out.dtype), out)
+    return out
+
+
+def mlp(in_dim: int, out_dim: int) -> nn.Sequential:
+    """Two layers, normalized at the end: every embedding's final step."""
+    return nn.Sequential(nn.Linear(in_dim, out_dim), nn.ReLU(),
+                         nn.Linear(out_dim, out_dim), nn.LayerNorm(out_dim))
 
 
 def slot_one_hot(slot: torch.Tensor) -> torch.Tensor:
@@ -128,25 +149,26 @@ def slot_one_hot(slot: torch.Tensor) -> torch.Tensor:
     return slot.unsqueeze(-1) == torch.arange(C.MOVES_PER_POKEMON, device=slot.device)
 
 
-def embed_move_slots(move_embedding: nn.Module, move_ids: torch.Tensor,
+def embed_move_slots(move_embedding: "MoveEmbeddingLayer", move_ids: torch.Tensor,
                      pp: torch.Tensor, maxpp: torch.Tensor) -> torch.Tensor:
     """Each move slot's embedding with the fraction of its PP left appended:
-    (..., 4) IDs give (..., 4, move_embedding.output_dim + 1). An empty or
-    unrevealed slot (-1) is all zeros."""
-    moves = embed_or_zero(move_embedding, move_ids)
-    pp_left = torch.where(move_ids >= 0, pp / maxpp.clamp(min=1), 0.0)
+    (..., 4) IDs give (..., 4, move_embedding.output_dim + 1). An empty slot
+    (-1) is all zeros; an unrevealed one has full PP, as it has never been used."""
+    moves = embed(move_embedding, move_ids, move_embedding.unknown)
+    pp_left = torch.where(move_ids == -1, 0.0, pp / maxpp.clamp(min=1))
     return torch.cat([moves, pp_left.unsqueeze(-1).to(moves.dtype)], dim=-1)
 
 
 class TypeEmbeddingLayer(nn.Module):
     def __init__(self):
         super().__init__()
-        self.embedding = nn.Embedding(C.NUM_TYPES, config.TYPE_EMBEDDING_OUTPUT_DIM) 
+        self.embedding = nn.Embedding(C.NUM_TYPES, config.TYPE_EMBEDDING_OUTPUT_DIM)
+        self.unknown = unknown_vector(config.TYPE_EMBEDDING_OUTPUT_DIM)  # an unseen Tera type
 
-    def forward(self, type_id: int):
-        return self.embedding(torch.as_tensor(type_id))
+    def forward(self, type_ids: torch.Tensor) -> torch.Tensor:
+        return self.embedding(torch.as_tensor(type_ids))
 
-    
+
 class MoveEmbeddingLayer(nn.Module):
     def __init__(self, type_embedding: TypeEmbeddingLayer, output_dim: int = 32):
         super().__init__()
@@ -158,14 +180,15 @@ class MoveEmbeddingLayer(nn.Module):
         # but are not trained.
         self.register_buffer("move_features", features)
         self.register_buffer("move_type_ids", type_ids)
- 
+
         in_dim = (
             config.MOVE_EMBEDDING_OUTPUT_DIM
             + config.TYPE_EMBEDDING_OUTPUT_DIM
             + features.shape[1]
         )
         self.output_dim = output_dim
-        self.project = nn.Sequential(nn.Linear(in_dim, output_dim), nn.ReLU())
+        self.project = mlp(in_dim, output_dim)
+        self.unknown = unknown_vector(output_dim)  # a move the opponent has not used
  
     def forward(self, move_ids: torch.Tensor) -> torch.Tensor:
         """move_ids: long tensor of any shape, e.g. (batch,) or (batch, 4).
@@ -177,8 +200,8 @@ class MoveEmbeddingLayer(nn.Module):
 
 
 class PokemonEmbeddingLayer(nn.Module):
-    def __init__(self, type_embedding: TypeEmbeddingLayer,
-                 move_embedding: MoveEmbeddingLayer, output_dim: int = 32):
+    def __init__(self, type_embedding: TypeEmbeddingLayer, move_embedding: MoveEmbeddingLayer,
+                 output_dim: int = config.POKEMON_EMBEDDING_OUTPUT_DIM):
         super().__init__()
         self.type_embedding = type_embedding  # shared with moves
         self.move_embedding = move_embedding  # one layer shared by all four slots
@@ -187,6 +210,9 @@ class PokemonEmbeddingLayer(nn.Module):
         self.species_embedding = nn.Embedding(type_ids.shape[0], config.SPECIES_EMBEDDING_OUTPUT_DIM)
         self.item_embedding = nn.Embedding(len(n.items), config.ITEM_EMBEDDING_OUTPUT_DIM)
         self.ability_embedding = nn.Embedding(len(n.abilities), config.ABILITY_EMBEDDING_OUTPUT_DIM)
+        self.unknown_species = unknown_vector(config.SPECIES_EMBEDDING_OUTPUT_DIM)
+        self.unknown_item = unknown_vector(config.ITEM_EMBEDDING_OUTPUT_DIM)
+        self.unknown_ability = unknown_vector(config.ABILITY_EMBEDDING_OUTPUT_DIM)
 
         # Buffers move with the model to GPU and are saved in state_dict,
         # but are not trained.
@@ -210,7 +236,7 @@ class PokemonEmbeddingLayer(nn.Module):
             + 1  # toxic counter
         )
         self.output_dim = output_dim
-        self.project = nn.Sequential(nn.Linear(in_dim, output_dim), nn.ReLU())
+        self.project = mlp(in_dim, output_dim)
 
     def forward(self, species_ids: torch.Tensor, item_ids: torch.Tensor,
                 ability_ids: torch.Tensor, move_ids: torch.Tensor,
@@ -241,20 +267,21 @@ class PokemonEmbeddingLayer(nn.Module):
         stats: (..., 5) Attack, Defense, Sp. Atk, Sp. Def and Speed
         toxic_counter: turns the toxic poison has built up; 0 unless badly poisoned
 
-        -1 in species_ids, item_ids, ability_ids, move_ids or tera_type_ids
-        marks an empty move slot or something the opponent has not revealed
-        yet, and is embedded as zeros. An unrevealed species also zeroes its
-        types, base stats, level and stats.
+        UNKNOWN in species_ids, item_ids, ability_ids, move_ids or
+        tera_type_ids marks something the opponent has not revealed yet; -1 is
+        an empty move slot. An unrevealed species has unknown types too, and
+        zeros for its base stats, level and stats.
 
         Returns a tensor of shape (*species_ids.shape, output_dim)."""
-        species = embed_or_zero(self.species_embedding, species_ids)
+        species = embed(self.species_embedding, species_ids, self.unknown_species)
         known = (species_ids >= 0).unsqueeze(-1)
         species_ids = species_ids.clamp(min=0)
-        item = embed_or_zero(self.item_embedding, item_ids)
-        ability = embed_or_zero(self.ability_embedding, ability_ids)
-        types = embed_or_zero(self.type_embedding,
-                              torch.where(known, self.species_type_ids[species_ids], -1))
-        tera_type = embed_or_zero(self.type_embedding, tera_type_ids)
+        item = embed(self.item_embedding, item_ids, self.unknown_item)
+        ability = embed(self.ability_embedding, ability_ids, self.unknown_ability)
+        types = embed(self.type_embedding,
+                      torch.where(known, self.species_type_ids[species_ids], UNKNOWN),
+                      self.type_embedding.unknown)
+        tera_type = embed(self.type_embedding, tera_type_ids, self.type_embedding.unknown)
         moves = embed_move_slots(self.move_embedding, move_ids, pp, maxpp)
         base_stats = self.species_base_stats[species_ids] * known
         hp_left = (hp / maxhp.clamp(min=1)).unsqueeze(-1).to(species.dtype)
@@ -275,36 +302,38 @@ class PokemonEmbeddingLayer(nn.Module):
 
 
 class PlayerEmbeddingLayer(nn.Module):
-    def __init__(self, pokemon_embedding: PokemonEmbeddingLayer, output_dim: int = 64):
+    """What belongs to a player rather than to one Pokemon: how many are left,
+    whether Tera is spent, and the active slot's state, which clears when its
+    Pokemon switches out. The Pokemon themselves are tokens of their own."""
+
+    def __init__(self, move_embedding: MoveEmbeddingLayer, output_dim: int = 64):
         super().__init__()
-        self.pokemon_embedding = pokemon_embedding  # one layer shared by all six slots
+        self.move_embedding = move_embedding  # for the last move used
         in_dim = (
-            2 * pokemon_embedding.output_dim  # the active Pokemon and the bench
-            + 1  # how many bench Pokemon are left
+            1  # how many Pokemon are left
             + 1  # whether Tera has been used
             + C.NUM_BOOSTS  # the active Pokemon's stat stages
             + C.NUM_VOLATILES  # and which volatile conditions it has
             + len(PUBLIC_VOLATILE_TURNS)  # turns left on the ones anyone can count
-            + pokemon_embedding.move_embedding.output_dim  # the last move it used
+            + move_embedding.output_dim  # the last move it used
             + 1  # whether this is its first turn out (Fake Out, First Impression)
             + 4 * C.MOVES_PER_POKEMON  # Choice-locked, Encored, Disabled, locked-in slot
         )
         self.output_dim = output_dim
-        self.project = nn.Sequential(nn.Linear(in_dim, output_dim), nn.ReLU())
+        self.project = mlp(in_dim, output_dim)
         self.register_buffer("public_volatile_turns", torch.tensor(PUBLIC_VOLATILE_TURNS),
                              persistent=False)
 
-    def forward(self, team: dict[str, torch.Tensor], active_slot: torch.Tensor,
+    def forward(self, pokemon_left: torch.Tensor, tera_used: torch.Tensor,
                 boosts: torch.Tensor, volatiles: torch.Tensor, last_move: torch.Tensor,
                 moves_since_switch: torch.Tensor, choice_slot: torch.Tensor,
                 encore_slot: torch.Tensor, disabled_slot: torch.Tensor,
-                locked_slot: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        """team: PokemonEmbeddingLayer.forward's arguments by name, each with a
-            team dimension of 6, e.g. species_ids (batch, 6) and move_ids
-            (batch, 6, 4)
-        active_slot: long, (batch,) team index of the active Pokemon
+                locked_slot: torch.Tensor) -> torch.Tensor:
+        """pokemon_left: (batch,) how many of the six have not fainted
+        tera_used: bool (batch,), whether any of them has Terastallized
         boosts: (batch, C.NUM_BOOSTS) stat stages, -6..6, in C.BOOST_NAMES order
-        volatiles: (batch, C.NUM_VOLATILES) turns left, 0 absent, in C.V_* order
+        volatiles: (batch, C.NUM_VOLATILES) turns left, 0 absent, in C.V_* order;
+            only presence is used, plus turns left for PUBLIC_VOLATILE_TURNS
         last_move: long, (batch,) move ID of the last move it used; -1 none
         moves_since_switch: (batch,) moves it has made since switching in
         choice_slot, encore_slot, disabled_slot, locked_slot: long, (batch,)
@@ -312,38 +341,19 @@ class PlayerEmbeddingLayer(nn.Module):
             move like Outrage; -1 none, and -1 for an opponent's unrevealed
             Choice lock
 
-        The bench is the mean over living bench Pokemon, so it does not depend
-        on which slot each one is in; fainted ones only count toward how many
-        are left. Tera counts as used once any team member has Terastallized,
-        as it stays for the rest of the battle. Everything else belongs to the
-        active Pokemon and clears when it switches out. Volatiles show as
-        present or absent, plus turns left for PUBLIC_VOLATILE_TURNS.
-
-        Returns (player, pokemon): the player, (batch, output_dim), and each
-        team slot's Pokemon, (batch, 6, pokemon_dim), for scoring switches."""
-        pokemon = self.pokemon_embedding(**team)  # (batch, 6, pokemon_dim)
-        slots = torch.arange(C.TEAM_SIZE, device=active_slot.device)
-        is_active = slots == active_slot.unsqueeze(-1)  # (batch, 6)
-        active = (pokemon * is_active.unsqueeze(-1)).sum(-2)
-
-        on_bench = ~is_active & (team["hp"] > 0)
-        bench_left = on_bench.sum(-1, keepdim=True)
-        bench = (pokemon * on_bench.unsqueeze(-1)).sum(-2) / bench_left.clamp(min=1)
-
-        tera_used = team["terastallized"].any(-1, keepdim=True)
-        last_move = embed_or_zero(self.pokemon_embedding.move_embedding, last_move)
+        Returns a tensor of shape (batch, output_dim)."""
+        dtype = self.move_embedding.unknown.dtype
         held_slots = torch.cat([slot_one_hot(s) for s in
                                 (choice_slot, encore_slot, disabled_slot, locked_slot)], dim=-1)
-        dtype = active.dtype
-        player = self.project(torch.cat([
-            active, bench,
-            (bench_left / (C.TEAM_SIZE - 1)).to(dtype), tera_used.to(dtype),
+        return self.project(torch.cat([
+            (pokemon_left / C.TEAM_SIZE).unsqueeze(-1).to(dtype),
+            tera_used.unsqueeze(-1).to(dtype),
             (boosts / 6.0).to(dtype), (volatiles > 0).to(dtype),
             (volatiles[..., self.public_volatile_turns] / 5.0).to(dtype),
-            last_move, (moves_since_switch == 0).unsqueeze(-1).to(dtype),
+            embed(self.move_embedding, last_move),
+            (moves_since_switch == 0).unsqueeze(-1).to(dtype),
             held_slots.to(dtype),
         ], dim=-1))
-        return player, pokemon
 
 
 class FieldEmbeddingLayer(nn.Module):
@@ -362,7 +372,7 @@ class FieldEmbeddingLayer(nn.Module):
             + 2  # who owes a replacement: you, then the opponent
         )
         self.output_dim = output_dim
-        self.project = nn.Sequential(nn.Linear(in_dim, output_dim), nn.ReLU())
+        self.project = mlp(in_dim, output_dim)
 
     def forward(self, weather: torch.Tensor, terrain: torch.Tensor,
                 trick_room: torch.Tensor, gravity: torch.Tensor,
@@ -388,53 +398,116 @@ class FieldEmbeddingLayer(nn.Module):
         ], dim=-1))
 
 
+class HistoryEmbeddingLayer(nn.Module):
+    """One event from the battle log: a Pokemon, yours or the opponent's,
+    used a move or switched in, some turns ago."""
+
+    def __init__(self, species_embedding: nn.Embedding, move_embedding: MoveEmbeddingLayer,
+                 output_dim: int = 64):
+        super().__init__()
+        self.species_embedding = species_embedding  # shared with the Pokemon
+        self.move_embedding = move_embedding
+        in_dim = (
+            species_embedding.embedding_dim  # who acted
+            + move_embedding.output_dim  # the move it used; zeros for a switch-in
+            + 1  # yours, not the opponent's
+            + 1  # a switch-in
+            + HISTORY_TURNS  # turns ago, one-hot
+        )
+        self.output_dim = output_dim
+        self.project = mlp(in_dim, output_dim)
+
+    def forward(self, present: torch.Tensor, mine: torch.Tensor, species_ids: torch.Tensor,
+                move_ids: torch.Tensor, turns_ago: torch.Tensor) -> torch.Tensor:
+        """Each (batch, events):
+        present: bool, whether there is an event here at all
+        mine: bool, whether it was yours
+        species_ids: long, the Pokemon that acted: yours as it is, the
+            opponent's as they showed it (an Illusion's disguise)
+        move_ids: long, the move it used; -1 for a switch-in
+        turns_ago: how many turns back it happened; 0 is this turn
+
+        Returns a tensor of shape (batch, events, output_dim)."""
+        dtype = self.move_embedding.unknown.dtype
+        turns_ago = turns_ago.long().clamp(0, HISTORY_TURNS - 1)
+        return self.project(torch.cat([
+            embed(self.species_embedding, species_ids),
+            embed(self.move_embedding, move_ids),
+            mine.unsqueeze(-1).to(dtype),
+            (present & (move_ids == -1)).unsqueeze(-1).to(dtype),
+            F.one_hot(turns_ago, HISTORY_TURNS).to(dtype),
+        ], dim=-1))
+
+
 # What each transformer token is. Every token has its type's embedding added,
-# which is all the content the summary token has. The action tokens follow the
-# engine's action encoding: 0-3 use a move, 4-7 Terastallize and use it, 8-13
-# switch to that team slot.
-(TOKEN_SUMMARY, TOKEN_ME, TOKEN_OPPONENT, TOKEN_FIELD,
- TOKEN_MOVE, TOKEN_TERA_MOVE, TOKEN_SWITCH) = range(7)
-# Damage calcs on each action token, as (min, max) roll pairs; see
-# `game_inputs._matchups`. A move is calculated against the opponent's active
-# Pokemon and up to three of their others; a switch-in carries its best move
-# into their active Pokemon and their best revealed move into it.
-MOVE_MATCHUPS = 2 * 4
-SWITCH_MATCHUPS = 2 * 2
+# which is all the content the summary token has. The history's events come
+# between the state and the actions, oldest first. The last 14 are the
+# actions, in the engine's encoding: 0-3 use a move, 4-7 Terastallize and use
+# it, 8-13 switch to that team slot -- scored from your Pokemon's own tokens.
+(TOKEN_SUMMARY, TOKEN_ME, TOKEN_OPPONENT, TOKEN_FIELD, TOKEN_THEIR_POKEMON,
+ TOKEN_HISTORY, TOKEN_MOVE, TOKEN_TERA_MOVE, TOKEN_MY_POKEMON) = range(9)
 TOKEN_TYPES = (
     [TOKEN_SUMMARY, TOKEN_ME, TOKEN_OPPONENT, TOKEN_FIELD]
+    + [TOKEN_THEIR_POKEMON] * C.TEAM_SIZE
+    + [TOKEN_HISTORY] * HISTORY_LEN
     + [TOKEN_MOVE] * C.MOVES_PER_POKEMON
     + [TOKEN_TERA_MOVE] * C.MOVES_PER_POKEMON
-    + [TOKEN_SWITCH] * C.TEAM_SIZE
+    + [TOKEN_MY_POKEMON] * C.TEAM_SIZE
 )
+# Matchup features from `game_inputs._matchups`. A move token gets (min roll,
+# max roll, present) against the opponent's active Pokemon and up to three of
+# their others, then who moves first. Each of your Pokemon gets (min, max) for
+# its best move into their active Pokemon, (min, max, known) for their best
+# revealed move into it, then who would move first.
+MOVE_MATCHUPS = 3 * 4 + 1
+SWITCH_MATCHUPS = 2 + 3 + 1
 
 
 class GameNetwork(nn.Module):
-    """Both players, the field and one token per action, through a transformer.
+    """Both players, the field, every Pokemon, the recent history and every
+    action as tokens, through a transformer.
 
     The action head scores each action token, so every move and switch is
-    judged in the context of the whole game. The win head reads the summary
-    token. Everything is from your point of view.
+    judged in the context of the whole game; a switch is scored from the
+    token of the Pokemon it brings in. The win head reads the summary token.
+    Everything is from your point of view.
+
+    The history is the battle log's last HISTORY_LEN moves and switch-ins, a
+    token each, in the order they happened. That order is the one thing the
+    state does not show: who moved first, and so who is faster than its
+    Speed says (a Choice Scarf) or slower.
     """
 
     def __init__(self):
         super().__init__()
         self.type_embedding = TypeEmbeddingLayer()
         self.move_embedding = MoveEmbeddingLayer(self.type_embedding)
-        pokemon = PokemonEmbeddingLayer(self.type_embedding, self.move_embedding)
-        self.player_embedding = PlayerEmbeddingLayer(pokemon)  # shared by both players
+        # Both shared by the two players
+        self.pokemon_embedding = PokemonEmbeddingLayer(self.type_embedding, self.move_embedding)
+        self.player_embedding = PlayerEmbeddingLayer(self.move_embedding)
         self.field_embedding = FieldEmbeddingLayer()
+        self.history_embedding = HistoryEmbeddingLayer(
+            self.pokemon_embedding.species_embedding, self.move_embedding)
 
         d = config.TRANSFORMER_DIM
+        pokemon_dim = self.pokemon_embedding.output_dim
         move_dim = self.move_embedding.output_dim + 1  # with its PP left
         # Each kind of token has its own projection into the transformer's width.
         self.to_player = nn.Linear(self.player_embedding.output_dim, d)
         self.to_field = nn.Linear(self.field_embedding.output_dim, d)
+        self.to_their_pokemon = nn.Linear(pokemon_dim, d)
         self.to_move = nn.Linear(move_dim + MOVE_MATCHUPS, d)
         self.to_tera_move = nn.Linear(
             move_dim + config.TYPE_EMBEDDING_OUTPUT_DIM + MOVE_MATCHUPS, d)
-        self.to_switch = nn.Linear(pokemon.output_dim + SWITCH_MATCHUPS, d)
+        self.to_my_pokemon = nn.Linear(pokemon_dim + SWITCH_MATCHUPS, d)
+        self.to_history = nn.Linear(self.history_embedding.output_dim, d)
         self.token_type = nn.Embedding(len(set(TOKEN_TYPES)), d)
         self.register_buffer("token_types", torch.tensor(TOKEN_TYPES), persistent=False)
+        # Which Pokemon on each side is on the field
+        self.on_field = nn.Embedding(2, d)
+        # Each event's place in the history, the newest last, so events in
+        # the same turn are in the order they happened.
+        self.history_position = nn.Embedding(HISTORY_LEN, d)
         # Added to each action token, so the transformer can weigh the options
         # it actually has (a Choice lock, an Encore, a forced switch).
         self.action_legality = nn.Embedding(2, d)
@@ -449,16 +522,24 @@ class GameNetwork(nn.Module):
         self.win_head = nn.Linear(d, 1)
 
     def forward(self, me: dict, opponent: dict, field: dict[str, torch.Tensor],
-                legal_actions: torch.Tensor,
-                matchups: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
-        """me, opponent: PlayerEmbeddingLayer.forward's arguments by name, each
-            with a leading batch dimension
+                legal_actions: torch.Tensor, matchups: dict[str, torch.Tensor],
+                history: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        """me, opponent: each a dict of
+            team: PokemonEmbeddingLayer.forward's arguments by name, each with
+                a team dimension of 6, e.g. species_ids (batch, 6) and move_ids
+                (batch, 6, 4)
+            active_slot: long (batch,), team index of the active Pokemon
+            and PlayerEmbeddingLayer.forward's arguments by name, apart from
+            pokemon_left and tera_used, which are read off the team
         field: FieldEmbeddingLayer.forward's arguments by name
         legal_actions: bool (batch, C.NUM_ACTIONS), the engine's legal action mask
-        matchups: damage calcs for the action tokens: moves and tera_moves
-            (batch, 4, MOVE_MATCHUPS), switches (batch, 6, SWITCH_MATCHUPS)
+        matchups: moves and tera_moves (batch, 4, MOVE_MATCHUPS), switches
+            (batch, 6, SWITCH_MATCHUPS)
+        history: HistoryEmbeddingLayer.forward's arguments by name, each
+            (batch, HISTORY_LEN), oldest first; rows with no event in them
+            (until the battle has that many) are masked out
 
-        `game_inputs.game_inputs` builds all four from a battle, as one player
+        `game_inputs.game_inputs` builds all of it from a battle, as one player
         is allowed to see it.
 
         Returns (action_logits, win_logit):
@@ -466,34 +547,57 @@ class GameNetwork(nn.Module):
                 the lowest float, so a softmax gives them probability 0
             win_logit: (batch,); its sigmoid is the probability that you win
         """
-        my_team, my_active = me["team"], me["active_slot"]
-        me, my_pokemon = self.player_embedding(**me)
-        opponent, _ = self.player_embedding(**opponent)
+        my_team, my_active = me["team"], me["active_slot"].long()
+        slots = torch.arange(C.TEAM_SIZE, device=my_active.device)
+
+        def pokemon_and_player(player):
+            team = player["team"]
+            pokemon = self.pokemon_embedding(**team)  # (batch, 6, pokemon_dim)
+            on_field = self.on_field((slots == player["active_slot"].unsqueeze(-1)).long())
+            side = {k: v for k, v in player.items() if k not in ("team", "active_slot")}
+            side = self.player_embedding(pokemon_left=(team["hp"] > 0).sum(-1),
+                                         tera_used=team["terastallized"].any(-1), **side)
+            return pokemon, on_field, side
+
+        my_pokemon, my_on_field, my_side = pokemon_and_player(me)
+        their_pokemon, their_on_field, their_side = pokemon_and_player(opponent)
         field = self.field_embedding(**field)
 
         # The active Pokemon's move slots, for the move and Tera-move actions
         rows = torch.arange(my_active.shape[0], device=my_active.device)
-        active = {k: v[rows, my_active.long()] for k, v in my_team.items()}
+        active = {k: v[rows, my_active] for k, v in my_team.items()}
         moves = embed_move_slots(self.move_embedding, active["move_ids"],
                                  active["pp"], active["maxpp"])
-        tera_type = embed_or_zero(self.type_embedding, active["tera_type_ids"])
+        tera_type = embed(self.type_embedding, active["tera_type_ids"],
+                          self.type_embedding.unknown)
         tera_moves = torch.cat(
             [moves, tera_type.unsqueeze(-2).expand(-1, C.MOVES_PER_POKEMON, -1)], dim=-1)
 
-        summary = me.new_zeros(me.shape[0], 1, self.token_type.embedding_dim)
-        tokens = torch.cat([
+        events = self.to_history(self.history_embedding(**history)) \
+            + self.history_position.weight  # (batch, HISTORY_LEN, d)
+
+        summary = my_side.new_zeros(my_side.shape[0], 1, self.token_type.embedding_dim)
+        state = torch.cat([
             summary,
-            self.to_player(me).unsqueeze(1),
-            self.to_player(opponent).unsqueeze(1),
+            self.to_player(my_side).unsqueeze(1),
+            self.to_player(their_side).unsqueeze(1),
             self.to_field(field).unsqueeze(1),
+            self.to_their_pokemon(their_pokemon) + their_on_field,
+        ], dim=1)
+        legality = self.action_legality(legal_actions.long())  # (batch, 14, d)
+        actions = torch.cat([
             self.to_move(torch.cat([moves, matchups["moves"]], dim=-1)),
             self.to_tera_move(torch.cat([tera_moves, matchups["tera_moves"]], dim=-1)),
-            self.to_switch(torch.cat([my_pokemon, matchups["switches"]], dim=-1)),
-        ], dim=1) + self.token_type(self.token_types)  # (batch, 18, d)
-        legality = self.action_legality(legal_actions.long())  # (batch, 14, d)
-        tokens = torch.cat([tokens[:, :-C.NUM_ACTIONS],
-                            tokens[:, -C.NUM_ACTIONS:] + legality], dim=1)
-        out = self.transformer(tokens)
+            self.to_my_pokemon(torch.cat([my_pokemon, matchups["switches"]], dim=-1))
+            + my_on_field,
+        ], dim=1) + legality
+        tokens = torch.cat([state, events, actions], dim=1) \
+            + self.token_type(self.token_types)  # (batch, 24 + HISTORY_LEN, d)
+        # Attention skips the history rows with no event in them.
+        empty = ~history["present"]
+        padding = torch.cat([empty.new_zeros(state.shape[:2]), empty,
+                             empty.new_zeros(actions.shape[:2])], dim=1)
+        out = self.transformer(tokens, src_key_padding_mask=padding)
 
         action_logits = self.action_head(out[:, -C.NUM_ACTIONS:]).squeeze(-1)
         action_logits = action_logits.masked_fill(
@@ -531,9 +635,9 @@ if __name__ == "__main__":
     out = pokemon_layer(species, item, ability, moves, pp, maxpp, tera_type, terastallized,
                         hp, maxhp, status, sleep_attempts, rest_sleep, level, stats,
                         toxic_counter)
-    print(out.shape)  # should be (32,)
+    print(out.shape)  # should be (128,)
 
-    player_layer = PlayerEmbeddingLayer(pokemon_layer)
+    player_layer = PlayerEmbeddingLayer(move_layer)
     team = dict(species_ids=species, item_ids=item, ability_ids=ability, move_ids=moves,
                 pp=pp, maxpp=maxpp, tera_type_ids=tera_type, terastallized=terastallized,
                 hp=hp, maxhp=maxhp, status=status, sleep_attempts=sleep_attempts,
@@ -548,7 +652,8 @@ if __name__ == "__main__":
                   last_move=torch.tensor(n.move_id("swords dance")),
                   moves_since_switch=torch.tensor(1), choice_slot=none, encore_slot=none,
                   disabled_slot=none, locked_slot=none)
-    out, _ = player_layer(**player)
+    out = player_layer(pokemon_left=torch.tensor(6), tera_used=torch.tensor(False),
+                       **{k: v for k, v in player.items() if k not in ("team", "active_slot")})
     print(out.shape)  # should be (64,)
 
     game = GameNetwork()
@@ -563,7 +668,18 @@ if __name__ == "__main__":
     matchups = dict(moves=torch.zeros(1, C.MOVES_PER_POKEMON, MOVE_MATCHUPS),
                     tera_moves=torch.zeros(1, C.MOVES_PER_POKEMON, MOVE_MATCHUPS),
                     switches=torch.zeros(1, C.TEAM_SIZE, SWITCH_MATCHUPS))
+    # The leads came in last turn, then Great Tusk used Swords Dance this turn
+    history = dict(present=torch.zeros(1, HISTORY_LEN, dtype=torch.bool),
+                   mine=torch.zeros(1, HISTORY_LEN, dtype=torch.bool),
+                   species_ids=torch.full((1, HISTORY_LEN), -1),
+                   move_ids=torch.full((1, HISTORY_LEN), -1),
+                   turns_ago=torch.zeros(1, HISTORY_LEN, dtype=torch.long))
+    history["present"][0, -3:] = True
+    history["mine"][0, [-3, -1]] = True
+    history["species_ids"][0, -3:] = species
+    history["move_ids"][0, -1] = n.move_id("swords dance")
+    history["turns_ago"][0, -3:] = torch.tensor([1, 1, 0])
     action_logits, win_logit = game(batch_of_one(player), batch_of_one(player), field, legal,
-                                    matchups)
+                                    matchups, history)
     print(action_logits.softmax(-1).shape)  # should be (1, 14)
     print(torch.sigmoid(win_logit))  # probability of winning

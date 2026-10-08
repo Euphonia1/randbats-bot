@@ -75,6 +75,9 @@ def build_species(raw):
         # (see `species_random_gender`).
         "species_gender": np.zeros(n, np.int8),
         "species_random_gender": np.zeros(n, np.bool_),
+        # The species a set names, which Beat Up reads: a forme reached in
+        # battle (Terapagos-Terastal, Palafin-Hero) maps back to its own.
+        "species_set": np.arange(n, dtype=np.int16),
     }
     for sid, i in idx.items():
         s = raw["species"][sid]
@@ -94,6 +97,9 @@ def build_species(raw):
         g = s["gender"]
         out["species_gender"][i] = {"M": C.GENDER_M, "F": C.GENDER_F}.get(g, C.GENDER_NONE)
         out["species_random_gender"][i] = g == ""
+        b = s.get("battleOnly")
+        if isinstance(b, str) and to_id(b) in idx:
+            out["species_set"][i] = idx[to_id(b)]
     return idx, out
 
 
@@ -548,6 +554,9 @@ def main() -> int:
     arrays.update(build_items(raw))
     rb, overflow = build_randbats(raw, species_idx, move_idx)
     arrays.update(rb)
+    # ...unless a set names that forme itself (Zacian-Crowned).
+    named = np.unique(rb["rb_species"])
+    arrays["species_set"][named] = named
 
     # Cross-check: every move named in the effect registry must exist.
     unknown = sorted({m for reg in (E.BP_REPLACE_MOVES, E.BP_MODIFY_MOVES,

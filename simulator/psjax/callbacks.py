@@ -70,6 +70,7 @@ class CbCtx(NamedTuple):
     # Added later, with defaults so a context built by hand still works.
     gravity: jnp.ndarray = False     # Grav Apple
     fickle: jnp.ndarray = False      # Fickle Beam's 30% roll came up
+    coin: jnp.ndarray = True         # Shell Side Arm's coin for a tie: True is Physical
     fusion_last: jnp.ndarray = 0     # 1/2: Fusion Flare/Bolt succeeded last this turn
     user_base_atk: jnp.ndarray = 0   # species base Attack, for Beat Up's first hit
     user_species: jnp.ndarray = -1   # signature moves that follow the user's forme
@@ -97,7 +98,11 @@ def _positive_boosts(boosts):
 def _bp_none(c): return c.base_power
 def _bp_acrobatics(c): return jnp.where(c.atk_item == 0, c.base_power * 2, c.base_power)
 def _bp_assurance(c): return jnp.where(c.target_damaged, c.base_power * 2, c.base_power)
-def _bp_avalanche(c): return jnp.where(c.user_damaged, c.base_power * 2, c.base_power)
+def _bp_avalanche(c):
+    # Doubled if the target itself hurt the user this turn -- a replacement
+    # that just came in (after a U-turn) cannot have.
+    hurt = c.user_damaged & jnp.logical_not(c.target_switched)
+    return jnp.where(hurt, c.base_power * 2, c.base_power)
 def _bp_payback(c):
     # Doubled against a target that has already moved -- not one that switched in.
     return jnp.where(c.moves_first | c.target_switched, c.base_power, c.base_power * 2)
@@ -295,7 +300,10 @@ def _d_level(c): return c.level.astype(jnp.int32)
 def _d_fixed20(c): return jnp.int32(20)
 def _d_fixed40(c): return jnp.int32(40)
 def _d_halftarget(c): return jnp.maximum(floordiv(c.dfn_hp, 2), 1)
-def _d_endeavor(c): return jnp.maximum(c.dfn_hp.astype(jnp.int32) - c.atk_hp.astype(jnp.int32), 0)
+def _d_endeavor(c):
+    # Fails (Showdown's onTryImmunity) unless the target has more HP than the user.
+    gap = c.dfn_hp.astype(jnp.int32) - c.atk_hp.astype(jnp.int32)
+    return jnp.where(gap > 0, gap, -2)
 def _d_finalgambit(c): return c.atk_hp.astype(jnp.int32)
 
 
@@ -374,8 +382,12 @@ def _by_species(c, table):
 
 
 def _t_ivycudgel(c):
+    """The mask's type, Terastallized or not."""
     return _by_species(c, (("ogerponwellspring", C.WATER), ("ogerponhearthflame", C.FIRE),
-                           ("ogerponcornerstone", C.ROCK)))
+                           ("ogerponcornerstone", C.ROCK),
+                           ("ogerponwellspringtera", C.WATER),
+                           ("ogerponhearthflametera", C.FIRE),
+                           ("ogerponcornerstonetera", C.ROCK)))
 
 
 def _t_ragingbull(c):
@@ -423,8 +435,15 @@ def _a_snow_perfect(c):
     return jnp.where(c.weather == C.SNOW, -1, -2).astype(jnp.int32)
 
 
+def _a_rain_only(c):
+    """The Forces of Nature's storms: sure hits in rain, but unlike Hurricane
+    and Thunder no worse in sun."""
+    rain = (c.weather == C.RAIN) | (c.weather == C.HEAVY_RAIN)
+    return jnp.where(rain, -1, -2).astype(jnp.int32)
+
+
 ACC_FNS = {"none": _a_none, "rain_perfect": _a_rain_perfect,
-           "snow_perfect": _a_snow_perfect}
+           "snow_perfect": _a_snow_perfect, "rain_only": _a_rain_only}
 
 
 # --- dispatch ----------------------------------------------------------------

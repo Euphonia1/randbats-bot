@@ -104,6 +104,7 @@ function dumpSpecies() {
       nfe: !!s.nfe, gender: s.gender || '',
       requiredItem: s.requiredItem || null,
       tags: s.tags || [],
+      battleOnly: s.battleOnly || null,
     };
   }
   return out;

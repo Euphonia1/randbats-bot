@@ -201,7 +201,8 @@ def build_teams(records):
         # Showdown's recorded stats are a lead Minior's Meteor forme, which
         # Shields Down has already taken by the time teams are recorded; the
         # forme change is compared through `species` and the turns that follow.
-        if mon["species"].startswith("minior"):
+        if mon["species"].startswith("minior") or mon["species"] == "ditto":
+            # (A lead Ditto has likewise already transformed with Imposter.)
             continue
         init_diffs[b].append(("stats", f"p{p + 1}[{s}] {mon['species']}",
                               sd_stats[b, p, s].tolist(), stats[b, p, s].tolist()))
@@ -294,7 +295,14 @@ def compare(sd, ps, rec):
         if a != b:
             diffs.append((field, where, a, b))
 
-    for f in ("request", "winner", "turn", "weather", "terrain"):
+    for f in ("request", "winner", "turn"):
+        check(f, "", sd[f], ps[f])
+    # A battle decided partway through the residuals stops there in Showdown --
+    # the Leftovers and timers after the deciding knockout never run -- where
+    # psjax finishes them. With a winner on both sides, the rest is moot.
+    if sd["winner"] != -1 and sd["winner"] == ps["winner"]:
+        return diffs
+    for f in ("weather", "terrain"):
         check(f, "", sd[f], ps[f])
     if sd["weather"] == ps["weather"] and sd["weather"]:
         check("weatherTurns", sd["weather"], sd["weatherTurns"], ps["weatherTurns"])
@@ -317,7 +325,10 @@ def compare(sd, ps, rec):
             if a["status"][s] == "tox" and b["status"][s] == "tox":
                 check("toxicStage", where, a["toxicStage"][s], b["toxicStage"][s])
             sd_item = a["item"][s] if a["item"][s] in N.items else ""
-            check("item", where, sd_item, b["item"][s])
+            # (A battle won by a residual knockout stops there in Showdown;
+            # psjax finishes the residuals -- a Harvest -- see `ended` below.)
+            if sd["winner"] == -1:
+                check("item", where, sd_item, b["item"][s])
             sd_ab = a["ability"][s] if a["ability"][s] in N.abilities else ""
             check("ability", where, sd_ab, b["ability"][s])
             sd_species = species_key(a["species"][s], a["speciesBase"][s])
@@ -345,8 +356,10 @@ def compare(sd, ps, rec):
         if a["active"] >= 0 and a["hp"][a["active"]] > 0:
             where = f"{key} active {team[a['active']]['species']}"
             # Burn Up and Double Shock leave Showdown a "???" where the lost type
-            # was; psjax drops it, which hits the same.
-            check("types", where, [t for t in a["types"] if t != "???"], b["types"])
+            # was; psjax drops it, which hits the same. (Not once the battle is
+            # over: Roost's lost Flying comes back in psjax's last residuals.)
+            if sd["winner"] == -1:
+                check("types", where, [t for t in a["types"] if t != "???"], b["types"])
             # A battle decided by a knockout stops there in Showdown: the win is
             # checked before AfterFaint (Moxie, Beast Boost), and before the end
             # of the move or the residuals (Scale Shot's boosts, Protect
@@ -381,7 +394,7 @@ PS_TERRAIN = {v: k for k, v in TERRAIN_TO_PS.items()}
 RESYNC_FIELDS = ("hp", "status", "status_turns", "item", "ability", "terastallized", "pp",
                  "side_conditions", "boosts", "volatiles", "sub_hp", "weather",
                  "weather_turns", "terrain", "terrain_turns", "trick_room", "gravity",
-                 "healing_wish", "tera_used")
+                 "healing_wish", "tera_used", "paradox_booster")
 
 
 def resync(cols, b, sd, rec):
@@ -410,6 +423,9 @@ def resync(cols, b, sd, rec):
             1 if "healingwish" in a["slotConditions"] else 0
         if any(a["tera"]):
             cols["tera_used"][b, p] = True
+        # A Pokemon still holding its Booster Energy is not running on it.
+        if a["active"] >= 0 and a["item"][a["active"]] == "boosterenergy":
+            cols["paradox_booster"][b, p] = False
         sc = cols["side_conditions"][b, p]
         for name, i in C.SIDE_CONDITION_IDX.items():
             count = a["sideConditionCounts"].get(name)

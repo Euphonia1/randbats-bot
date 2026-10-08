@@ -36,6 +36,14 @@ species and movesets never enter the observation at all.
 
 One approximation remains, noted rather than fixed: the opponent's effective
 speed is exposed exactly, where a real player infers it from turn order.
+
+The history
+-----------
+`FogState.history` keeps the battle log a player reads back: the last
+`HISTORY_LEN` moves used and Pokemon switched in, by both sides, oldest first,
+each with its turn. It is all public, so one history serves both players. The
+order within a turn is the order things happened, which is how a player tells
+who moved first; a Pokemon behind an Illusion is logged as its disguise.
 """
 from __future__ import annotations
 
@@ -50,16 +58,44 @@ from .env import BattleEnv
 from .state import BattleState, set_at
 
 
+#: How many of the most recent events `FogState.history` keeps.
+HISTORY_LEN = 32
+#: `FogState.history`'s columns: `BattleState.events`' (`C.EV_*`), then this.
+HIST_TURN = C.NUM_EVENT_COLUMNS
+
+
 class FogState(NamedTuple):
     """A battle plus the bookkeeping of what each side has given away.
 
     `revealed_moves[p, slot, m]` is True once player `p` has used move `m` of
     that slot in front of the opponent -- so the flags describe what `p` has
     *disclosed*, and it is the other player who benefits from reading them.
+
+    `history` is the public log: rows of `BattleState.events` with the turn
+    appended (column `HIST_TURN`), oldest first and the newest last. Rows are
+    -1 throughout until there are `HISTORY_LEN` events to fill them.
     """
     battle: BattleState
     revealed: jnp.ndarray         # [2, 6] bool, slot has been on the field
     revealed_moves: jnp.ndarray   # [2, 6, 4] bool, move has been used
+    history: jnp.ndarray          # [HISTORY_LEN, 5] int16
+
+
+def empty_history() -> jnp.ndarray:
+    """A `FogState.history` with nothing in it yet."""
+    return jnp.full((HISTORY_LEN, C.NUM_EVENT_COLUMNS + 1), -1, jnp.int16)
+
+
+def record(history: jnp.ndarray, state: BattleState, when=True) -> jnp.ndarray:
+    """`history` with `state.events` appended, stamped with `state.turn`; the
+    oldest rows fall off the front. `when=False` leaves it alone."""
+    events = state.events.astype(jnp.int32)
+    turn = jnp.broadcast_to(state.turn.astype(jnp.int32), (C.MAX_EVENTS, 1))
+    rows = jnp.concatenate([events, turn], axis=1)
+    n = jnp.where(when, jnp.sum(events[:, C.EV_SIDE] >= 0), 0)
+    # The last HISTORY_LEN rows of the old history followed by the n new ones
+    both = jnp.concatenate([history.astype(jnp.int32), rows])
+    return jax.lax.dynamic_slice_in_dim(both, n, HISTORY_LEN).astype(history.dtype)
 
 
 def _on_field(state: BattleState) -> jnp.ndarray:
@@ -90,7 +126,8 @@ class FogOfWarEnv:
             # Both leads are on the field before either player acts.
             revealed=_on_field(state),
             revealed_moves=jnp.zeros(
-                (C.NUM_PLAYERS, C.TEAM_SIZE, 4), dtype=bool))
+                (C.NUM_PLAYERS, C.TEAM_SIZE, 4), dtype=bool),
+            history=record(empty_history(), state))  # the leads coming in
 
     def reset_batch(self, keys) -> FogState:
         return jax.vmap(self.reset)(keys)
@@ -105,10 +142,13 @@ class FogOfWarEnv:
         # public state rather than instrumenting the engine, which keeps the
         # wrapper a wrapper. Pressure and Spite take more than one PP; either
         # way the count falls, so the flag still trips on the turn it should.
+        # A finished battle absorbs further steps unchanged, its last events
+        # included, so those are not recorded twice.
         fs = FogState(
             battle=state,
             revealed=fs.revealed | _on_field(state),
-            revealed_moves=fs.revealed_moves | (pp_before > state.pp))
+            revealed_moves=fs.revealed_moves | (pp_before > state.pp),
+            history=record(fs.history, state, when=fs.battle.phase != C.PHASE_END))
         return fs, self.observe(fs), rewards, done
 
     def step_batch(self, fs: FogState, actions):

@@ -222,11 +222,11 @@ def _attack_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
     stat = boost_multiply(raw, stage)
 
     ab, it = atk.ability, atk.item
-    # Showdown hooks these on the stat being used (onModifyAtk / onModifySpA),
-    # not on the move's category: Body Press attacks with Defense, so Choice
-    # Band and Huge Power do nothing for it.
-    phys = stat_idx == C.ATK
-    special = stat_idx == C.SPA
+    # Showdown runs onModifyAtk / onModifySpA by the move's category, whatever
+    # stat it attacks with: Body Press reads Defense but is still a physical
+    # move, so Choice Band, Huge Power and Tablets of Ruin all apply to it.
+    phys = mv.category == C.CAT_PHYSICAL
+    special = mv.category == C.CAT_SPECIAL
     statused = atk.status != C.STATUS_NONE
     mod = jnp.int32(M1)
 
@@ -273,8 +273,9 @@ def _attack_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
     mod = apply(mod, (d_ab == A.WATERBUBBLE) & (mv.type == C.FIRE), m(0.5))
     mod = apply(mod, (d_ab == A.PURIFYINGSALT) & (mv.type == C.GHOST), m(0.5))
 
-    # Protosynthesis / Quark Drive: x1.3 on the stat picked when it activated.
-    mod = apply(mod, atk.boosted_stat == stat_idx, M13)
+    # Protosynthesis / Quark Drive: x1.3 on the stat picked when it activated --
+    # hooked on onModifyAtk / onModifySpA too, so by category.
+    mod = apply(mod, atk.boosted_stat == jnp.where(phys, C.ATK, C.SPA), M13)
 
     mod = apply(mod, (it == I.CHOICEBAND) & phys, m(1.5))
     mod = apply(mod, (it == I.CHOICESPECS) & special, m(1.5))
@@ -290,10 +291,14 @@ def _attack_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
 
 
 def _defense_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
-                  weather, terrain):
+                  weather, terrain, def_stage_delta=0, def_raw=None):
     """The defending stat after boosts and ability/item modifiers.
 
     A critical hit ignores the defender's *positive* defensive boosts.
+    `def_stage_delta` moves the Defense stage for one hit of a multi-hit move
+    (Weak Armor, Stamina), and `def_raw` replaces the unboosted Defense (Ice
+    Face broken by an earlier hit); only those vary with them, so a vmap over
+    the hits does not drag the modifier chain along.
     """
     override = data["move_override_def_stat"][mv.id]
     def_cat = data["move_defensive_category"][mv.id]
@@ -302,15 +307,26 @@ def _defense_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
     stat_idx = jnp.where(override != 0, override.astype(jnp.int32), default_stat)
 
     raw, stage = _pick_stat(dfn.stats, dfn.boosts, stat_idx)
+    if def_raw is not None:
+        raw = jnp.where(stat_idx == C.DEF, def_raw, raw)
+    stage = jnp.where(stat_idx == C.DEF, jnp.clip(stage + def_stage_delta, -6, 6), stage)
     stage = jnp.where(is_crit, jnp.minimum(stage, 0), stage)
     stage = jnp.where(atk.ability == A.UNAWARE, 0, stage)
-    stage = jnp.where(data["move_ignore_defensive"][mv.id], jnp.minimum(stage, 0), stage)
+    # Sacred Sword and Darkest Lariat ignore every Defense change, drops too.
+    stage = jnp.where(data["move_ignore_defensive"][mv.id], 0, stage)
     stat = boost_multiply(raw, stage)
 
     ab, it = dfn.ability, dfn.item
     # Keyed on the stat the move hits (onModifyDef / onModifySpD), so Psyshock,
     # a special move aimed at Defense, meets Fur Coat but not Assault Vest.
     phys = stat_idx == C.DEF
+    # Snow raises the Defense of Ice types, Sand the Sp. Def of Rock types --
+    # Showdown's `this.modify` on the stat itself, ahead of the chained
+    # modifiers below, which then apply to the raised value.
+    is_ice = jnp.any(dfn.types == C.ICE)
+    is_rock = jnp.any(dfn.types == C.ROCK)
+    weathered = ((weather == C.SNOW) & is_ice & phys) | ((weather == C.SAND) & is_rock & ~phys)
+    stat = jnp.where(weathered, chain_modify(stat, m(1.5)), stat)
     mod = jnp.int32(M1)
 
     def apply(mod, cond, factor):
@@ -322,11 +338,6 @@ def _defense_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
     mod = apply(mod, dfn.boosted_stat == stat_idx, M13)
     mod = apply(mod, (it == I.ASSAULTVEST) & ~phys, m(1.5))
     mod = apply(mod, (it == I.EVIOLITE) & dfn.nfe, m(1.5))
-    # Snow raises the Defense of Ice types; Sand raises Sp. Def of Rock types.
-    is_ice = jnp.any(dfn.types == C.ICE)
-    is_rock = jnp.any(dfn.types == C.ROCK)
-    mod = apply(mod, (weather == C.SNOW) & is_ice & phys, m(1.5))
-    mod = apply(mod, (weather == C.SAND) & is_rock & ~phys, m(1.5))
     # Sword of Ruin weakens everyone else's Defense, Beads of Ruin their Sp. Def.
     a_ab = atk.ability
     mod = apply(mod, phys & (a_ab == A.SWORDOFRUIN) & (ab != A.SWORDOFRUIN), m(0.75))
@@ -340,8 +351,13 @@ def _defense_stat(data, atk: Attacker, dfn: Defender, mv: MoveCtx, is_crit,
 def _base_power_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx,
                           terrain, has_secondary, analytic_ok, fainted_count,
                           bp_cb_mod, grounded_user, grounded_target,
-                          target_switched_in, technician_power=None, weather=None):
-    """Ability/item multipliers applied to base power before the main formula."""
+                          target_switched_in, technician_power=None, weather=None,
+                          alt_terrain=None):
+    """Ability/item multipliers applied to base power before the main formula.
+
+    With `alt_terrain`, also the chain under that terrain instead, as a second
+    result: only the terrain links are worked out twice.
+    """
     ab, it = atk.ability, atk.item
     mod = jnp.int32(M1)
 
@@ -369,7 +385,9 @@ def _base_power_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx,
     mod = apply(mod, (data["ability_ate_type"][ab] != C.TYPE_NONE) &
                 (data["move_type"][mv.id] == C.NORMAL) &
                 (mv.id != move_index("struggle")), m(1.2))
-    mod = apply(mod, (ab == A.RECKLESS) & (data["move_recoil"][mv.id, 0] > 0), m(1.2))
+    # Reckless: recoil moves, and the crash moves (High Jump Kick) too.
+    mod = apply(mod, (ab == A.RECKLESS) & ((data["move_recoil"][mv.id, 0] > 0) |
+                                          data["move_crash_damage"][mv.id]), m(1.2))
     # Sheer Force is 5325/4096, a point above what `m(1.3)` truncates to.
     mod = apply(mod, (ab == A.SHEERFORCE) & has_secondary, 5325)
     mod = apply(mod, (ab == A.TOXICBOOST) & (mv.category == C.CAT_PHYSICAL) &
@@ -401,23 +419,26 @@ def _base_power_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx,
     mod = apply(mod, atk.charged & (mv.type == C.ELECTRIC), m(2.0))
     mod = apply(mod, (dfn.ability == A.DRYSKIN) & (mv.type == C.FIRE), m(1.25))
 
-    # Terrain boosts require the user to be grounded; Misty Terrain instead
-    # weakens Dragon moves aimed at a grounded target.
-    mod = apply(mod, grounded_user & (terrain == C.ELECTRIC_TERRAIN) &
-                (mv.type == C.ELECTRIC), M13)
-    mod = apply(mod, grounded_user & (terrain == C.GRASSY_TERRAIN) &
-                (mv.type == C.GRASS), M13)
-    mod = apply(mod, grounded_user & (terrain == C.PSYCHIC_TERRAIN) &
-                (mv.type == C.PSYCHIC), M13)
-    # Grassy Terrain halves Earthquake and Bulldoze against a grounded target.
-    quake = (mv.id == move_index("earthquake")) | (mv.id == move_index("bulldoze"))
-    mod = apply(mod, grounded_target & (terrain == C.GRASSY_TERRAIN) & quake, m(0.5))
-    mod = apply(mod, grounded_target & (terrain == C.MISTY_TERRAIN) &
-                (mv.type == C.DRAGON), m(0.5))
+    def under(mod, terrain):
+        # Terrain boosts require the user to be grounded; Misty Terrain instead
+        # weakens Dragon moves aimed at a grounded target.
+        mod = apply(mod, grounded_user & (terrain == C.ELECTRIC_TERRAIN) &
+                    (mv.type == C.ELECTRIC), M13)
+        mod = apply(mod, grounded_user & (terrain == C.GRASSY_TERRAIN) &
+                    (mv.type == C.GRASS), M13)
+        mod = apply(mod, grounded_user & (terrain == C.PSYCHIC_TERRAIN) &
+                    (mv.type == C.PSYCHIC), M13)
+        # Grassy Terrain halves Earthquake and Bulldoze against a grounded target.
+        quake = (mv.id == move_index("earthquake")) | (mv.id == move_index("bulldoze"))
+        mod = apply(mod, grounded_target & (terrain == C.GRASSY_TERRAIN) & quake, m(0.5))
+        mod = apply(mod, grounded_target & (terrain == C.MISTY_TERRAIN) &
+                    (mv.type == C.DRAGON), m(0.5))
+        # The move's own onBasePower callback, resolved once by the caller.
+        return chain_modify(mod, bp_cb_mod)
 
-    # The move's own onBasePower callback, resolved once by the caller.
-    mod = chain_modify(mod, bp_cb_mod)
-    return mod
+    if alt_terrain is None:
+        return under(mod, terrain)
+    return under(mod, terrain), under(mod, alt_terrain)
 
 
 # --- weather -----------------------------------------------------------------
@@ -468,7 +489,7 @@ def stab_modifier(atk: Attacker, move_type):
 # --- final modifiers ---------------------------------------------------------
 
 def _final_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx, type_exp,
-                     side_conditions, is_crit, berry_ok=True):
+                     side_conditions, is_crit, berry_ok=True, full_hp=None):
     ab, it = atk.ability, atk.item
     d_ab, d_it = dfn.ability, dfn.item
     mod = jnp.int32(M1)
@@ -496,8 +517,10 @@ def _final_modifiers(data, atk: Attacker, dfn: Defender, mv: MoveCtx, type_exp,
     # Defender-side reduction abilities.
     mod = apply(mod, ((d_ab == A.SOLIDROCK) | (d_ab == A.FILTER) |
                       (d_ab == A.PRISMARMOR)) & super_eff, m(0.75))
-    mod = apply(mod, ((d_ab == A.MULTISCALE) | (d_ab == A.SHADOWSHIELD)) &
-                (dfn.hp == dfn.maxhp), m(0.5))
+    # Multiscale and Shadow Shield: at full HP -- for a multi-hit move only the
+    # first hit finds it so (`full_hp` per hit, from the caller).
+    full = (dfn.hp == dfn.maxhp) if full_hp is None else full_hp
+    mod = apply(mod, ((d_ab == A.MULTISCALE) | (d_ab == A.SHADOWSHIELD)) & full, m(0.5))
     mod = apply(mod, (d_ab == A.ICESCALES) & (mv.category == C.CAT_SPECIAL), m(0.5))
     mod = apply(mod, (d_ab == A.FLUFFY) & has_flag(mv.flags, "contact"), m(0.5))
     mod = apply(mod, (d_ab == A.FLUFFY) & (mv.type == C.FIRE), m(2.0))
@@ -523,7 +546,9 @@ def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
                 type_exp, bp_cb_mod=4096, grounded_user=True, grounded_target=True,
                 has_secondary=None, utility_umbrella=False, analytic_ok=False,
                 fainted_count=0, target_switched_in=False,
-                defender_stats_source=None, technician_power=None, berry_ok=True):
+                defender_stats_source=None, technician_power=None, berry_ok=True,
+                def_stage_delta=0, full_hp=None, burned=None, def_raw=None,
+                sown=None):
     """Damage for one hit. `damage_roll` is 0..15, matching Showdown's `random(16)`.
 
     `type_exp` comes from `type_effectiveness`; immunity is handled by the caller
@@ -546,24 +571,32 @@ def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
         # compiled row rather than left to every caller.
         has_secondary = data["move_sheer_force"][mv.id]
 
+    # `sown`: Seed Sower has laid Grassy Terrain since the move began (for the
+    # base power; the rest of the hit still sees `terrain`).
     bp_mod = _base_power_modifiers(data, atk, dfn, mv, terrain, has_secondary,
                                    analytic_ok, fainted_count, bp_cb_mod,
                                    grounded_user, grounded_target,
-                                   target_switched_in, technician_power, weather)
+                                   target_switched_in, technician_power, weather,
+                                   None if sown is None else jnp.int8(C.GRASSY_TERRAIN))
+    if sown is not None:
+        bp_mod = jnp.where(sown, bp_mod[1], bp_mod[0])
     power = jnp.maximum(chain_modify(mv.base_power, bp_mod), 1)
-    # Gen 9: a Terastallized Pokemon's moves of its Tera type hit with at least
+    # Gen 9: a Terastallized Pokemon's moves of a type it has hit with at least
     # 60 power -- not priority moves, multi-hit moves, or moves whose power is
-    # all callback (Dragon Energy). Stellar's version is not modelled.
+    # all callback (Dragon Energy). "A type it has" is Showdown's
+    # `getTypes(true)`: the Tera type, or under Stellar the original types.
     declared = data["move_base_power"][mv.id].astype(jnp.int32)
-    tera_floor = atk.terastallized & (atk.tera_type == mv.type) & \
-        (atk.tera_type != C.STELLAR) & (data["move_priority"][mv.id] <= 0) & \
+    has_type_now = jnp.where(atk.tera_type == C.STELLAR, jnp.any(atk.base_types == mv.type),
+                             atk.tera_type == mv.type)
+    tera_floor = atk.terastallized & has_type_now & (data["move_priority"][mv.id] <= 0) & \
         (data["move_multihit"][mv.id, 1] <= 1) & jnp.logical_not(
             ((declared == 0) | (declared == 150)) & (data["move_bp_replace"][mv.id] > 0))
     power = jnp.where(tera_floor, jnp.maximum(power, 60), power)
 
     attack = _attack_stat(data, atk, dfn, mv, is_crit, defender_stats_source,
                           weather, terrain, target_switched_in)
-    defense = _defense_stat(data, atk, dfn, mv, is_crit, weather, terrain)
+    defense = _defense_stat(data, atk, dfn, mv, is_crit, weather, terrain, def_stage_delta,
+                            def_raw)
 
     # Every quantity here is non-negative, so the divisions are `floordiv`.
     level = atk.level.astype(jnp.int32)
@@ -590,16 +623,20 @@ def calc_damage(data, atk: Attacker, dfn: Defender, mv: MoveCtx, *,
     base = jnp.left_shift(base, up)
     base = jnp.right_shift(base, down)
 
-    # Burn halves physical damage, unless the attacker has Guts.
-    burned = (atk.status == C.BRN) & (mv.category == C.CAT_PHYSICAL) & \
-             (atk.ability != A.GUTS)
+    # Burn halves physical damage, unless the attacker has Guts -- or the move
+    # is Facade, which since Gen 6 ignores it.
+    # (`burned` per hit, from the caller: a Flame Body burn partway through a
+    # multi-hit move.)
+    burned = ((atk.status == C.BRN) if burned is None else burned) & \
+        (mv.category == C.CAT_PHYSICAL) & \
+        (atk.ability != A.GUTS) & (mv.id != move_index("facade"))
     base = jnp.where(burned, chain_modify(base, m(0.5)), base)
 
     # One more of Showdown's ModifyDamage modifiers: Glaive Rush leaves its user
     # taking double damage until it next moves.
     field = jnp.where(dfn.glaive_rush, m(2.0), M1)
     base = chain_modify(base, chain_modify(_final_modifiers(
-        data, atk, dfn, mv, type_exp, side_conditions, is_crit, berry_ok), field))
+        data, atk, dfn, mv, type_exp, side_conditions, is_crit, berry_ok, full_hp), field))
 
     return jnp.maximum(base, 1).astype(jnp.int32)
 
@@ -632,9 +669,13 @@ def accuracy_check(data, mv: MoveCtx, atk: Attacker, dfn: Defender,
     always = (base_acc < 0) | (atk.ability == A.NOGUARD) | (dfn.ability == A.NOGUARD)
 
     # Accuracy and evasion share one stage table; evasion counts against you.
-    stage = jnp.clip(acc_boost - eva_boost, -6, 6)
-    stage = jnp.where(data["move_ignore_evasion"][mv.id], jnp.maximum(stage, 0), stage)
-    stage = jnp.where(dfn.ability == A.UNAWARE, acc_boost, stage)
+    # The target's evasion is ignored by moves that say so (Chip Away) and by
+    # Keen Eye, Mind's Eye and Unaware users; an Unaware target ignores the
+    # user's accuracy stages instead (Showdown's `hitStepAccuracy`).
+    skip_eva = data["move_ignore_evasion"][mv.id] | (atk.ability == A.KEENEYE) | \
+        (atk.ability == A.MINDSEYE) | (atk.ability == A.UNAWARE)
+    acc_stage = jnp.where(dfn.ability == A.UNAWARE, 0, acc_boost)
+    stage = jnp.clip(acc_stage - jnp.where(skip_eva, 0, eva_boost), -6, 6)
     num = jnp.where(stage >= 0, 3 + stage, 3)
     den = jnp.where(stage >= 0, 3, 3 - stage)
     acc = idiv(base_acc * num, den)
@@ -691,13 +732,14 @@ def resolve_move_ctx(data, move_id, cb_ctx: "cb.CbCtx") -> MoveCtx:
 
     # Shell Side Arm compares the two base damages rather than the raw stats,
     # transcribed from Showdown including the truncation at each step. A tie
-    # there is a coin flip; we take Physical, which is what a zero roll gives.
+    # there is a coin flip (`random(2) === 0` for Physical).
     is_ssa = data["move_effect_cb"][move_id] == EFFECT_HANDLERS.index("shellsidearm")
     lvl = cb_ctx.level.astype(jnp.int32)
     step = floordiv(2 * lvl, 5) + 2
     phys_dmg = floordiv(idiv(step * 90 * cb_ctx.off_atk, cb_ctx.dfn_def), 50)
     spec_dmg = floordiv(idiv(step * 90 * cb_ctx.off_spa, cb_ctx.dfn_spd), 50)
-    physical_switch = physical_switch | (is_ssa & (phys_dmg >= spec_dmg))
+    physical_switch = physical_switch | (is_ssa & (
+        (phys_dmg > spec_dmg) | ((phys_dmg == spec_dmg) & cb_ctx.coin)))
 
     category = jnp.where(physical_switch, C.CAT_PHYSICAL, category)
 

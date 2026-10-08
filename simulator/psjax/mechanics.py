@@ -14,7 +14,7 @@ from . import consts as C
 from .damage import current_types, has_flag
 from .data import species_index
 from .hooks import A, I
-from .state import set_at
+from .state import barrier, set_at
 from .stats import (boost_multiply, chain_modify, compute_all_stats, compute_hp,
                     floordiv, idiv)
 
@@ -85,9 +85,12 @@ def is_grounded(state, side) -> jnp.ndarray:
 
 
 def weather_active(state) -> jnp.ndarray:
-    """Air Lock or Cloud Nine on either active Pokemon suppresses the weather."""
-    abilities = state.ability[jnp.arange(C.NUM_PLAYERS), state.active.astype(jnp.int32)]
-    suppressed = jnp.any((abilities == A.AIRLOCK) | (abilities == A.CLOUDNINE))
+    """Air Lock or Cloud Nine on either active Pokemon suppresses the weather --
+    while it stands: a fainted holder's ability has ended."""
+    sides = jnp.arange(C.NUM_PLAYERS)
+    abilities = state.ability[sides, state.active.astype(jnp.int32)]
+    standing = state.hp[sides, state.active.astype(jnp.int32)] > 0
+    suppressed = jnp.any(((abilities == A.AIRLOCK) | (abilities == A.CLOUDNINE)) & standing)
     return jnp.logical_not(suppressed) & (state.weather != C.WEATHER_NONE)
 
 
@@ -147,6 +150,22 @@ def slot_get(field, side, slot):
 def slot_set(field, side, slot, value, when=True):
     """`field.at[side, slot].set(value)` without a scatter (see `state.set_at`)."""
     return set_at(field, (side, slot), value, when)
+
+
+def shown_species(state, side, slot):
+    """The species `side`'s Pokemon in `slot` appears to be to the opponent:
+    the party member it impersonates, while an active Illusion holds."""
+    disguise = state.illusion[side].astype(jnp.int32)
+    shown = jnp.where((disguise >= 0) & (slot == act(state, side)), disguise, slot)
+    return slot_get(state.species, side, shown)
+
+
+def log_event(state, side, slot, species, move, when=True):
+    """Append a row to `state.events`: `side`'s Pokemon in `slot`, seen as
+    `species`, used `move` -- or switched in, for move -1. A full log drops it."""
+    row = jnp.stack([jnp.asarray(x, jnp.int32) for x in (side, slot, species, move)])
+    n = jnp.sum(state.events[:, C.EV_SIDE] >= 0)
+    return state._replace(events=set_at(state.events, n, row.astype(jnp.int16), when))
 
 
 # --- HP ----------------------------------------------------------------------
@@ -232,11 +251,13 @@ def boost_delta(*changes):
     return delta
 
 
-def boost_immune(state, side, lowering):
-    """Abilities that block stat drops from an opponent."""
+def boost_immune(state, side, lowering, ignore_ability=False):
+    """Abilities that block stat drops from an opponent (unless a Mold Breaker
+    is ignoring them -- Full Metal Body it cannot), Clear Amulet and Mist."""
     i = act(state, side)
     ab = slot_get(state.ability, side, i)
-    blanket = ((ab == A.CLEARBODY) | (ab == A.WHITESMOKE) | (ab == A.FULLMETALBODY))
+    blanket = ((((ab == A.CLEARBODY) | (ab == A.WHITESMOKE)) & jnp.logical_not(ignore_ability)) |
+               (ab == A.FULLMETALBODY))
     item = slot_get(state.item, side, i) == I.CLEARAMULET
     return lowering & (blanket | item |
                        (state.side_conditions[side, C.SC_MIST] > 0))
@@ -255,16 +276,19 @@ def has_type(state, side, typ):
     return jnp.any(types == typ)
 
 
-def _boost_row(state, side, old, delta, from_opponent, bounce):
+def _boost_row(state, side, old, delta, from_opponent, bounce, ignore_ability=False):
     """`delta` applied to `side`'s boost row `old`, which may not have been
     written back to `state` yet. Returns the new row, the change actually made,
     and what Mirror Armor sends back.
 
     `from_opponent` is a Python bool, so a Pokemon boosting itself skips every
     drop-blocking check at trace time rather than computing and discarding them.
+    `ignore_ability` is a Mold Breaker attacker getting past `side`'s ability
+    (the caller has checked it is breakable).
     """
     i = act(state, side)
-    ab = slot_get(state.ability, side, i)
+    raw_ab = slot_get(state.ability, side, i)
+    ab = jnp.where(ignore_ability, 0, raw_ab)
     delta = delta.astype(jnp.int32)
     delta = jnp.where(ab == A.CONTRARY, -delta, delta)
     delta = jnp.where(ab == A.SIMPLE, delta * 2, delta)
@@ -278,10 +302,10 @@ def _boost_row(state, side, old, delta, from_opponent, bounce):
         stage = jnp.arange(C.NUM_BOOSTS)
         # Clear Body and friends; the targeted protections; and Flower Veil,
         # which shields a Grass-type holder from every drop an opponent causes.
-        blocked = boost_immune(state, side, lowering) | (lowering & (
+        blocked = boost_immune(state, side, lowering, ignore_ability) | (lowering & (
             ((ab == A.HYPERCUTTER) & (stage == C.B_ATK)) |
             ((ab == A.BIGPECKS) & (stage == C.B_DEF)) |
-            ((ab == A.KEENEYE) & (stage == C.B_ACC)) |
+            (((ab == A.KEENEYE) | (ab == A.MINDSEYE)) & (stage == C.B_ACC)) |
             ((ab == A.FLOWERVEIL) & has_type(state, side, C.GRASS))))
         if bounce:
             # Mirror Armor sends the drops back where they came from instead.
@@ -299,7 +323,7 @@ def _boost_one(state, side, delta, from_opponent, bounce):
     return state._replace(boosts=set_at(state.boosts, side, new)), delta, reflected
 
 
-def apply_boosts(state, side, delta, from_opponent=False):
+def apply_boosts(state, side, delta, from_opponent=False, ignore_ability=False):
     """Apply a `[7]` boost delta, clamped to -6..+6.
 
     Contrary inverts it; Simple doubles it; Clear Body and friends block drops
@@ -307,6 +331,8 @@ def apply_boosts(state, side, delta, from_opponent=False):
     opponent. Returns the state and the delta actually applied (Defiant and
     Competitive key off that). Any stat that rises or falls is noted for the
     turn (`stats_raised`, `stats_lowered`), as Showdown's `boost` does.
+    `ignore_ability` is a Mold Breaker attacker getting past `side`'s
+    (breakable) ability: Clear Body, Contrary, Mirror Armor and the like.
     """
     assert isinstance(from_opponent, bool), "from_opponent is decided at trace time"
     if not from_opponent:
@@ -318,7 +344,7 @@ def apply_boosts(state, side, delta, from_opponent=False):
     # by the next, made this a sixth of `vmap(execute_move)`'s run time.
     other = 1 - side
     row, applied, reflected = _boost_row(state, side, state.boosts[side].astype(jnp.int32),
-                                         delta, True, True)
+                                         delta, True, True, ignore_ability)
     row, answered = _answer_drops(state, side, row, applied)
     # The reflected drops land on the opponent as though it had lowered its own
     # stats through Mirror Armor -- which a second Mirror Armor does not return.
@@ -328,11 +354,19 @@ def apply_boosts(state, side, delta, from_opponent=False):
     row_o, answered_o = _answer_drops(state, other, row_o, bounced)
     is_side = jnp.arange(C.NUM_PLAYERS) == side
     rows = jnp.where(is_side[:, None], row[None], row_o[None])
-    state = state._replace(boosts=rows.astype(state.boosts.dtype))
-    for changes in (applied, answered):
-        state = _note_changes(state, is_side, changes)
-    for changes in (bounced, answered_o):
-        state = _note_changes(state, jnp.logical_not(is_side), changes)
+    # The changes sit at the end of a long chain, and every kernel reading one
+    # recomputes the chain: materialise them once (`barrier`), and fold the
+    # turn's raised / lowered flags into one write. Four separate updates made
+    # this twelve times slower.
+    applied, answered, bounced, answered_o = barrier(applied, answered, bounced, answered_o)
+    up = jnp.stack([jnp.any(applied > 0) | jnp.any(answered > 0),
+                    jnp.any(bounced > 0) | jnp.any(answered_o > 0)])
+    down = jnp.stack([jnp.any(applied < 0) | jnp.any(answered < 0),
+                      jnp.any(bounced < 0) | jnp.any(answered_o < 0)])
+    mine = jnp.where(is_side, 0, 1)
+    state = state._replace(boosts=rows.astype(state.boosts.dtype),
+                           stats_raised=state.stats_raised | up[mine],
+                           stats_lowered=state.stats_lowered | down[mine])
     return state, applied
 
 
@@ -392,7 +426,9 @@ def status_immune(data, state, side, status, source_ability=None, ignore_ability
         (slot_get(state.species, side, i) == species_index("miniormeteor")))
     # Mold Breaker gets a status past a breakable ability -- but Insomnia and the
     # like cure it again on the next Update, so for them it never sticks.
-    cures_itself = (ab == A.IMMUNITY) | (ab == A.LIMBER) | (ab == A.INSOMNIA) |         (ab == A.VITALSPIRIT) | (ab == A.WATERVEIL) | (ab == A.MAGMAARMOR) |         (ab == A.THERMALEXCHANGE)
+    cures_itself = (ab == A.IMMUNITY) | (ab == A.LIMBER) | (ab == A.INSOMNIA) | \
+        (ab == A.VITALSPIRIT) | (ab == A.WATERVEIL) | (ab == A.MAGMAARMOR) | \
+        (ab == A.THERMALEXCHANGE) | (ab == A.WATERBUBBLE)
     by_ability = by_ability & jnp.logical_not(
         jnp.asarray(ignore_ability) & data["ability_breakable"][ab] &
         jnp.logical_not(cures_itself))
@@ -875,18 +911,23 @@ def eat_berry(data, state, side, berry, when=True, consume=True, cud=2):
                           cud_turns=set_at(state.cud_turns, side, cud, chew))
 
 
-def berry_update(data, state, side, during_residual=False):
+def berry_update(data, state, side, during_residual=False, when=True, foe_started=True):
     """Eat the held berry if its trigger is met -- Showdown's berry `onUpdate`.
 
     Run wherever Showdown runs Update: after each move, after the residuals and
     after a switch-in.
     """
     return eat_berry(data, state, side, slot_get(state.item, side, act(state, side)),
-                     when=berry_wants(state, side), cud=1 if during_residual else 2)
+                     when=when & berry_wants(state, side, foe_started),
+                     cud=1 if during_residual else 2)
 
 
-def berry_wants(state, side):
-    """True if the held berry's own trigger is met and nothing stops the eating."""
+def berry_wants(state, side, foe_started=True):
+    """True if the held berry's own trigger is met and nothing stops the eating.
+
+    `foe_started=False` is the moment a foe has switched in but its ability
+    has not started, so its Unnerve does not count yet.
+    """
     i = act(state, side)
     it = slot_get(state.item, side, i)
     hp = slot_get(state.hp, side, i).astype(jnp.int32)
@@ -905,4 +946,4 @@ def berry_wants(state, side):
                                (state.volatiles[side, C.V_CONFUSION] > 0))) |
         ((it == I.CHESTOBERRY) & (status == C.SLP)) |
         ((it == I.LEPPABERRY) & jnp.any((moves >= 0) & (slot_get(state.pp, side, i) == 0))))
-    return wants & (hp > 0) & jnp.logical_not(unnerved(state, side))
+    return wants & (hp > 0) & jnp.logical_not(unnerved(state, side) & foe_started)

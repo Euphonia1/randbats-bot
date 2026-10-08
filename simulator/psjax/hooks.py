@@ -198,7 +198,7 @@ STATUS_IMMUNE = {
     "vitalspirit": ("slp",), "waterveil": ("brn",), "magmaarmor": ("frz",),
     "purifyingsalt": ("brn", "par", "slp", "frz", "psn", "tox"),
     "comatose": ("brn", "par", "slp", "frz", "psn", "tox"),
-    "thermalexchange": ("brn",),
+    "thermalexchange": ("brn",), "waterbubble": ("brn",),
 }
 
 # Berry -> (type it resists, whether it also covers neutral hits).

@@ -192,3 +192,11 @@ TEAM_SIZE = 6
 NUM_PLAYERS = 2
 MOVES_PER_POKEMON = 4
 NUM_MOVES = 848
+
+# --- Event log ---------------------------------------------------------------
+# `BattleState.events`: one decision point's public actions, a row each.
+# Two switches, two moves and a Pokemon dragged in by Roar is the most a step
+# makes; the rest is headroom.
+MAX_EVENTS = 8
+EV_SIDE, EV_SLOT, EV_SPECIES, EV_MOVE = range(4)
+NUM_EVENT_COLUMNS = 4
