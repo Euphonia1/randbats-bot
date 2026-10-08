@@ -389,6 +389,14 @@ class Trainer:
                         past=self.past.state_dict(), past_iteration=self.past_iteration,
                         iteration=self.iteration, samples=self.samples,
                         config=dataclasses.asdict(self.cfg)), tmp)
+        # Windows will not replace a file another process has open, as
+        # model/play.py does for a moment whenever it loads a new checkpoint.
+        for _ in range(20):
+            try:
+                os.replace(tmp, path)
+                return
+            except PermissionError:
+                time.sleep(0.25)
         os.replace(tmp, path)
 
     def load(self, path: pathlib.Path):

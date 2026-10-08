@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import io
 import json
 import os
 import pathlib
@@ -262,7 +263,7 @@ class ShowdownBattle:
         if not line.startswith("|"):
             return
         kind, *args = line[1:].split("|")
-        handler = getattr(self, "_" + kind.replace("-", "minus_"), None)
+        handler = getattr(self, "on_" + kind.replace("-", "_"), None)
         if handler is not None:
             handler(*split_args(args))
 
@@ -280,14 +281,14 @@ class ShowdownBattle:
     def completed_turns(self) -> int:
         return self.turn if self.after_upkeep else self.turn - 1
 
-    def _player(self, args, tags):
+    def on_player(self, args, tags):
         if len(args) >= 2 and to_id(args[1]) == self.userid:
             self.me = args[0]
 
-    def _turn(self, args, tags):
+    def on_turn(self, args, tags):
         self.turn, self.after_upkeep = int(args[0]), False
 
-    def _upkeep(self, args, tags):
+    def on_upkeep(self, args, tags):
         """The end of the turn's residuals, where psjax counts the timers down."""
         st = self.st
         self.after_upkeep = True
@@ -301,13 +302,13 @@ class ShowdownBattle:
                                            vol[:, TIMED_VOLATILES] - 1, vol[:, TIMED_VOLATILES])
         vol[:, SINGLE_TURN_VOLATILES] = 0
 
-    def _win(self, args, tags):
+    def on_win(self, args, tags):
         self.ended, self.winner = True, args[0]
 
-    def _tie(self, args, tags):
+    def on_tie(self, args, tags):
         self.ended = True
 
-    def _switch(self, args, tags):
+    def on_switch(self, args, tags):
         side, name = parse_ident(args[0])
         side = self._side(side)
         new = name not in self.names[side]
@@ -315,7 +316,7 @@ class ShowdownBattle:
         self._enter(side, slot, args[1], args[2] if len(args) > 2 else None)
         self.first_seen[side] = slot if new else None
 
-    _drag = _switch
+    on_drag = on_switch
 
     def _enter(self, side: int, slot: int, details: str, condition: str | None):
         st = self.st
@@ -383,20 +384,20 @@ class ShowdownBattle:
         if status == C.TOX and before != C.TOX:
             st["status_turns"][side, slot] = 1
 
-    def _detailschange(self, args, tags):
+    def on_detailschange(self, args, tags):
         """A forme for good: Palafin-Hero, Terapagos-Terastal."""
         side, slot = self._who(args[0])
         self._details(side, slot, args[1])
         self.base_species[side, slot] = -1
 
-    def _minus_formechange(self, args, tags):
+    def on__formechange(self, args, tags):
         """A forme for as long as it stays in: Minior's core, Eiscue's Noice Face."""
         side, slot = self._who(args[0])
         if self.base_species[side, slot] < 0:
             self.base_species[side, slot] = self.st["species"][side, slot]
         self._set_species(side, slot, species_id(args[1]))
 
-    def _minus_transform(self, args, tags):
+    def on__transform(self, args, tags):
         side, slot = self._who(args[0])
         target_side, target = self._who(args[1])
         if self.base_species[side, slot] < 0:
@@ -404,7 +405,7 @@ class ShowdownBattle:
         self._set_species(side, slot, self.st["species"][target_side, target])
         self.st["transformed"][side] = True
 
-    def _replace(self, args, tags):
+    def on_replace(self, args, tags):
         """Illusion broken: the Pokemon out is really this one."""
         st = self.st
         showdown_side, name = parse_ident(args[0])
@@ -423,7 +424,7 @@ class ShowdownBattle:
         self._details(side, slot, args[1])
         self.revealed[side, slot] = True
 
-    def _move(self, args, tags):
+    def on_move(self, args, tags):
         st = self.st
         side, slot = self._who(args[0])
         move = move_id(args[1])
@@ -484,79 +485,79 @@ class ShowdownBattle:
         self.revealed_moves[side, slot, index] = True
         return index
 
-    def _cant(self, args, tags):
+    def on_cant(self, args, tags):
         side, slot = self._who(args[0])
         if args[1] == "slp":
             self.st["sleep_attempts"][side, slot] += 1
         elif args[1] == "recharge":
             self.st["volatiles"][side, C.V_RECHARGE] = 0
 
-    def _faint(self, args, tags):
+    def on_faint(self, args, tags):
         side, slot = self._who(args[0])
         self.st["hp"][side, slot] = 0
         self.st["status"][side, slot] = C.STATUS_NONE
         self.st["last_faint"][...] = side
 
-    def _minus_damage(self, args, tags):
+    def on__damage(self, args, tags):
         side, slot = self._who(args[0])
         self._condition(side, slot, args[1])
         if tags.get("from") in ("psn", "tox") and self.st["status"][side, slot] == C.TOX:
             self.st["status_turns"][side, slot] = min(self.st["status_turns"][side, slot] + 1, 16)
 
-    _minus_heal = _minus_sethp = _minus_damage
+    on__heal = on__sethp = on__damage
 
-    def _minus_status(self, args, tags):
+    def on__status(self, args, tags):
         side, slot = self._who(args[0])
         self._status(side, slot, STATUSES.get(args[1], C.STATUS_NONE),
                      rest=tags.get("from") == "move: Rest")
 
-    def _minus_curestatus(self, args, tags):
+    def on__curestatus(self, args, tags):
         side, slot = self._who(args[0])
         self.st["status"][side, slot] = C.STATUS_NONE
 
-    def _minus_cureteam(self, args, tags):
+    def on__cureteam(self, args, tags):
         side, _ = self._who(args[0])
         self.st["status"][side] = C.STATUS_NONE
 
-    def _minus_boost(self, args, tags, sign=1):
+    def on__boost(self, args, tags, sign=1):
         side, _ = self._who(args[0])
         boosts = self.st["boosts"][side]
         stat = BOOSTS[args[1]]
         boosts[stat] = np.clip(boosts[stat] + sign * int(args[2]), -6, 6)
 
-    def _minus_unboost(self, args, tags):
-        self._minus_boost(args, tags, sign=-1)
+    def on__unboost(self, args, tags):
+        self.on__boost(args, tags, sign=-1)
 
-    def _minus_setboost(self, args, tags):
+    def on__setboost(self, args, tags):
         side, _ = self._who(args[0])
         self.st["boosts"][side, BOOSTS[args[1]]] = int(args[2])
 
-    def _minus_clearboost(self, args, tags):
+    def on__clearboost(self, args, tags):
         side, _ = self._who(args[0])
         self.st["boosts"][side] = 0
 
-    def _minus_clearallboost(self, args, tags):
+    def on__clearallboost(self, args, tags):
         self.st["boosts"][:] = 0
 
-    def _minus_clearnegativeboost(self, args, tags):
+    def on__clearnegativeboost(self, args, tags):
         side, _ = self._who(args[0])
         self.st["boosts"][side] = np.maximum(self.st["boosts"][side], 0)
 
-    def _minus_clearpositiveboost(self, args, tags):
+    def on__clearpositiveboost(self, args, tags):
         side, _ = self._who(args[0])
         self.st["boosts"][side] = np.minimum(self.st["boosts"][side], 0)
 
-    def _minus_invertboost(self, args, tags):
+    def on__invertboost(self, args, tags):
         side, _ = self._who(args[0])
         self.st["boosts"][side] = -self.st["boosts"][side]
 
-    def _minus_copyboost(self, args, tags):
+    def on__copyboost(self, args, tags):
         """The first Pokemon copies the second's stat stages (Psych Up)."""
         side, _ = self._who(args[0])
         source, _ = self._who(args[1])
         self.st["boosts"][side] = self.st["boosts"][source]
 
-    def _minus_swapboost(self, args, tags):
+    def on__swapboost(self, args, tags):
         a, _ = self._who(args[0])
         b, _ = self._who(args[1])
         stats = [BOOSTS[s.strip()] for s in args[2].split(",")] if len(args) > 2 \
@@ -564,12 +565,12 @@ class ShowdownBattle:
         boosts = self.st["boosts"]
         boosts[a, stats], boosts[b, stats] = boosts[b, stats].copy(), boosts[a, stats].copy()
 
-    def _minus_weather(self, args, tags):
+    def on__weather(self, args, tags):
         self.st["weather"][...] = C.WEATHER_IDX.get(to_id(args[0]), C.WEATHER_NONE)
         if "upkeep" not in tags:
             self.st["weather_turns"][...] = 5
 
-    def _minus_fieldstart(self, args, tags, on=True):
+    def on__fieldstart(self, args, tags, on=True):
         effect, st = effect_id(args[0]), self.st
         if effect in C.TERRAIN_IDX:
             st["terrain"][...] = C.TERRAIN_IDX[effect] if on else C.TERRAIN_NONE
@@ -577,10 +578,10 @@ class ShowdownBattle:
         elif effect in ("trickroom", "gravity"):
             st[effect.replace("trickroom", "trick_room")][...] = 5 if on else 0
 
-    def _minus_fieldend(self, args, tags):
-        self._minus_fieldstart(args, tags, on=False)
+    def on__fieldend(self, args, tags):
+        self.on__fieldstart(args, tags, on=False)
 
-    def _minus_sidestart(self, args, tags):
+    def on__sidestart(self, args, tags):
         side = self._side(args[0][:2])
         condition = C.SIDE_CONDITION_IDX.get(effect_id(args[1]))
         if condition is None:
@@ -597,15 +598,15 @@ class ShowdownBattle:
             clay = side == 0 and st["item"][0, int(st["active"][0])] == LIGHT_CLAY
             sc[condition] = 8 if screen and clay else 5
 
-    def _minus_sideend(self, args, tags):
+    def on__sideend(self, args, tags):
         condition = C.SIDE_CONDITION_IDX.get(effect_id(args[1]))
         if condition is not None:
             self.st["side_conditions"][self._side(args[0][:2]), condition] = 0
 
-    def _minus_swapsideconditions(self, args, tags):
+    def on__swapsideconditions(self, args, tags):
         self.st["side_conditions"][:] = self.st["side_conditions"][::-1].copy()
 
-    def _minus_start(self, args, tags):
+    def on__start(self, args, tags):
         st = self.st
         side, slot = self._who(args[0])
         effect, vol = effect_id(args[1]), st["volatiles"][side]
@@ -638,7 +639,7 @@ class ShowdownBattle:
             volatile = C.VOLATILE_IDX[effect]
             vol[volatile] = VOLATILE_TURNS.get(volatile, 1)
 
-    def _minus_end(self, args, tags):
+    def on__end(self, args, tags):
         st = self.st
         side, _ = self._who(args[0])
         effect, vol = effect_id(args[1]), st["volatiles"][side]
@@ -656,7 +657,7 @@ class ShowdownBattle:
         if effect in C.VOLATILE_IDX:
             vol[C.VOLATILE_IDX[effect]] = 0
 
-    def _minus_activate(self, args, tags):
+    def on__activate(self, args, tags):
         side, _ = self._who(args[0])
         effect = effect_id(args[1])
         if effect in BINDING:
@@ -666,41 +667,41 @@ class ShowdownBattle:
         elif effect in ("protosynthesis", "quarkdrive") and "fromitem" in tags:
             self.st["paradox_booster"][side] = True
 
-    def _minus_singleturn(self, args, tags):
+    def on__singleturn(self, args, tags):
         side, _ = self._who(args[0])
         effect = effect_id(args[1])
         volatile = C.V_PROTECT if effect in PROTECTS else C.VOLATILE_IDX.get(effect)
         if volatile is not None:
             self.st["volatiles"][side, volatile] = 1
 
-    def _minus_singlemove(self, args, tags):
+    def on__singlemove(self, args, tags):
         side, _ = self._who(args[0])
         volatile = C.VOLATILE_IDX.get(effect_id(args[1]))
         if volatile is not None:
             self.st["volatiles"][side, volatile] = 1
 
-    def _minus_prepare(self, args, tags):
+    def on__prepare(self, args, tags):
         """The first turn of a two-turn move: it is locked into the second."""
         side, slot = self._who(args[0])
         self.st["volatiles"][side, C.V_TWOTURN] = 1
         found = np.nonzero(self.st["moves"][side, slot] == move_id(args[1]))[0]
         self.st["locked_slot"][side] = found[0] if len(found) else -1
 
-    def _minus_mustrecharge(self, args, tags):
+    def on__mustrecharge(self, args, tags):
         side, _ = self._who(args[0])
         self.st["volatiles"][side, C.V_RECHARGE] = 1
 
-    def _minus_terastallize(self, args, tags):
+    def on__terastallize(self, args, tags):
         side, slot = self._who(args[0])
         self.st["terastallized"][side, slot] = True
         self.st["tera_type"][side, slot] = N.type_id(args[1])
         self.st["tera_used"][side] = True
 
-    def _minus_item(self, args, tags):
+    def on__item(self, args, tags):
         side, slot = self._who(args[0])
         self.st["item"][side, slot] = N.item_id(args[1]) if side == 0 else HELD
 
-    def _minus_enditem(self, args, tags):
+    def on__enditem(self, args, tags):
         side, slot = self._who(args[0])
         self.st["item"][side, slot] = 0
 
@@ -806,7 +807,8 @@ class Policy:
         mtime = self.checkpoint.stat().st_mtime
         if mtime == self.loaded_at:
             return False
-        ckpt = torch.load(self.checkpoint, map_location=self.device)
+        # Read in one go: train.py cannot replace the file while it is open here
+        ckpt = torch.load(io.BytesIO(self.checkpoint.read_bytes()), map_location=self.device)
         self.net.load_state_dict(ckpt["net"])
         self.loaded_at, self.iteration = mtime, ckpt.get("iteration")
         return True
@@ -941,7 +943,7 @@ class Bot:
 async def random_opponent(url: str, name: str, bot: str, battles: int) -> None:
     """Challenge `bot` to `battles` Random Battles one after another, and play
     each with uniformly random legal choices."""
-    played = 0
+    played, logged_in = 0, False
     async with websockets.connect(url, max_size=None) as ws:
         async def send(room, text):
             await ws.send(f"{room}|{text}")
@@ -956,7 +958,9 @@ async def random_opponent(url: str, name: str, bot: str, battles: int) -> None:
             for line in lines:
                 if line.startswith("|challstr|"):
                     await send("", f"/trn {name},0,")
-                elif line.startswith("|updateuser|") and to_id(line.split("|")[2]) == to_id(name):
+                elif (line.startswith("|updateuser|") and not logged_in
+                      and to_id(line.split("|")[2]) == to_id(name)):
+                    logged_in = True
                     await challenge()
                 elif line.startswith("|request|") and line[len("|request|"):]:
                     request = json.loads(line[len("|request|"):])
@@ -1045,6 +1049,10 @@ async def run(args: argparse.Namespace):
         await task
         return
     await random_opponent(url, "RandomPlayer", args.name, args.vs_random)
+    for _ in range(100):  # the bot hears the last battle end a moment later
+        if len(bot.results) >= args.vs_random:
+            break
+        await asyncio.sleep(0.1)
     task.cancel()
     wins = sum(w is not None and to_id(w) == bot.userid for w in bot.results)
     ties = sum(w is None for w in bot.results)

@@ -6,5 +6,8 @@
 jax>=0.4.30
 numpy>=1.26
 
+# model/play.py's connection to the Showdown server
+websockets>=13
+
 # Tests
 pytest>=8

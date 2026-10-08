@@ -170,7 +170,8 @@ class TypeEmbeddingLayer(nn.Module):
 
 
 class MoveEmbeddingLayer(nn.Module):
-    def __init__(self, type_embedding: TypeEmbeddingLayer, output_dim: int = 32):
+    def __init__(self, type_embedding: TypeEmbeddingLayer,
+                 output_dim: int = config.MOVE_LAYER_OUTPUT_DIM):
         super().__init__()
         self.type_embedding = type_embedding  # shared with Pokémon types
         features, type_ids = build_move_feature_table()
@@ -306,7 +307,8 @@ class PlayerEmbeddingLayer(nn.Module):
     whether Tera is spent, and the active slot's state, which clears when its
     Pokemon switches out. The Pokemon themselves are tokens of their own."""
 
-    def __init__(self, move_embedding: MoveEmbeddingLayer, output_dim: int = 64):
+    def __init__(self, move_embedding: MoveEmbeddingLayer,
+                 output_dim: int = config.PLAYER_LAYER_OUTPUT_DIM):
         super().__init__()
         self.move_embedding = move_embedding  # for the last move used
         in_dim = (
@@ -357,7 +359,7 @@ class PlayerEmbeddingLayer(nn.Module):
 
 
 class FieldEmbeddingLayer(nn.Module):
-    def __init__(self, output_dim: int = 32):
+    def __init__(self, output_dim: int = config.FIELD_LAYER_OUTPUT_DIM):
         super().__init__()
         # Hazards count layers; every other side condition counts turns left,
         # at most 8 (screens with Light Clay).
@@ -403,7 +405,7 @@ class HistoryEmbeddingLayer(nn.Module):
     used a move or switched in, some turns ago."""
 
     def __init__(self, species_embedding: nn.Embedding, move_embedding: MoveEmbeddingLayer,
-                 output_dim: int = 64):
+                 output_dim: int = config.HISTORY_LAYER_OUTPUT_DIM):
         super().__init__()
         self.species_embedding = species_embedding  # shared with the Pokemon
         self.move_embedding = move_embedding
@@ -612,7 +614,7 @@ if __name__ == "__main__":
     n = names()
     ids = torch.tensor(n.move_id("close combat"))
     out = move_layer(ids)
-    print(out.shape)  # should be (32,)
+    print(out.shape)  # (config.MOVE_LAYER_OUTPUT_DIM,)
 
     pokemon_layer = PokemonEmbeddingLayer(type_emb, move_layer)
     species = torch.tensor(n.species_id("great tusk"))
@@ -635,7 +637,7 @@ if __name__ == "__main__":
     out = pokemon_layer(species, item, ability, moves, pp, maxpp, tera_type, terastallized,
                         hp, maxhp, status, sleep_attempts, rest_sleep, level, stats,
                         toxic_counter)
-    print(out.shape)  # should be (128,)
+    print(out.shape)  # (config.POKEMON_EMBEDDING_OUTPUT_DIM,)
 
     player_layer = PlayerEmbeddingLayer(move_layer)
     team = dict(species_ids=species, item_ids=item, ability_ids=ability, move_ids=moves,
@@ -654,7 +656,7 @@ if __name__ == "__main__":
                   disabled_slot=none, locked_slot=none)
     out = player_layer(pokemon_left=torch.tensor(6), tera_used=torch.tensor(False),
                        **{k: v for k, v in player.items() if k not in ("team", "active_slot")})
-    print(out.shape)  # should be (64,)
+    print(out.shape)  # (config.PLAYER_LAYER_OUTPUT_DIM,)
 
     game = GameNetwork()
     batch_of_one = lambda p: dict(team={k: v.unsqueeze(0) for k, v in p["team"].items()},
