@@ -861,7 +861,7 @@ class Bot:
             return
         for line in lines:
             if line.startswith("|challstr|"):
-                await self.send("", f"/trn {self.username},0,")
+                await self.login(line[len("|challstr|"):])
             elif line.startswith("|updateuser|"):
                 if to_id(line.split("|")[2]) == self.userid and not self.ready.is_set():
                     self.ready.set()
@@ -871,6 +871,10 @@ class Bot:
                 await self.on_pm(line)
             elif line.startswith("|popup|"):
                 self.say("", line[len("|popup|"):].replace("||", "\n"))
+
+    async def login(self, challstr: str):
+        """Take the bot's name; a server run with --no-security asks for no proof."""
+        await self.send("", f"/trn {self.username},0,")
 
     async def on_pm(self, line: str):
         _, _, sender, receiver, text = line.split("|", 4)
@@ -887,30 +891,39 @@ class Bot:
 
     async def on_battle(self, room: str, lines: list[str]):
         battle = self.battles.get(room)
-        if battle is None:
-            if not any(line.startswith("|init|battle") for line in lines):
-                return
+        if any(line.startswith("|init|battle") for line in lines):
+            # The start of the battle, or all of it again on rejoining one
+            started = battle is None
             battle = self.battles[room] = ShowdownBattle(self.username)
-            if self.policy.reload():
+            if started and self.policy.reload():
                 self.say(room, f"loaded {self.policy.checkpoint} "
                                f"(iteration {self.policy.iteration})")
-            self.say(room, f"started; the network is at iteration {self.policy.iteration}")
-        request = None
+            self.say(room, f"{'started' if started else 'rejoined'}; "
+                           f"the network is at iteration {self.policy.iteration}")
+        elif battle is None:
+            return
+        request, chosen = None, False
         for line in lines:
             if line.startswith("|request|"):
                 request = json.loads(line[len("|request|"):]) if line[len("|request|"):] else None
+            elif line.startswith("|sentchoice|"):  # rejoining after it chose
+                chosen = True
             elif line.startswith("|error|"):
                 self.say(room, line)
-                if "[Invalid choice]" in line and "nothing to choose" not in line:
+                if ("[Invalid choice]" in line and "nothing to choose" not in line
+                        and "too late" not in line):
                     await self.send(room, "/choose default")
                 # An [Unavailable choice] (a trapping ability it could not see) is
-                # followed by a new request
+                # followed by a new request, as is a choice too late for its turn
             else:
+                if line.startswith("|t:|"):
+                    # Each step opens with one: a rejoined battle's log holds many
+                    battle.end_update()
                 battle.receive(line)
         battle.end_update()
         if request is not None:
             battle.update(request)
-            if not request.get("wait") and not request.get("teamPreview"):
+            if not (request.get("wait") or request.get("teamPreview") or chosen):
                 await self.decide(room, battle, request)
         if battle.ended:
             self.results.append(battle.winner)
