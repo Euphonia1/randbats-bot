@@ -6,7 +6,7 @@
 
 This starts Showdown's own server -- the `pokemon-showdown` package that
 simulator/tools installs (`cd simulator/tools && npm install`) -- and logs the
-network in to it as RandbatsBot. To play it, open http://localhost:8000, which
+network in to it as     . To play it, open http://localhost:8000, which
 hands you on to the official client pointed at this server; choose any name,
 press "Find a user", look up RandbatsBot and challenge it to [Gen 9] Random
 Battle. It plays any number of battles at once, and at the start of each one

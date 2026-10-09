@@ -6,6 +6,10 @@
 jax>=0.4.30
 numpy>=1.26
 
+# The network (model/). Plain PyPI torch is CPU-only on Windows; for a GPU build
+# install from https://download.pytorch.org/whl/<cuda tag> first, as model/*_setup.sh do.
+torch>=2.0
+
 # model/play.py's connection to the Showdown server
 websockets>=13
 

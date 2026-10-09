@@ -9,7 +9,8 @@ own fog-of-war view (`game_inputs`), and learns from both. Each iteration plays
 `rollout_steps` decisions in every battle, starting a new battle wherever one
 ends, then makes `epochs` passes of PPO over what it collected, with advantages
 from generalized advantage estimation (GAE). JAX steps the battles on whatever
-backend it has; PyTorch runs the network on `--device`.
+backend it has; PyTorch runs the network on `--device`, under bfloat16
+autocast unless `--precision fp32`.
 
 The reward is undiscounted: 1 for a win and 0 for a loss, paid when the battle
 ends, and nothing before. A tie pays 0.5 to each side, and so does a battle
@@ -71,13 +72,13 @@ from game_inputs import _view
 @dataclasses.dataclass
 class TrainConfig:
     # Self-play
-    num_envs: int = 256  # battles in flight; each gives a sample per side per decision
+    num_envs: int = 64  # battles in flight; each gives a sample per side per decision
     rollout_steps: int = 64  # decisions every battle plays between updates
     max_turns: int = 500  # a battle still going at this turn ends as a tie
     # PPO
     lr: float = 3e-4
     epochs: int = 4  # passes over each rollout
-    minibatch_size: int = 4096  # rows; a rollout has 2 * num_envs * rollout_steps
+    minibatch_size: int = 1024  # rows; a rollout has 2 * num_envs * rollout_steps
     clip: float = 0.2  # how far the probability ratio may move before PPO stops pushing
     gae_lambda: float = 0.95
     value_coef: float = 0.5
@@ -91,6 +92,7 @@ class TrainConfig:
     save_every: int = 10
     seed: int = 0
     device: str = "auto"  # PyTorch's: cuda if it has a GPU, else cpu
+    precision: str = "bf16"  # the network's matrix multiplies: bf16 (autocast) or fp32
 
 
 # --- battles -----------------------------------------------------------------
@@ -166,10 +168,18 @@ def rows(tree: dict, index) -> dict:
     return jax.tree.map(lambda t: t[index], tree)
 
 
-def policy(net: GameNetwork, inputs: dict) -> tuple[torch.Tensor, torch.Tensor]:
+def policy(net: GameNetwork, inputs: dict,
+           bf16: bool = False) -> tuple[torch.Tensor, torch.Tensor]:
     """(log_probs, win_logit) for a batch of stored inputs: log_probs is
-    (batch, NUM_ACTIONS) float32, with illegal actions at the lowest float."""
-    logits, win_logit = net(**model_inputs(inputs))
+    (batch, NUM_ACTIONS) float32, with illegal actions at the lowest float.
+
+    With bf16 the network runs under bfloat16 autocast. Its forward and
+    backward are memory-bound, moving large activations more than they
+    multiply, so halving those bytes makes an update about a third faster.
+    The outputs are float32 either way."""
+    device_type = next(net.parameters()).device.type
+    with torch.autocast(device_type, dtype=torch.bfloat16, enabled=bf16):
+        logits, win_logit = net(**model_inputs(inputs))
     return torch.log_softmax(logits.float(), dim=-1), win_logit.float()
 
 
@@ -266,6 +276,9 @@ class Trainer:
         # (an A100, a 4070): several times plain fp32's speed, at 10 bits of
         # mantissa. Without it an A100 is slower than a 4070.
         torch.set_float32_matmul_precision("high")
+        if cfg.precision not in ("bf16", "fp32"):
+            raise ValueError(f"precision is bf16 or fp32, not {cfg.precision!r}")
+        self.bf16 = cfg.precision == "bf16"
         self.env = env if env is not None else FogOfWarEnv()
         self.net = GameNetwork().to(self.device)
         self.opt = torch.optim.Adam(self.net.parameters(), lr=cfg.lr, eps=1e-5)
@@ -294,7 +307,7 @@ class Trainer:
         cfg, n = self.cfg, self.cfg.num_envs
         steps, lengths, ties = [], [], 0
         for _ in range(cfg.rollout_steps):
-            log_probs, win_logit = policy(self.net, self.inputs)
+            log_probs, win_logit = policy(self.net, self.inputs, self.bf16)
             actions = sample(log_probs, self.inputs["legal_actions"])
             self.fs, rewards, done, inputs, self.key = self._advance(self.fs, actions, self.key)
             rewards, done, inputs = jax.device_get((rewards, done, inputs))
@@ -312,7 +325,7 @@ class Trainer:
             ties += int(np.sum(rewards[:n][ended] == 0.5))
             self.decisions[ended] = 0
 
-        _, last_logit = policy(self.net, self.inputs)
+        _, last_logit = policy(self.net, self.inputs, self.bf16)
         batch = jax.tree.map(lambda *xs: torch.stack(xs), *steps)
         batch["advantage"], batch["return"] = gae(
             batch["reward"], batch["value"], batch["done"], torch.sigmoid(last_logit),
@@ -340,7 +353,7 @@ class Trainer:
         for _ in range(cfg.epochs):
             epoch = []
             for idx in torch.randperm(len(advantages), device=self.device).split(cfg.minibatch_size):
-                log_probs, win_logit = policy(self.net, rows(batch["inputs"], idx))
+                log_probs, win_logit = policy(self.net, rows(batch["inputs"], idx), self.bf16)
                 loss, info = ppo_loss(log_probs, win_logit, legal[idx], batch["action"][idx],
                                       batch["log_prob"][idx], advantages[idx],
                                       batch["return"][idx], cfg)
@@ -367,8 +380,8 @@ class Trainer:
         # Finished battles start again like any other, but only the first counts
         while np.isnan(score).any():
             inputs = to_torch(inputs, self.device)
-            mine = policy(self.net, rows(inputs, slice(0, n)))[0]
-            theirs = (policy(opponent, rows(inputs, slice(n, None)))[0]
+            mine = policy(self.net, rows(inputs, slice(0, n)), self.bf16)[0]
+            theirs = (policy(opponent, rows(inputs, slice(n, None)), self.bf16)[0]
                       if opponent is not None else torch.zeros_like(mine))
             actions = sample(torch.cat([mine, theirs]), inputs["legal_actions"])
             fs, rewards, done, inputs, key = self._advance(fs, actions, key)
