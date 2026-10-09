@@ -12,6 +12,13 @@ from generalized advantage estimation (GAE). JAX steps the battles on whatever
 backend it has; PyTorch runs the network on `--device`, under bfloat16
 autocast unless `--precision fp32`.
 
+In an `opponent_pool` share of the battles the other side is not the network
+but a snapshot of it from an earlier evaluation, drawn uniformly from all of
+them each iteration, and the network learns from its own side only. Against
+nothing but its current self, a game of simultaneous moves can send it round
+in circles: each version learns to beat the last, forgetting what beat the one
+before. The pool keeps it playing against its whole past (fictitious self-play).
+
 The reward is undiscounted: 1 for a win and 0 for a loss, paid when the battle
 ends, and nothing before. A tie pays 0.5 to each side, and so does a battle
 still going at `max_turns`. A state's value is then the probability of winning
@@ -35,8 +42,12 @@ n legal actions:
   never plays an action can no longer find out it was wrong to.
 
 Every `eval_every` iterations the network plays `num_envs` new battles against
-uniform random play, then as many against itself as it was at the previous
-evaluation, sampling its actions as it does in training.
+uniform random play, as many against itself as it was at the previous
+evaluation, and as many against the newest snapshot at least `eval_lookback`
+iterations old. It takes player 0 in half of each set and player 1 in the
+rest, and samples its actions as it does in training. Then it is saved as a
+snapshot, in the run directory's `snapshots/`, for later evaluations and the
+opponent pool.
 """
 from __future__ import annotations
 
@@ -72,13 +83,14 @@ from game_inputs import _view
 @dataclasses.dataclass
 class TrainConfig:
     # Self-play
-    num_envs: int = 64  # battles in flight; each gives a sample per side per decision
+    num_envs: int = 2048  # battles in flight; each gives a sample per side per decision
     rollout_steps: int = 64  # decisions every battle plays between updates
     max_turns: int = 500  # a battle still going at this turn ends as a tie
+    opponent_pool: float = 0.25  # share of battles against a past snapshot, not the current network
     # PPO
     lr: float = 3e-4
     epochs: int = 4  # passes over each rollout
-    minibatch_size: int = 1024  # rows; a rollout has 2 * num_envs * rollout_steps
+    minibatch_size: int = 8192  # rows; a rollout has (2 - opponent_pool) * num_envs * rollout_steps
     clip: float = 0.2  # how far the probability ratio may move before PPO stops pushing
     gae_lambda: float = 0.95
     value_coef: float = 0.5
@@ -89,6 +101,7 @@ class TrainConfig:
     # The run
     iterations: int = 5000
     eval_every: int = 20
+    eval_lookback: int = 100  # also evaluate against the newest snapshot this many iterations old; 0 skips it
     save_every: int = 10
     seed: int = 0
     device: str = "auto"  # PyTorch's: cuda if it has a GPU, else cpu
@@ -264,10 +277,32 @@ def explained_variance(values: torch.Tensor, returns: torch.Tensor) -> float:
     return float(1 - (returns - values).var() / var) if var > 0 else math.nan
 
 
-class Trainer:
-    """The network, its optimizer, and the battles it is in the middle of."""
+def save_atomically(obj, path: pathlib.Path):
+    """torch.save, written so a crash never leaves half of the file."""
+    tmp = path.with_suffix(".tmp")
+    torch.save(obj, tmp)
+    # Windows will not replace a file another process has open, as
+    # play_showdown/play.py does for a moment whenever it loads a new checkpoint.
+    for _ in range(20):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:
+            time.sleep(0.25)
+    os.replace(tmp, path)
 
-    def __init__(self, cfg: TrainConfig, env: FogOfWarEnv | None = None):
+
+class Trainer:
+    """The network, its optimizer, and the battles it is in the middle of.
+
+    `snapshots` is the directory of the networks kept at each evaluation, for
+    the opponent pool and the lookback evaluation; with None neither happens.
+    """
+
+    def __init__(self, cfg: TrainConfig, env: FogOfWarEnv | None = None,
+                 snapshots: pathlib.Path | None = None):
+        if not 0 <= cfg.opponent_pool <= 1:
+            raise ValueError(f"opponent_pool is a share, 0 to 1, not {cfg.opponent_pool}")
         self.cfg = cfg
         self.device = torch.device(("cuda" if torch.cuda.is_available() else "cpu")
                                    if cfg.device == "auto" else cfg.device)
@@ -288,6 +323,21 @@ class Trainer:
         self.iteration = 0
         self.samples = 0
 
+        self.snapshots = snapshots
+        # Whichever snapshot the opponent pool's battles, or an evaluation, last loaded
+        self.opponent = copy.deepcopy(self.net).requires_grad_(False)
+        self.opponent_iteration = None
+        self.rng = np.random.default_rng(cfg.seed)
+        # The pool's battles are the last k. The opponent is player 1 in the
+        # first half of them and player 0 in the rest, so the network learns
+        # from both seats.
+        n = cfg.num_envs
+        k = round(cfg.opponent_pool * n) if snapshots is not None else 0
+        pool = torch.arange(n - k, n)
+        self.opponent_rows = torch.cat([n + pool[:k // 2], pool[k // 2:]]).to(self.device)
+        self.learner_rows = torch.ones(2 * n, dtype=torch.bool, device=self.device)
+        self.learner_rows[self.opponent_rows] = False
+
         self.key, key = jax.random.split(jax.random.PRNGKey(cfg.seed))
         self.fs, inputs = start(self.env, key, cfg.num_envs)
         self.inputs = to_torch(inputs, self.device)
@@ -299,16 +349,26 @@ class Trainer:
 
     @torch.no_grad()
     def collect(self) -> tuple[dict, dict]:
-        """Play `rollout_steps` decisions in every battle.
+        """Play `rollout_steps` decisions in every battle, against a snapshot
+        drawn afresh in the opponent pool's.
 
-        Returns the batch, a row per battle, side and decision, with its
+        Returns the batch, a row per decision the network made itself, with its
         advantages and returns; and statistics on the battles that ended.
         """
         cfg, n = self.cfg, self.cfg.num_envs
+        pool = len(self.opponent_rows) > 0
+        if pool:
+            # A pool battle still going from the last rollout carries on against
+            # the new draw; the network's side of it is on-policy all the same.
+            self.load_opponent(int(self.rng.choice(self.snapshot_iterations())))
         steps, lengths, ties = [], [], 0
         for _ in range(cfg.rollout_steps):
             log_probs, win_logit = policy(self.net, self.inputs, self.bf16)
-            actions = sample(log_probs, self.inputs["legal_actions"])
+            played = log_probs
+            if pool:
+                theirs = policy(self.opponent, rows(self.inputs, self.opponent_rows), self.bf16)[0]
+                played = log_probs.index_copy(0, self.opponent_rows, theirs)
+            actions = sample(played, self.inputs["legal_actions"])
             self.fs, rewards, done, inputs, self.key = self._advance(self.fs, actions, self.key)
             rewards, done, inputs = jax.device_get((rewards, done, inputs))
             steps.append(dict(
@@ -330,10 +390,13 @@ class Trainer:
         batch["advantage"], batch["return"] = gae(
             batch["reward"], batch["value"], batch["done"], torch.sigmoid(last_logit),
             cfg.gae_lambda)
-        batch = jax.tree.map(lambda x: x.flatten(0, 1), batch)
+        # The opponent's rows go: another policy chose their actions
+        batch = jax.tree.map(lambda x: x[:, self.learner_rows].flatten(0, 1), batch)
         stats = dict(games=len(lengths), ties=ties,
                      battle_length=float(np.mean(lengths)) if lengths else math.nan,
                      explained_variance=explained_variance(batch["value"], batch["return"]))
+        if pool:
+            stats["opponent_iteration"] = self.opponent_iteration
         return batch, stats
 
     def update(self, batch: dict) -> dict:
@@ -372,49 +435,76 @@ class Trainer:
     def evaluate(self, opponent: GameNetwork | None) -> float:
         """The network's score over `num_envs` new battles against `opponent`,
         or uniform random play if None: 1 a win, 0.5 a tie and 0 a loss. The
-        network plays player 0, and both sides sample their actions."""
+        network plays player 0 in the first half of the battles and player 1 in
+        the rest, and both sides sample their actions."""
         n = self.cfg.num_envs
+        battle = np.arange(n)
+        second = battle >= n // 2
+        mine_np = battle + n * second  # the network's row in each battle
+        mine, theirs = (torch.from_numpy(r).to(self.device)
+                        for r in (mine_np, battle + n * ~second))
         self.key, key = jax.random.split(self.key)
         fs, inputs = start(self.env, key, n)
         score = np.full(n, np.nan)
         # Finished battles start again like any other, but only the first counts
         while np.isnan(score).any():
             inputs = to_torch(inputs, self.device)
-            mine = policy(self.net, rows(inputs, slice(0, n)), self.bf16)[0]
-            theirs = (policy(opponent, rows(inputs, slice(n, None)), self.bf16)[0]
-                      if opponent is not None else torch.zeros_like(mine))
-            actions = sample(torch.cat([mine, theirs]), inputs["legal_actions"])
+            mine_lp = policy(self.net, rows(inputs, mine), self.bf16)[0]
+            theirs_lp = (policy(opponent, rows(inputs, theirs), self.bf16)[0]
+                         if opponent is not None else torch.zeros_like(mine_lp))
+            log_probs = mine_lp.new_empty(2 * n, mine_lp.shape[-1])
+            log_probs[mine], log_probs[theirs] = mine_lp, theirs_lp
+            actions = sample(log_probs, inputs["legal_actions"])
             fs, rewards, done, inputs, key = self._advance(fs, actions, key)
-            rewards, done = jax.device_get((rewards[:n], done[:n]))
+            rewards, done = jax.device_get((rewards, done))
+            rewards, done = np.asarray(rewards)[mine_np], np.asarray(done)[:n]
             first = done & np.isnan(score)
             score[first] = rewards[first]
         return float(score.mean())
 
     def evaluate_all(self) -> dict:
-        """Scores against random play and against the previous evaluation's
-        network, which this one then replaces."""
+        """Scores against random play, against the previous evaluation's
+        network, which this one then replaces, and against the newest snapshot
+        at least `eval_lookback` iterations old, if there is one yet; then keeps
+        the network as a snapshot."""
         stats = dict(vs_random=self.evaluate(None), vs_past=self.evaluate(self.past),
                      past_iteration=self.past_iteration)
+        if self.snapshots is not None and self.cfg.eval_lookback:
+            old = [i for i in self.snapshot_iterations()
+                   if i <= self.iteration - self.cfg.eval_lookback]
+            if old:
+                stats |= dict(vs_lookback=self.evaluate(self.load_opponent(old[-1])),
+                              lookback_iteration=old[-1])
         self.past.load_state_dict(self.net.state_dict())
         self.past_iteration = self.iteration
+        self.keep(self.net, self.iteration)
         return stats
+
+    def snapshot_iterations(self) -> list[int]:
+        """The iterations there are snapshots of, oldest first."""
+        return sorted(int(p.stem) for p in self.snapshots.glob("*.pt"))
+
+    def keep(self, net: GameNetwork, iteration: int):
+        """Save `net` as the snapshot of `iteration`, in a checkpoint's format,
+        so that play_showdown/play.py can play it too."""
+        if self.snapshots is not None:
+            self.snapshots.mkdir(parents=True, exist_ok=True)
+            save_atomically(dict(net=net.state_dict(), iteration=iteration),
+                            self.snapshots / f"{iteration:05d}.pt")
+
+    def load_opponent(self, iteration: int) -> GameNetwork:
+        """`self.opponent`, as the snapshot of `iteration`."""
+        ckpt = torch.load(self.snapshots / f"{iteration:05d}.pt", map_location=self.device)
+        self.opponent.load_state_dict(ckpt["net"])
+        self.opponent_iteration = iteration
+        return self.opponent
 
     def save(self, path: pathlib.Path):
         """A checkpoint of the training, written so a crash never leaves half of one."""
-        tmp = path.with_suffix(".tmp")
-        torch.save(dict(net=self.net.state_dict(), opt=self.opt.state_dict(),
-                        past=self.past.state_dict(), past_iteration=self.past_iteration,
-                        iteration=self.iteration, samples=self.samples,
-                        config=dataclasses.asdict(self.cfg)), tmp)
-        # Windows will not replace a file another process has open, as
-        # play_showdown/play.py does for a moment whenever it loads a new checkpoint.
-        for _ in range(20):
-            try:
-                os.replace(tmp, path)
-                return
-            except PermissionError:
-                time.sleep(0.25)
-        os.replace(tmp, path)
+        save_atomically(dict(net=self.net.state_dict(), opt=self.opt.state_dict(),
+                             past=self.past.state_dict(), past_iteration=self.past_iteration,
+                             iteration=self.iteration, samples=self.samples,
+                             config=dataclasses.asdict(self.cfg)), path)
 
     def load(self, path: pathlib.Path):
         """Pick up from a checkpoint. The battles in flight start afresh."""
@@ -435,7 +525,8 @@ def parse_args(argv=None) -> tuple[TrainConfig, pathlib.Path, bool]:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--run-dir", type=pathlib.Path, default=pathlib.Path("runs/selfplay"),
-                        help="where the checkpoint, config and log go (default: %(default)s)")
+                        help="where the checkpoint, config, log and snapshots go "
+                             "(default: %(default)s)")
     parser.add_argument("--resume", action="store_true",
                         help="carry on from the run directory's checkpoint, with its config")
     fields = dataclasses.fields(TrainConfig)
@@ -463,20 +554,30 @@ def summary(s: dict) -> str:
     if "vs_random" in s:
         line += (f"\n           eval: {s['vs_random']:.3f} against random play, "
                  f"{s['vs_past']:.3f} against iteration {s['past_iteration']}")
+        if "vs_lookback" in s:
+            line += f", {s['vs_lookback']:.3f} against iteration {s['lookback_iteration']}"
     return line
 
 
 def main(argv=None):
     cfg, run_dir, resume = parse_args(argv)
     run_dir.mkdir(parents=True, exist_ok=True)
-    checkpoint = run_dir / "checkpoint.pt"
-    trainer = Trainer(cfg)
+    checkpoint, snapshots = run_dir / "checkpoint.pt", run_dir / "snapshots"
+    if not resume and any(snapshots.glob("*.pt")):
+        # They would join the new run's opponent pool
+        raise SystemExit(f"{snapshots} holds another run's snapshots: pass --resume to "
+                         "carry that run on, or a new --run-dir to start afresh")
+    trainer = Trainer(cfg, snapshots=snapshots)
     if resume:
         trainer.load(checkpoint)
+    # The pool's first opponent: the network at the last evaluation, or at the start
+    trainer.keep(trainer.past, trainer.past_iteration)
     (run_dir / "config.json").write_text(json.dumps(dataclasses.asdict(cfg), indent=2) + "\n")
     print(f"{sum(p.numel() for p in trainer.net.parameters()):,} parameters on "
           f"{trainer.device}, battles on JAX's {jax.default_backend()}; "
-          f"{2 * cfg.num_envs * cfg.rollout_steps:,} samples an iteration", flush=True)
+          f"{len(trainer.opponent_rows)} of {cfg.num_envs} battles against past snapshots; "
+          f"{int(trainer.learner_rows.sum()) * cfg.rollout_steps:,} samples an iteration",
+          flush=True)
 
     with open(run_dir / "log.jsonl", "a") as log:
         try:

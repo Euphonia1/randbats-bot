@@ -1,20 +1,23 @@
 {
-  "num_envs": 1024,
+  "num_envs": 2048,
   "rollout_steps": 64,
   "max_turns": 500,
-  "lr": 0.0003,
+  "opponent_pool": 0.25,
+  "lr": 1e-05,
   "epochs": 4,
-  "minibatch_size": 4096,
+  "minibatch_size": 8192,
   "clip": 0.2,
   "gae_lambda": 0.95,
   "value_coef": 0.5,
   "entropy_coef": 0.01,
   "zero_avoid_coef": 0.01,
   "max_grad_norm": 0.5,
-  "target_kl": 0.0,
+  "target_kl": 0.03,
   "iterations": 5000,
   "eval_every": 20,
+  "eval_lookback": 100,
   "save_every": 10,
   "seed": 0,
-  "device": "auto"
+  "device": "auto",
+  "precision": "bf16"
 }
