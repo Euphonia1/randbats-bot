@@ -407,7 +407,7 @@ class Trainer:
                         iteration=self.iteration, samples=self.samples,
                         config=dataclasses.asdict(self.cfg)), tmp)
         # Windows will not replace a file another process has open, as
-        # model/play.py does for a moment whenever it loads a new checkpoint.
+        # play_showdown/play.py does for a moment whenever it loads a new checkpoint.
         for _ in range(20):
             try:
                 os.replace(tmp, path)

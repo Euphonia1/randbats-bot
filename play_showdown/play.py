@@ -1,8 +1,8 @@
 """Play the trained network on a local Pokemon Showdown server.
 
-    python model/play.py                                  # plays runs/selfplay/checkpoint.pt
-    python model/play.py --checkpoint runs/first/checkpoint.pt
-    python model/play.py --vs-random 20                   # check it against random play first
+    python play_showdown/play.py                                  # plays runs/selfplay/checkpoint.pt
+    python play_showdown/play.py --checkpoint runs/first/checkpoint.pt
+    python play_showdown/play.py --vs-random 20                   # check it against random play first
 
 This starts Showdown's own server -- the `pokemon-showdown` package that
 simulator/tools installs (`cd simulator/tools && npm install`) -- and logs the
@@ -49,11 +49,12 @@ from psjax.data import load_data, names
 from psjax.fog import HISTORY_LEN, FogOfWarEnv, FogState, empty_history
 from psjax.state import BattleState, empty_state
 
-from architechture import GameNetwork
-from game_inputs import _view
-from train import policy, sample, to_torch
-
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "model"))
+from architechture import GameNetwork  # noqa: E402
+from game_inputs import _view  # noqa: E402
+from train import policy, sample, to_torch  # noqa: E402
+
 SHOWDOWN = ROOT / "simulator" / "tools" / "node_modules" / "pokemon-showdown"
 FORMAT = "gen9randombattle"
 
@@ -1013,7 +1014,7 @@ def start_server(port: int) -> subprocess.Popen:
     # only overrides config-example.js, which Showdown loads first.
     config = SHOWDOWN / "config" / "config.js"
     if not config.exists():
-        config.write_text("// Written by model/play.py: only this machine may connect.\n"
+        config.write_text("// Written by play_showdown/play.py: only this machine may connect.\n"
                           "exports.bindaddress = '127.0.0.1';\n")
     for folder in (SHOWDOWN / "logs" / "repl", SHOWDOWN / "config" / "chat-plugins"):
         folder.mkdir(parents=True, exist_ok=True)

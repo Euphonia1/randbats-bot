@@ -1,11 +1,14 @@
 """ShowdownBattle must rebuild, from what a player is told, the inputs the
 network trained on.
 
-    python -m pytest model/test_play.py
+    python -m pytest play_showdown/test_play.py
 
 The battle lines are real Showdown output, from a Random Battle on a local server.
 """
 from __future__ import annotations
+
+import pathlib
+import sys
 
 import jax
 import numpy as np
@@ -14,9 +17,10 @@ import pytest
 from psjax import consts as C
 from psjax.fog import FogOfWarEnv
 
-from architechture import UNKNOWN
-from game_inputs import _view
-from play import N, ShowdownBattle, legal_choices
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "model"))
+from architechture import UNKNOWN  # noqa: E402
+from game_inputs import _view  # noqa: E402
+from play import N, ShowdownBattle, legal_choices  # noqa: E402
 
 ENV = FogOfWarEnv()
 

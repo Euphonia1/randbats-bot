@@ -10,7 +10,7 @@ numpy>=1.26
 # install from https://download.pytorch.org/whl/<cuda tag> first, as model/*_setup.sh do.
 torch>=2.0
 
-# model/play.py's connection to the Showdown server
+# play_showdown/play.py's connection to the Showdown server
 websockets>=13
 
 # Tests
