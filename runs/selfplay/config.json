@@ -3,7 +3,7 @@
   "rollout_steps": 64,
   "max_turns": 500,
   "opponent_pool": 0.25,
-  "lr": 5e-05,
+  "lr": 4e-06,
   "epochs": 4,
   "minibatch_size": 8192,
   "clip": 0.2,
