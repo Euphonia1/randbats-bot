@@ -74,11 +74,30 @@ class FogState(NamedTuple):
     `history` is the public log: rows of `BattleState.events` with the turn
     appended (column `HIST_TURN`), oldest first and the newest last. Rows are
     -1 throughout until there are `HISTORY_LEN` events to fill them.
+
+    `revealed[p, slot]` is True once that Pokemon has been on the field as
+    itself: a Zoroark that comes and goes behind its Illusion has shown only
+    its disguise.
+
+    `move_order[p, slot, m]` is the order the moves were revealed in, 0 for the
+    first, and -1 for one not yet revealed: an opponent learns a moveset in the
+    order it is used, never which slot of the set each move fills.
+    `clay_screens[p, i]` is True while the side's Reflect, Light Screen or
+    Aurora Veil (i = 0, 1, 2) is up for Light Clay's eight turns rather than
+    five, which the opponent cannot tell until the five are over. A state built
+    from what a player saw, rather than from a full battle, leaves both None:
+    its moves are already in the order seen, and its screens' turns already
+    those a player would count.
     """
     battle: BattleState
-    revealed: jnp.ndarray         # [2, 6] bool, slot has been on the field
+    revealed: jnp.ndarray         # [2, 6] bool, slot has been on the field as itself
     revealed_moves: jnp.ndarray   # [2, 6, 4] bool, move has been used
     history: jnp.ndarray          # [HISTORY_LEN, 5] int16
+    move_order: jnp.ndarray | None = None    # [2, 6, 4] int8
+    clay_screens: jnp.ndarray | None = None  # [2, 3] bool
+
+#: Light Clay's side conditions, in `FogState.clay_screens` order.
+SCREENS = slice(C.SC_REFLECT, C.SC_AURORAVEIL + 1)
 
 
 def empty_history() -> jnp.ndarray:
@@ -104,6 +123,17 @@ def _on_field(state: BattleState) -> jnp.ndarray:
     return slots[None, :] == state.active[:, None].astype(jnp.int32)
 
 
+def seen_order(revealed_moves: jnp.ndarray) -> jnp.ndarray:
+    """A `FogState.move_order` for moves revealed in slot order."""
+    return jnp.where(revealed_moves, jnp.cumsum(revealed_moves, -1) - 1, -1).astype(jnp.int8)
+
+
+def _seen(state: BattleState) -> jnp.ndarray:
+    """`[2, 6]` bool: the slot each player has out, unless it is out behind an
+    Illusion, which shows the opponent another Pokemon."""
+    return _on_field(state) & (state.illusion < 0)[:, None]
+
+
 class FogOfWarEnv:
     """`BattleEnv` with the opponent's secrets withheld."""
 
@@ -124,10 +154,12 @@ class FogOfWarEnv:
         return FogState(
             battle=state,
             # Both leads are on the field before either player acts.
-            revealed=_on_field(state),
+            revealed=_seen(state),
             revealed_moves=jnp.zeros(
                 (C.NUM_PLAYERS, C.TEAM_SIZE, 4), dtype=bool),
-            history=record(empty_history(), state))  # the leads coming in
+            history=record(empty_history(), state),  # the leads coming in
+            move_order=jnp.full((C.NUM_PLAYERS, C.TEAM_SIZE, 4), -1, jnp.int8),
+            clay_screens=jnp.zeros((C.NUM_PLAYERS, 3), dtype=bool))
 
     def reset_batch(self, keys) -> FogState:
         return jax.vmap(self.reset)(keys)
@@ -135,6 +167,10 @@ class FogOfWarEnv:
     @functools.partial(jax.jit, static_argnums=0)
     def step(self, fs: FogState, actions):
         """One decision point. Returns `(fog_state, obs, rewards, done)`."""
+        if fs.move_order is None:  # built by hand: its moves seen in slot order
+            fs = fs._replace(move_order=seen_order(fs.revealed_moves))
+        if fs.clay_screens is None:
+            fs = fs._replace(clay_screens=jnp.zeros((C.NUM_PLAYERS, 3), dtype=bool))
         pp_before = fs.battle.pp
         state, _, rewards, done = self.env.step(fs.battle, actions)
 
@@ -144,11 +180,21 @@ class FogOfWarEnv:
         # way the count falls, so the flag still trips on the turn it should.
         # A finished battle absorbs further steps unchanged, its last events
         # included, so those are not recorded twice.
+        new_moves = (pp_before > state.pp) & jnp.logical_not(fs.revealed_moves)
+        rank = (jnp.sum(fs.revealed_moves, -1, keepdims=True)
+                + jnp.cumsum(new_moves, -1) - 1)
+        # A screen goes up for 8 turns with Light Clay and 5 without; it may
+        # have lost one to the end of this turn already.
+        before, after = fs.battle.side_conditions[:, SCREENS], state.side_conditions[:, SCREENS]
+        clay = jnp.where((before == 0) & (after > 0), after > 5,
+                         fs.clay_screens & (after > 0))
         fs = FogState(
             battle=state,
-            revealed=fs.revealed | _on_field(state),
+            revealed=fs.revealed | _seen(state),
             revealed_moves=fs.revealed_moves | (pp_before > state.pp),
-            history=record(fs.history, state, when=fs.battle.phase != C.PHASE_END))
+            history=record(fs.history, state, when=fs.battle.phase != C.PHASE_END),
+            move_order=jnp.where(new_moves, rank, fs.move_order).astype(jnp.int8),
+            clay_screens=clay)
         return fs, self.observe(fs), rewards, done
 
     def step_batch(self, fs: FogState, actions):

@@ -23,14 +23,33 @@ If the connection drops, the bot logs in again and rejoins its battles, which
 Showdown keeps open meanwhile; it also picks up any battles it left unfinished
 when it last stopped. A free name can only be taken back once the server
 notices the old connection is gone, so until then it keeps trying.
+
+It searches each decision rather than play the network's choice as it
+stands (play_showdown/search.py): for --search-time seconds it plays the
+next turns out in psjax, against sets the opponent could have for what it
+has not shown, with the network guiding both sides, and plays the action
+that held up best. --no-search plays the network alone, as training's
+evaluations do. The engine runs on the CPU, unless JAX_PLATFORMS says
+otherwise; --device cuda puts the network on the GPU instead. Compiling the
+search takes half a minute or so at startup, which JAX_COMPILATION_CACHE_DIR
+saves after the first time:
+
+    python play_showdown/play_online.py --name MyBotName --search-time 5
+    python play_showdown/play_online.py --name MyBotName --no-search
 """
 from __future__ import annotations
+
+import os
+
+# The search steps small batches of battles over and over, which a GPU does no
+# faster than the CPU, and a JAX on the GPU would take most of its memory from
+# training. This has to be set before JAX is first imported.
+os.environ.setdefault("JAX_PLATFORMS", "cpu")
 
 import argparse
 import asyncio
 import getpass
 import json
-import os
 import pathlib
 import sys
 import time
@@ -41,6 +60,7 @@ import urllib.request
 import websockets
 
 from play import FORMAT, ROOT, Bot, Policy, to_id
+from search import SearchPolicy, add_arguments, make_policy
 
 SERVER = "wss://sim3.psim.us/showdown/websocket"
 LOGIN_SERVER = "https://play.pokemonshowdown.com/action.php"
@@ -203,7 +223,7 @@ class OnlineBot(Bot):
 
 
 async def run(args: argparse.Namespace, password: str):
-    policy = Policy(args.checkpoint, args.device, args.greedy)
+    policy: Policy = make_policy(args, args.checkpoint, args.device)
     bot = OnlineBot(args.server, args.name, password, policy, args.max_battles,
                     args.accept_from, verbose=not args.quiet)
     task = asyncio.create_task(bot.run())
@@ -211,8 +231,13 @@ async def run(args: argparse.Namespace, password: str):
                        return_when=asyncio.FIRST_COMPLETED)
     if task.done():
         task.result()  # it failed to log in: raise why
+    how = "without searching"
+    if isinstance(policy, SearchPolicy):
+        how = " or ".join([f"{args.search_time:g} s"] * (args.search_time > 0)
+                          + [f"{args.simulations} simulations"] * (args.simulations > 0))
+        how = f"searching {how} a decision"
     print(f"{args.name} is online at {args.server}, playing iteration {policy.iteration} of "
-          f"{args.checkpoint}. Challenge it to [Gen 9] Random Battle from "
+          f"{args.checkpoint}, {how}. Challenge it to [Gen 9] Random Battle from "
           "https://play.pokemonshowdown.com. Ctrl+C stops it.", flush=True)
     await task
 
@@ -233,9 +258,11 @@ def main(argv=None):
                         help="turn down challenges while in this many battles; the main server "
                              "allows no more than 5 or so (default: %(default)s)")
     parser.add_argument("--greedy", action="store_true",
-                        help="always take the likeliest action, instead of sampling as in training")
+                        help="always take the likeliest action (with search, the one searched "
+                             "the most), instead of sampling")
     parser.add_argument("--device", default="cpu", help="PyTorch's (default: %(default)s)")
     parser.add_argument("--quiet", action="store_true", help="do not print every decision")
+    add_arguments(parser, default=True)
     args = parser.parse_args(argv)
     if not args.name:
         parser.error("give the bot a name with --name or SHOWDOWN_USERNAME")

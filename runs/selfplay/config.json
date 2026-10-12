@@ -7,7 +7,7 @@
   "epochs": 4,
   "minibatch_size": 12000,
   "clip": 0.2,
-  "gae_lambda": 0.95,
+  "gae_lambda": 0.8,
   "value_coef": 0.5,
   "entropy_coef": 0.01,
   "zero_avoid_coef": 0.01,

@@ -9,7 +9,11 @@ you, on top of the fog wrapper's own censoring (unused moves read as empty
 slots, HP as a whole percent):
 
 - **Species and level** once that Pokemon has been on the field. While
-  Illusion holds, the active one shows the Pokemon it is disguised as.
+  Illusion holds, the active one shows the Pokemon it is disguised as, and a
+  Zoroark that leaves still disguised stays unseen.
+- **Moves** in the order they were used, which is how a player writes them
+  down, never which slot of the set each fills; the rest are unknown and at
+  full PP, even an empty slot, so a set of fewer than four looks like any other.
 - **Stats** as a player would work them out from species and level, with
   Random Battles' standard spread. Their real stats can differ: special
   attackers get 0 Attack IVs and EVs and Trick Room sets 0 Speed, which a real
@@ -24,10 +28,17 @@ slots, HP as a whole percent):
   engine does not record.
 - **Tera type** once it has Terastallized.
 - **Choice lock** never, since it would give the item away.
+- **Unburden** never: Showdown does not announce it coming on.
+- **Screens** counting down from five turns, until one outlasts the five and
+  so gives Light Clay away.
 
-Everything else -- status, sleep and toxic counts, boosts, volatiles, the last
-move used, Encore, Disable, Outrage locks, the field -- is public. Unknown
-values are UNKNOWN, which the embedding layers give a learned vector of
+Your legal actions are as Showdown's request shows them: a Shadow Tag, Arena
+Trap or Magnet Pull you have not seen leaves your switches open, as Showdown
+only refuses such a switch once you choose it.
+
+Everything else -- status, sleep and toxic counts, boosts, other volatiles,
+the last move used, Encore, Disable, Outrage locks, the field -- is public.
+Unknown values are UNKNOWN, which the embedding layers give a learned vector of
 its own; -1 means none.
 
 `history` is the battle log's recent moves and switch-ins, which are public
@@ -38,9 +49,6 @@ so a Zoroark that came in disguised stays logged as its disguise.
 what you believe about the battle: your side as it is, and the opponent's
 Pokemon as shown, with the stats, HP and ability above and no item. See
 `_matchups` for what is calculated.
-
-One approximation remains: the opponent's screens show their exact turns left,
-which gives away Light Clay the turn they go up.
 """
 from __future__ import annotations
 
@@ -54,7 +62,7 @@ import torch
 from psjax import callbacks as cb
 from psjax import consts as C
 from psjax.damage import calc_damage, resolve_move_ctx, type_effectiveness
-from psjax.fog import HIST_TURN, FogOfWarEnv, FogState
+from psjax.fog import HIST_TURN, SCREENS, FogOfWarEnv, FogState, seen_order
 from psjax.hooks import A
 from psjax.mechanics import act, slot_get, species_stats
 from psjax.moves import build_attacker, build_cb_ctx, build_defender
@@ -93,36 +101,39 @@ def _view(env: FogOfWarEnv, fs: FogState, player: int) -> dict:
 
     def one(fs: FogState) -> dict:
         st = env._censor(fs, them)  # the opponent's unused moves and exact HP
+        # Unburden comes on without a word from Showdown
+        st = st._replace(volatiles=st.volatiles.at[them, C.V_UNBURDEN].set(0))
 
-        def team(side, species, item, ability, tera_type, level, stats, moves):
+        def team(side, species, item, ability, tera_type, level, stats, moves, pp, maxpp):
             return dict(
                 species_ids=species, item_ids=item, ability_ids=ability,
-                move_ids=moves, pp=st.pp[side], maxpp=st.maxpp[side],
+                move_ids=moves, pp=pp, maxpp=maxpp,
                 tera_type_ids=tera_type, terastallized=st.terastallized[side],
                 hp=st.hp[side], maxhp=st.maxhp[side], status=st.status[side],
                 sleep_attempts=st.sleep_attempts[side], rest_sleep=st.rest_sleep[side],
                 level=level, stats=stats,
                 toxic_counter=jnp.where(st.status[side] == C.TOX, st.status_turns[side], 0))
 
-        def player_view(side, team, choice_slot):
+        def player_view(side, team, choice_slot, place=lambda slot: slot):
             return dict(team=team, active_slot=st.active[side],
                         boosts=st.boosts[side], volatiles=st.volatiles[side],
                         last_move=st.last_move[side],
                         moves_since_switch=st.moves_since_switch[side],
-                        choice_slot=choice_slot, encore_slot=st.encore_slot[side],
-                        disabled_slot=st.disabled_slot[side],
-                        locked_slot=st.locked_slot[side])
+                        choice_slot=choice_slot, encore_slot=place(st.encore_slot[side]),
+                        disabled_slot=place(st.disabled_slot[side]),
+                        locked_slot=place(st.locked_slot[side]))
 
         mine = team(me, st.species[me], st.item[me], st.ability[me], st.tera_type[me],
-                    st.level[me], st.stats[me, :, 1:], st.moves[me])
+                    st.level[me], st.stats[me, :, 1:], st.moves[me], st.pp[me], st.maxpp[me])
 
         # Who the opponent's Pokemon appear to be: unseen ones are unknown, and
-        # the active one wears Illusion's disguise while it holds.
+        # the active one wears Illusion's disguise while it holds. A Zoroark
+        # that left still disguised has never been seen as itself.
         is_active = jnp.arange(C.TEAM_SIZE) == st.active[them]
         disguise = st.illusion[them].astype(jnp.int32)
         disguised = is_active & (disguise >= 0)
         shown = jnp.where(disguised, jnp.maximum(disguise, 0), jnp.arange(C.TEAM_SIZE))
-        known = fs.revealed[them]
+        known = fs.revealed[them] | is_active
         species = jnp.where(known, st.species[them, shown], UNKNOWN)
         level = jnp.where(known, st.level[them, shown], 0)
         stats = jax.vmap(lambda s, lv: species_stats(env.data, s, lv, jnp.int8(0)))(
@@ -130,13 +141,24 @@ def _view(env: FogOfWarEnv, fs: FogState, player: int) -> dict:
         abilities = env.data["species_abilities"][jnp.maximum(species, 0)]
         only_ability = known & (abilities[:, 1] == 0) & (abilities[:, 2] == 0)
         ability = jnp.where(only_ability, abilities[:, 0], UNKNOWN)
-        # Every move slot they have not used is unknown, even an empty one:
-        # telling them apart would give away a set with fewer than four moves.
+        # Their moves in the order they used them, as a player writes them
+        # down, never which slot of the set each one fills; then the rest,
+        # unknown at full PP -- even an empty slot, as telling them apart would
+        # give away a set with fewer than four moves.
+        order = (fs.move_order if fs.move_order is not None
+                 else seen_order(fs.revealed_moves))[them].astype(jnp.int32)
+        seen = (order >= 0) & known[:, None]
+        rest = C.MOVES_PER_POKEMON + jnp.arange(C.MOVES_PER_POKEMON)
+        perm = jnp.argsort(jnp.where(seen, order, rest), axis=-1)  # (6, 4)
+        take = lambda x: jnp.take_along_axis(x, perm, axis=-1)
+        place_of = jnp.argsort(perm, axis=-1)[st.active[them]]  # their active's slots, moved
         theirs = team(them, species,
                       jnp.where(known & (st.item[them] == 0), 0, UNKNOWN), ability,
                       jnp.where(st.terastallized[them], st.tera_type[them], UNKNOWN),
                       level, jnp.where(known[:, None], stats[:, 1:], 0),
-                      jnp.where(fs.revealed_moves[them], st.moves[them], UNKNOWN))
+                      take(jnp.where(seen, st.moves[them], UNKNOWN)),
+                      take(jnp.where(seen, st.pp[them], 1)),
+                      take(jnp.where(seen, st.maxpp[them], 1)))
 
         # The battle as you believe it to be, for the damage calcs: the
         # opponent's HP percent becomes HP out of the max you would expect.
@@ -151,17 +173,27 @@ def _view(env: FogOfWarEnv, fs: FogState, player: int) -> dict:
             tera_type=put(st.tera_type, jnp.where(st.terastallized[them],
                                                   st.tera_type[them], C.TYPE_NONE)))
 
+        side_conditions = jnp.stack([st.side_conditions[me], st.side_conditions[them]])
+        if fs.clay_screens is not None:
+            # Their screens count down from five, until one outlasts the five
+            # and gives the Light Clay away
+            turns = side_conditions[1, SCREENS]
+            side_conditions = side_conditions.at[1, SCREENS].set(
+                jnp.where(fs.clay_screens[them] & (turns > 3), turns - 3, turns))
+
         return dict(
             me=player_view(me, mine, st.choice_slot[me]),
-            opponent=player_view(them, theirs, jnp.full_like(st.choice_slot[them], -1)),
+            opponent=player_view(them, theirs, jnp.full_like(st.choice_slot[them], -1),
+                                 lambda slot: jnp.where(slot >= 0, place_of[slot], -1)),
             field=dict(weather=st.weather, terrain=st.terrain,
                        trick_room=st.trick_room, gravity=st.gravity,
-                       side_conditions=jnp.stack([st.side_conditions[me],
-                                                  st.side_conditions[them]]),
+                       side_conditions=side_conditions,
                        phase=st.phase,
                        force_switch=jnp.stack([st.force_switch[me],
                                                st.force_switch[them]])),
-            legal_actions=legal_action_mask(env.data, fs.battle)[me],
+            # As Showdown's request shows them: a trapping ability you have not
+            # seen leaves your switches open (train.py's `_legal` has the truth)
+            legal_actions=legal_action_mask(env.data, belief)[me],
             matchups=_matchups(env.data, belief, me, them, known),
             history=_history(fs, me))
 

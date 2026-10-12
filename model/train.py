@@ -83,6 +83,7 @@ import torch.nn.functional as F
 
 from psjax import consts as C
 from psjax.fog import FogOfWarEnv, FogState
+from psjax.teams import legal_action_mask
 
 from architechture import GameNetwork
 from game_inputs import _view
@@ -128,11 +129,21 @@ def _views(env: FogOfWarEnv, fs: FogState) -> dict:
                         _view(env, fs, 0), _view(env, fs, 1))
 
 
+def _legal(env: FogOfWarEnv, fs: FogState) -> jnp.ndarray:
+    """Both players' legal actions as the engine has them, player 0's rows
+    first. The inputs show them as a player sees them, with switches that a
+    trapping ability they have not seen rules out; Showdown refuses such a
+    switch only once chosen, and asks again, so actions are drawn from these."""
+    masks = jax.vmap(lambda battle: legal_action_mask(env.data, battle))(fs.battle)
+    return jnp.concatenate([masks[:, 0], masks[:, 1]])
+
+
 @functools.partial(jax.jit, static_argnums=(0, 2))
-def start(env: FogOfWarEnv, key, num_envs: int) -> tuple[FogState, dict]:
-    """`num_envs` new battles, and both players' inputs for them."""
+def start(env: FogOfWarEnv, key, num_envs: int) -> tuple[FogState, dict, jnp.ndarray]:
+    """`num_envs` new battles, both players' inputs for them, and their legal
+    actions (see `_legal`)."""
     fs = env.reset_batch(jax.random.split(key, num_envs))
-    return fs, _views(env, fs)
+    return fs, _views(env, fs), _legal(env, fs)
 
 
 @functools.partial(jax.jit, static_argnums=0)
@@ -143,13 +154,14 @@ def advance(env: FogOfWarEnv, fs: FogState, actions, key, max_turns):
     actions: (2 * num_envs,) int32, one per row
     max_turns: a battle still going at this turn ends as a tie
 
-    Returns (fs, rewards, done, inputs, key), each of the middle three by row:
+    Returns (fs, rewards, done, inputs, legal, key), each of the middle four by row:
         rewards: 1 to the winner and 0 to the loser of a battle that ended
             with this decision, 0.5 to each side for a tie, and 0 while it
             goes on
         done: whether the row's battle ended with this decision, in which
             case its inputs are the next battle's first
         inputs: both players' GameNetwork inputs for the next decision
+        legal: the actions the engine allows at it (see `_legal`)
     """
     n = fs.battle.turn.shape[0]
     key, reset_key = jax.random.split(key)
@@ -164,7 +176,8 @@ def advance(env: FogOfWarEnv, fs: FogState, actions, key, max_turns):
     fresh = env.reset_batch(jax.random.split(reset_key, n))
     fs = jax.tree.map(lambda new, old: jnp.where(done.reshape((n,) + (1,) * (old.ndim - 1)),
                                                  new, old), fresh, fs)
-    return fs, rewards.T.reshape(-1), jnp.tile(done, C.NUM_PLAYERS), _views(env, fs), key
+    return (fs, rewards.T.reshape(-1), jnp.tile(done, C.NUM_PLAYERS), _views(env, fs),
+            _legal(env, fs), key)
 
 
 # --- the policy ----------------------------------------------------------------
@@ -190,10 +203,11 @@ def rows(tree: dict, index) -> dict:
     return jax.tree.map(lambda t: t[index], tree)
 
 
-def policy(net: GameNetwork, inputs: dict,
-           bf16: bool = False) -> tuple[torch.Tensor, torch.Tensor]:
+def policy(net: GameNetwork, inputs: dict, bf16: bool = False,
+           legal: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
     """(log_probs, win_logit) for a batch of stored inputs: log_probs is
-    (batch, NUM_ACTIONS) float32, with illegal actions at the lowest float.
+    (batch, NUM_ACTIONS) float32, with illegal actions at the lowest float --
+    those the inputs show as illegal, and any more that `legal` rules out.
 
     With bf16 the network runs under bfloat16 autocast. Its forward and
     backward are memory-bound, moving large activations more than they
@@ -202,7 +216,10 @@ def policy(net: GameNetwork, inputs: dict,
     device_type = next(net.parameters()).device.type
     with torch.autocast(device_type, dtype=torch.bfloat16, enabled=bf16):
         logits, win_logit = net(**model_inputs(inputs))
-    return torch.log_softmax(logits.float(), dim=-1), win_logit.float()
+    logits = logits.float()
+    if legal is not None:
+        logits = logits.masked_fill(~legal, torch.finfo(logits.dtype).min)
+    return torch.log_softmax(logits, dim=-1), win_logit.float()
 
 
 def sample(log_probs: torch.Tensor, legal: torch.Tensor) -> torch.Tensor:
@@ -348,8 +365,8 @@ class Trainer:
         self.learner_rows[self.opponent_rows] = False
 
         self.key, key = jax.random.split(jax.random.PRNGKey(cfg.seed))
-        self.fs, inputs = start(self.env, key, cfg.num_envs)
-        self.inputs = to_torch(inputs, self.device)
+        self.fs, inputs, legal = start(self.env, key, cfg.num_envs)
+        self.inputs, self.legal = to_torch((inputs, legal), self.device)
         self.decisions = np.zeros(cfg.num_envs, np.int64)  # so far, in each battle
 
     def _advance(self, fs: FogState, actions: torch.Tensor, key):
@@ -372,21 +389,22 @@ class Trainer:
             self.load_opponent(int(self.rng.choice(self.snapshot_iterations())))
         steps, lengths, ties = [], [], 0
         for _ in range(cfg.rollout_steps):
-            log_probs, win_logit = policy(self.net, self.inputs, self.bf16)
+            log_probs, win_logit = policy(self.net, self.inputs, self.bf16, self.legal)
             played = log_probs
             if pool:
                 theirs = policy(self.opponent, rows(self.inputs, self.opponent_rows), self.bf16)[0]
                 played = log_probs.index_copy(0, self.opponent_rows, theirs)
-            actions = sample(played, self.inputs["legal_actions"])
-            self.fs, rewards, done, inputs, self.key = self._advance(self.fs, actions, self.key)
-            rewards, done, inputs = jax.device_get((rewards, done, inputs))
+            actions = sample(played, self.legal)
+            self.fs, rewards, done, inputs, legal, self.key = self._advance(
+                self.fs, actions, self.key)
+            rewards, done, inputs, legal = jax.device_get((rewards, done, inputs, legal))
             steps.append(dict(
-                inputs=self.inputs, action=actions,
+                inputs=self.inputs, legal=self.legal, action=actions,
                 log_prob=log_probs.gather(-1, actions[:, None]).squeeze(-1),
                 value=torch.sigmoid(win_logit),
                 reward=torch.from_numpy(np.array(rewards)).to(self.device),
                 done=torch.from_numpy(np.array(done)).to(self.device)))
-            self.inputs = to_torch(inputs, self.device)
+            self.inputs, self.legal = to_torch((inputs, legal), self.device)
 
             self.decisions += 1
             ended = done[:n]
@@ -414,7 +432,7 @@ class Trainer:
         cfg = self.cfg
         for group in self.opt.param_groups:
             group["lr"] = cfg.lr
-        legal = batch["inputs"]["legal_actions"]
+        legal = batch["legal"]
         # Normalized over the decisions with a choice, the only ones the policy reads
         advantages, choice = batch["advantage"], legal.sum(-1) > 1
         if choice.sum() > 1:
@@ -425,7 +443,8 @@ class Trainer:
         for _ in range(cfg.epochs):
             epoch = []
             for idx in torch.randperm(len(advantages), device=self.device).split(cfg.minibatch_size):
-                log_probs, win_logit = policy(self.net, rows(batch["inputs"], idx), self.bf16)
+                log_probs, win_logit = policy(self.net, rows(batch["inputs"], idx), self.bf16,
+                                              legal[idx])
                 loss, info = ppo_loss(log_probs, win_logit, legal[idx], batch["action"][idx],
                                       batch["log_prob"][idx], advantages[idx],
                                       batch["return"][idx], cfg)
@@ -453,18 +472,18 @@ class Trainer:
         mine, theirs = (torch.from_numpy(r).to(self.device)
                         for r in (mine_np, battle + n * ~second))
         self.key, key = jax.random.split(self.key)
-        fs, inputs = start(self.env, key, n)
+        fs, inputs, legal = start(self.env, key, n)
         score = np.full(n, np.nan)
         # Finished battles start again like any other, but only the first counts
         while np.isnan(score).any():
-            inputs = to_torch(inputs, self.device)
+            inputs, legal = to_torch((inputs, legal), self.device)
             mine_lp = policy(self.net, rows(inputs, mine), self.bf16)[0]
             theirs_lp = (policy(opponent, rows(inputs, theirs), self.bf16)[0]
                          if opponent is not None else torch.zeros_like(mine_lp))
             log_probs = mine_lp.new_empty(2 * n, mine_lp.shape[-1])
             log_probs[mine], log_probs[theirs] = mine_lp, theirs_lp
-            actions = sample(log_probs, inputs["legal_actions"])
-            fs, rewards, done, inputs, key = self._advance(fs, actions, key)
+            actions = sample(log_probs, legal)
+            fs, rewards, done, inputs, legal, key = self._advance(fs, actions, key)
             rewards, done = jax.device_get((rewards, done))
             rewards, done = np.asarray(rewards)[mine_np], np.asarray(done)[:n]
             first = done & np.isnan(score)

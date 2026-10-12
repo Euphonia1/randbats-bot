@@ -3,6 +3,7 @@
     python play_showdown/play.py                                  # plays runs/selfplay/checkpoint.pt
     python play_showdown/play.py --checkpoint runs/first/checkpoint.pt
     python play_showdown/play.py --vs-random 20                   # check it against random play first
+    python play_showdown/play.py --search                         # search each decision, as online
 
 This starts Showdown's own server -- the `pokemon-showdown` package that
 simulator/tools installs (`cd simulator/tools && npm install`) -- and logs the
@@ -27,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import copy
 import io
 import json
 import os
@@ -38,6 +40,7 @@ import socket
 import subprocess
 import sys
 import time
+from typing import NamedTuple
 
 import jax
 import numpy as np
@@ -61,6 +64,8 @@ FORMAT = "gen9randombattle"
 DATA = load_data()
 N = names()
 to_id = N.to_id
+SPECIES_ABILITIES = np.asarray(DATA["species_abilities"])  # each species' possible abilities
+STALLING = np.asarray(DATA["move_stalling"])  # Protect and the moves that share its odds
 
 STATUSES = {"brn": C.BRN, "par": C.PAR, "slp": C.SLP, "frz": C.FRZ, "psn": C.PSN, "tox": C.TOX}
 BOOSTS = {name: i for i, name in enumerate(C.BOOST_NAMES)}
@@ -232,6 +237,12 @@ class ShowdownBattle:
         self.out = [False, False]  # whether the side has sent anyone out yet
         self.first_seen = [None, None]  # the slot the latest switch-in revealed, if it did
         self.passing: list[str | None] = [None, None]  # Baton Pass or Shed Tail, until the switch
+        # Each Pokemon's item and ability, -1 until the log shows them, for the
+        # search to draw the opponent's sets by (the inputs never show them)
+        self.items = np.full((C.NUM_PLAYERS, C.TEAM_SIZE), -1)
+        self.abilities = np.full((C.NUM_PLAYERS, C.TEAM_SIZE), -1)
+        self.acted = [False, False]  # whether each side has used its action this turn
+        self.streak = [0, 0]  # each side's Protect streak before the move in progress
         self.turn, self.after_upkeep = 0, False
         self.request: dict | None = None
         self.ended, self.winner = False, None
@@ -265,9 +276,43 @@ class ShowdownBattle:
         if not line.startswith("|"):
             return
         kind, *args = line[1:].split("|")
+        args, tags = split_args(args)
         handler = getattr(self, "on_" + kind.replace("-", "_"), None)
         if handler is not None:
-            handler(*split_args(args))
+            handler(args, tags)
+        if "from" in tags:
+            self._learn(args, tags)
+
+    def _learn(self, args, tags):
+        """Note the item or ability a line names as its source. "[from] item:
+        Life Orb" is the Pokemon's own; with an "[of]", the item is the [of]
+        Pokemon's (Rocky Helmet) and the ability either one's -- Rough Skin is
+        its [of]'s, Water Absorb the Pokemon's -- so it goes to whichever of
+        them can have it."""
+        source = tags["from"]
+        candidates = [ident for ident in (tags.get("of"), args[0] if args else None)
+                      if ident and ident[:2] in ("p1", "p2") and ": " in ident
+                      and parse_ident(ident)[1] in self.names[self._side(ident[:2])]]
+        if source.startswith("item: ") and candidates:
+            self._note_item(*self._who(candidates[0]), source[len("item: "):])
+        elif source.startswith("ability: "):
+            for ident in candidates:
+                if self._note_ability(*self._who(ident), source[len("ability: "):]):
+                    break
+
+    def _note_item(self, side: int, slot: int, name: str):
+        item = N.item_id(name)
+        if item > 0:
+            self.items[side, slot] = item
+
+    def _note_ability(self, side: int, slot: int, name: str) -> bool:
+        """Note `name` as that Pokemon's ability if its species can have it;
+        whether it could."""
+        ability = N.ability_id(name)
+        if ability <= 0 or ability not in SPECIES_ABILITIES[self.st["species"][side, slot]]:
+            return False
+        self.abilities[side, slot] = ability
+        return True
 
     def end_update(self):
         """The end of one message from the battle room: stamp the events it
@@ -291,12 +336,13 @@ class ShowdownBattle:
 
     def on_turn(self, args, tags):
         self.turn, self.after_upkeep = int(args[0]), False
+        self.acted = [False, False]
 
     def on_upkeep(self, args, tags):
         """The end of the turn's residuals, where psjax counts the timers down."""
         st = self.st
         self.after_upkeep = True
-        for field in ("trick_room", "gravity"):
+        for field in ("trick_room", "gravity", "weather_turns", "terrain_turns"):
             st[field][...] = np.where(st[field] > 1, st[field] - 1, st[field])
         sc = st["side_conditions"]
         timed = np.arange(C.NUM_SIDE_CONDITIONS) >= C.SC_REFLECT
@@ -312,15 +358,19 @@ class ShowdownBattle:
     def on_tie(self, args, tags):
         self.ended = True
 
-    def on_switch(self, args, tags):
+    def on_switch(self, args, tags, dragged=False):
         side, name = parse_ident(args[0])
         side = self._side(side)
         new = name not in self.names[side]
         slot = self._slot(side, name)
         self._enter(side, slot, args[1], args[2] if len(args) > 2 else None)
         self.first_seen[side] = slot if new else None
+        if not dragged and not self.after_upkeep:
+            # The switch it chose, or the end of its U-turn: either way its action
+            self.acted[side] = True
 
-    on_drag = on_switch
+    def on_drag(self, args, tags):
+        self.on_switch(args, tags, dragged=True)
 
     def _enter(self, side: int, slot: int, details: str, condition: str | None):
         st = self.st
@@ -331,7 +381,7 @@ class ShowdownBattle:
         for field, value in (("boosts", 0), ("volatiles", 0), ("sub_hp", 0),
                              ("disabled_slot", -1), ("encore_slot", -1), ("locked_slot", -1),
                              ("choice_slot", -1), ("last_move", -1), ("boosted_stat", -1),
-                             ("moves_since_switch", 0), ("transformed", False),
+                             ("moves_since_switch", 0), ("protect_streak", 0), ("transformed", False),
                              ("paradox_booster", False), ("illusion", -1)):
             st[field][side] = value
         passing, self.passing[side] = self.passing[side], None
@@ -442,6 +492,11 @@ class ShowdownBattle:
         # Bounce) is not the one the Pokemon chose, which is all psjax logs
         if source and source != "lockedmove":
             return
+        self.acted[side] = True
+        # Protect's streak goes on only through a stalling move that works
+        # (its -singleturn), as psjax counts it: anything else ends it
+        self.streak[side] = int(st["protect_streak"][side]) if move >= 0 and STALLING[move] else 0
+        st["protect_streak"][side] = 0
         st["last_move"][side] = move
         st["moves_since_switch"][side] = min(st["moves_since_switch"][side] + 1, 127)
         self.events.append((side, slot, int(st["species"][side, slot]), move))
@@ -491,6 +546,7 @@ class ShowdownBattle:
 
     def on_cant(self, args, tags):
         side, slot = self._who(args[0])
+        self.acted[side] = True
         if args[1] == "slp":
             self.st["sleep_attempts"][side, slot] += 1
         elif args[1] == "recharge":
@@ -677,6 +733,8 @@ class ShowdownBattle:
         volatile = C.V_PROTECT if effect in PROTECTS else C.VOLATILE_IDX.get(effect)
         if volatile is not None:
             self.st["volatiles"][side, volatile] = 1
+        if effect in PROTECTS or effect == "endure":
+            self.st["protect_streak"][side] = min(self.streak[side] + 1, 6)
 
     def on__singlemove(self, args, tags):
         side, _ = self._who(args[0])
@@ -704,10 +762,20 @@ class ShowdownBattle:
     def on__item(self, args, tags):
         side, slot = self._who(args[0])
         self.st["item"][side, slot] = N.item_id(args[1]) if side == 0 else HELD
+        self._note_item(side, slot, args[1])
 
     def on__enditem(self, args, tags):
+        """An item used up or taken: gone, and now known to have been held."""
         side, slot = self._who(args[0])
         self.st["item"][side, slot] = 0
+        self._note_item(side, slot, args[1])
+
+    def on__ability(self, args, tags):
+        """An ability announcing itself ("-ability|p2a: Gyarados|Intimidate|boost").
+        One that came from another ability (Trace, Mummy) is not the set's:
+        `_learn` places the [from] one instead."""
+        if not tags.get("from", "").startswith("ability: "):
+            self._note_ability(*self._who(args[0]), args[1])
 
     # --- the request
 
@@ -794,14 +862,20 @@ class ShowdownBattle:
 
 # --- the network -------------------------------------------------------------------
 
+class Decision(NamedTuple):
+    action: int  # one of the options
+    prob: float  # the chance the policy gave it: the network's, or a search's share of visits
+    win: float  # the chance of winning that the policy sees
+    note: str = ""  # anything more to log about it
+
+
 class Policy:
     """The network from a checkpoint, loaded again whenever the file changes."""
 
     def __init__(self, checkpoint: pathlib.Path, device: str = "cpu", greedy: bool = False):
         self.checkpoint, self.device, self.greedy = checkpoint, torch.device(device), greedy
         self.env = FogOfWarEnv()
-        self.net = GameNetwork().to(self.device).requires_grad_(False)
-        self.loaded_at, self.iteration = None, None
+        self.net, self.loaded_at, self.iteration = None, None, None
         self.reload()
         # Compile the input pipeline now rather than on the first move
         self.choose(ShowdownBattle(""), {0: "default"})
@@ -813,13 +887,17 @@ class Policy:
             return False
         # Read in one go: train.py cannot replace the file while it is open here
         ckpt = torch.load(io.BytesIO(self.checkpoint.read_bytes()), map_location=self.device)
-        self.net.load_state_dict(ckpt["net"])
-        self.loaded_at, self.iteration = mtime, ckpt.get("iteration")
+        # Into a new network, swapped in whole: another battle may be deciding
+        # with the old one, in a thread of its own
+        net = GameNetwork().to(self.device).requires_grad_(False)
+        net.load_state_dict(ckpt["net"])
+        self.net, self.loaded_at, self.iteration = net, mtime, ckpt.get("iteration")
         return True
 
     @torch.no_grad()
-    def choose(self, battle: ShowdownBattle, options: dict[int, str]) -> tuple[int, float, float]:
-        """(action, its probability, the network's chance of winning) from `options`."""
+    def choose(self, battle: ShowdownBattle, options: dict[int, str]) -> Decision:
+        """The network's choice from `options`, with its probability and the
+        network's chance of winning."""
         fs = jax.tree.map(lambda x: x[None], battle.fog_state())
         inputs = to_torch(_view(self.env, fs, 0), self.device)
         legal = torch.zeros(1, C.NUM_ACTIONS, dtype=torch.bool, device=self.device)
@@ -827,8 +905,8 @@ class Policy:
         inputs["legal_actions"] = legal
         log_probs, win_logit = policy(self.net, inputs)
         action = log_probs.argmax(-1) if self.greedy else sample(log_probs, legal)
-        return (int(action), float(log_probs[0, action].exp()),
-                float(torch.sigmoid(win_logit[0])))
+        return Decision(int(action), float(log_probs[0, action].exp()),
+                        float(torch.sigmoid(win_logit[0])))
 
 
 # --- the bot -----------------------------------------------------------------------
@@ -944,11 +1022,14 @@ class Bot:
         if not options:
             await self.send(room, f"/choose default|{request['rqid']}")
             return
-        action, prob, win = self.policy.choose(battle, options)
-        choice = options[action]
+        # A search takes seconds, so it runs in a thread, on a copy of the
+        # battle, leaving the event loop free to keep the connection alive
+        decision = await asyncio.to_thread(self.policy.choose, copy.deepcopy(battle), options)
+        choice = options[decision.action]
         await self.send(room, f"/choose {choice}|{request['rqid']}")
         self.say(room, f"turn {battle.turn}: {self.describe(request, choice)} "
-                       f"(p={prob:.2f}, thinks it wins {win:.0%})")
+                       f"(p={decision.prob:.2f}, thinks it wins {decision.win:.0%}"
+                       f"{decision.note})")
 
     @staticmethod
     def describe(request: dict, choice: str) -> str:
@@ -1051,8 +1132,9 @@ def stop_server(server: subprocess.Popen):
 
 
 async def run(args: argparse.Namespace):
+    from search import make_policy
     url = f"ws://{args.host}:{args.port}/showdown/websocket"
-    policy = Policy(args.checkpoint, args.device, args.greedy)
+    policy = make_policy(args, args.checkpoint, args.device)
     bot = Bot(url, args.name, policy, verbose=not args.quiet)
     task = asyncio.create_task(bot.run())
     await asyncio.wait([task, asyncio.create_task(bot.ready.wait())],
@@ -1092,12 +1174,15 @@ def main(argv=None):
                         help="play on a Showdown server that is already running")
     parser.add_argument("--name", default="RandbatsBot", help="the bot's name (default: %(default)s)")
     parser.add_argument("--greedy", action="store_true",
-                        help="always take the likeliest action, instead of sampling as in training")
+                        help="always take the likeliest action (with --search, the one searched "
+                             "the most), instead of sampling")
     parser.add_argument("--device", default="cpu", help="PyTorch's (default: %(default)s)")
     parser.add_argument("--vs-random", type=int, default=0, metavar="N",
                         help="instead of waiting for challenges, play N battles against a "
                              "client that plays at random, and report the score")
     parser.add_argument("--quiet", action="store_true", help="do not print every decision")
+    from search import add_arguments
+    add_arguments(parser, default=False)
     args = parser.parse_args(argv)
     if not args.checkpoint.exists():
         sys.exit(f"no checkpoint at {args.checkpoint}; train one with model/train.py, "

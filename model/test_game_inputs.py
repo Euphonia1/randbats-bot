@@ -18,6 +18,7 @@ from psjax.engine import step
 from psjax.fog import FogOfWarEnv, FogState, empty_history
 from psjax.data import names
 from psjax.mechanics import species_stats
+from psjax.teams import legal_action_mask
 
 from architechture import UNKNOWN, GameNetwork
 from game_inputs import game_inputs
@@ -73,7 +74,9 @@ def test_your_own_side_is_shown_in_full(battles):
 
 def test_the_opponent_shows_only_what_has_been_revealed(battles):
     them = game_inputs(ENV, battles, 0)["opponent"]["team"]
-    b, revealed = battles.battle, _t(battles.revealed[:, 1])
+    b = battles.battle
+    active = torch.arange(C.TEAM_SIZE) == _t(b.active[:, 1]).long()[:, None]
+    revealed = _t(battles.revealed[:, 1]) | active
     assert torch.all(them["species_ids"][~revealed] == UNKNOWN)
     assert torch.all(them["species_ids"][revealed] >= 0)
     # An ability only where the species has no other
@@ -85,8 +88,14 @@ def test_the_opponent_shows_only_what_has_been_revealed(battles):
     tera = _t(b.terastallized[:, 1])
     assert torch.all(torch.where(tera, them["tera_type_ids"] >= 0,
                                  them["tera_type_ids"] == UNKNOWN))
-    seen = _t(battles.revealed_moves[:, 1])
-    assert torch.equal(them["move_ids"], torch.where(seen, _t(b.moves[:, 1]).long(), UNKNOWN))
+    # Moves in the order they were used, then the rest, unknown at full PP
+    order, moves = _t(battles.move_order[:, 1]).long(), _t(b.moves[:, 1]).long()
+    expected = torch.full_like(moves, UNKNOWN)
+    for i, j, m in torch.nonzero(order >= 0).tolist():
+        expected[i, j, order[i, j, m]] = moves[i, j, m]
+    assert torch.equal(them["move_ids"], expected)
+    unknown = them["move_ids"] == UNKNOWN
+    assert torch.all(them["pp"][unknown] == them["maxpp"][unknown])
     assert torch.all(them["maxhp"] == 100), "the opponent's HP is a percent"
 
     # Level as shown, stats as a player would work them out from it.
@@ -117,12 +126,14 @@ def test_the_opponents_secrets_do_not_change_the_inputs(battles):
         level=b.level.at[:, 1].set(jnp.where(unseen, 50, b.level[:, 1])),
         stats=b.stats.at[:, 1].add(7),  # the true spread, not the standard one
         choice_slot=b.choice_slot.at[:, 1].set(2),
+        volatiles=b.volatiles.at[:, 1, C.V_UNBURDEN].set(1),  # never announced
     )
     before = game_inputs(ENV, battles, 0)
     after = game_inputs(ENV, battles._replace(battle=secret), 0)
     assert _same(before["opponent"], after["opponent"])
     assert _same(before["field"], after["field"])
     assert _same(before["matchups"], after["matchups"])
+    assert torch.equal(before["legal_actions"], after["legal_actions"])
 
     # A control: the same rewrite of a Pokemon they have seen does show.
     seen = b._replace(species=b.species.at[:, 1].set(jnp.where(unseen, b.species[:, 1], 1)))
@@ -288,3 +299,67 @@ def test_reset_battles_start_with_the_leads(battles):
     played = game_inputs(ENV, battles, 0)["history"]
     assert torch.all(played["turns_ago"] >= 0)
     assert torch.all(played["species_ids"][played["present"]] >= 0)
+
+
+# --- what a player cannot tell ---------------------------------------------------
+
+def test_moves_show_in_the_order_they_were_used():
+    dragonite = {"species": "Dragonite", "ability": "Multiscale",
+                 "moves": ["splash", "extremespeed", "earthquake", "outrage"]}
+    state = build({"p1": SETUP, "p2": dragonite}, jax.random.PRNGKey(0))
+    them = game_inputs(ENV, _play(state, [0, 0], [0, 3]), 0)["opponent"]
+    assert them["team"]["move_ids"][0, 0].tolist() == [
+        N.move_id("splash"), N.move_id("outrage"), UNKNOWN, UNKNOWN]
+    assert them["locked_slot"].tolist() == [1], "the Outrage lock follows Outrage"
+
+
+def test_an_empty_move_slot_looks_like_any_unused_move():
+    foe = {"species": "Hippowdon", "ability": "Sand Stream", "moves": ["earthquake"]}
+    state = build({"p1": CHOMP, "p2": foe}, jax.random.PRNGKey(0))
+    # Empty slots have no PP, as in a real Random Battles set
+    state = state._replace(pp=state.pp.at[1, 0, 1:].set(0), maxpp=state.maxpp.at[1, 0, 1:].set(0))
+    them = _view(state)["opponent"]["team"]
+    assert torch.all(them["move_ids"][0, 0] == UNKNOWN)
+    assert torch.all(them["pp"][0, 0] == them["maxpp"][0, 0])
+    assert torch.all(them["maxpp"][0, 0] > 0)
+
+
+def test_light_clay_shows_only_once_the_screen_outlasts_five_turns():
+    def reflect_turns(item):
+        foe = {"species": "Blissey", "ability": "Natural Cure", "item": item,
+               "moves": ["reflect", "splash"]}
+        state = build({"p1": SETUP, "p2": foe}, jax.random.PRNGKey(0))
+        shown, true = [], []
+        for n in range(1, 9):  # Reflect, then Splash
+            fs = _play(state, [0, 0], *[[0, 1]] * (n - 1))
+            shown.append(int(game_inputs(ENV, fs, 0)["field"]["side_conditions"][0, 1, C.SC_REFLECT]))
+            true.append(int(fs.battle.side_conditions[0, 1, C.SC_REFLECT]))
+        return shown, true
+
+    clay_shown, clay_true = reflect_turns("Light Clay")
+    plain_shown, plain_true = reflect_turns("")
+    assert plain_shown == plain_true, "an ordinary Reflect is counted as it is"
+    up = sum(t > 0 for t in plain_true)  # while an ordinary Reflect would last
+    assert clay_true[:up] != plain_true[:up]
+    assert clay_shown[:up] == plain_true[:up], "Light Clay looks like five turns"
+    assert clay_shown[up:] == clay_true[up:] and clay_true[up] > 0, \
+        "until the Reflect outlasts them"
+
+
+def test_a_trapping_ability_you_have_not_seen_leaves_your_switches_open():
+    foe = {"species": "Gothitelle", "ability": "Shadow Tag"}
+    state = build({"p1": SETUP, "p1team": [SETUP, BLISSEY], "p2": foe}, jax.random.PRNGKey(0))
+    switch = C.ACTION_SWITCH_BASE + 1
+    assert not legal_action_mask(ENV.data, state)[0, switch], "Shadow Tag traps Garchomp"
+    assert _view(state)["legal_actions"][0, switch], "but Showdown does not say so"
+
+
+def test_a_zoroark_that_leaves_disguised_stays_unseen():
+    zoroark = {"species": "Zoroark-Hisui", "ability": "Illusion", "moves": ["nastyplot"]}
+    corviknight = {"species": "Corviknight", "ability": "Pressure"}
+    state = build({"p1": SETUP, "p2": zoroark, "p2team": [zoroark, BLISSEY, corviknight]},
+                  jax.random.PRNGKey(0))
+    fs = _play(state, [0, 0], [0, C.ACTION_SWITCH_BASE + 1])  # then out for Blissey
+    species = game_inputs(ENV, fs, 0)["opponent"]["team"]["species_ids"][0]
+    assert species[1] == N.species_id("blissey")
+    assert species[0] == UNKNOWN, "it was only ever seen as Corviknight"
