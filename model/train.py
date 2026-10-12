@@ -48,6 +48,12 @@ iterations old. It takes player 0 in half of each set and player 1 in the
 rest, and samples its actions as it does in training. Then it is saved as a
 snapshot, in the run directory's `snapshots/`, for later evaluations and the
 opponent pool.
+
+With `foulplay_battles`, each snapshot also plays that many battles against
+Foul Play, an open-source Showdown bot that searches each decision, through
+play_showdown/vs_foulplay.py (which says how to install it). They run in the
+background, on the CPU, while training carries on; the score shows in the log
+at the iteration they finish, and in the run directory's `foulplay.jsonl`.
 """
 from __future__ import annotations
 
@@ -64,6 +70,8 @@ import functools
 import json
 import math
 import pathlib
+import subprocess
+import sys
 import time
 
 import jax
@@ -102,6 +110,7 @@ class TrainConfig:
     iterations: int = 5000
     eval_every: int = 20
     eval_lookback: int = 100  # also evaluate against the newest snapshot this many iterations old; 0 skips it
+    foulplay_battles: int = 0  # also play this many against Foul Play, in the background; 0 skips it
     save_every: int = 10
     seed: int = 0
     device: str = "auto"  # PyTorch's: cuda if it has a GPU, else cpu
@@ -484,17 +493,20 @@ class Trainer:
         """The iterations there are snapshots of, oldest first."""
         return sorted(int(p.stem) for p in self.snapshots.glob("*.pt"))
 
+    def snapshot_path(self, iteration: int) -> pathlib.Path:
+        return self.snapshots / f"{iteration:05d}.pt"
+
     def keep(self, net: GameNetwork, iteration: int):
         """Save `net` as the snapshot of `iteration`, in a checkpoint's format,
         so that play_showdown/play.py can play it too."""
         if self.snapshots is not None:
             self.snapshots.mkdir(parents=True, exist_ok=True)
             save_atomically(dict(net=net.state_dict(), iteration=iteration),
-                            self.snapshots / f"{iteration:05d}.pt")
+                            self.snapshot_path(iteration))
 
     def load_opponent(self, iteration: int) -> GameNetwork:
         """`self.opponent`, as the snapshot of `iteration`."""
-        ckpt = torch.load(self.snapshots / f"{iteration:05d}.pt", map_location=self.device)
+        ckpt = torch.load(self.snapshot_path(iteration), map_location=self.device)
         self.opponent.load_state_dict(ckpt["net"])
         self.opponent_iteration = iteration
         return self.opponent
@@ -515,6 +527,47 @@ class Trainer:
         self.past_iteration = ckpt["past_iteration"]
         self.iteration = ckpt["iteration"]
         self.samples = ckpt["samples"]
+
+
+class FoulPlayEvaluation:
+    """play_showdown/vs_foulplay.py, run in the background on one snapshot at a
+    time. It appends each score to the run directory's foulplay.jsonl; its own
+    output and Foul Play's go to foulplay.log."""
+
+    SCRIPT = pathlib.Path(__file__).resolve().parents[1] / "play_showdown" / "vs_foulplay.py"
+
+    def __init__(self, run_dir: pathlib.Path, battles: int):
+        self.results = run_dir.resolve() / "foulplay.jsonl"
+        self.log = run_dir.resolve() / "foulplay.log"
+        self.battles = battles
+        self.process, self.iteration = None, None
+
+    def start(self, snapshot: pathlib.Path, iteration: int):
+        """Start on `snapshot`, unless the last one is still being played."""
+        if self.process is not None:
+            print(f"           foul play: still playing iteration {self.iteration}, "
+                  f"so skipping iteration {iteration}", flush=True)
+            return
+        with open(self.log, "a") as log:
+            self.process = subprocess.Popen(
+                [sys.executable, str(self.SCRIPT), str(snapshot.resolve()),
+                 "--battles", str(self.battles), "--out", str(self.results),
+                 "--log", str(self.log)],
+                stdout=subprocess.DEVNULL, stderr=log)
+        self.iteration = iteration
+
+    def poll(self) -> dict:
+        """The score as statistics for the log, once the battles have finished."""
+        if self.process is None or self.process.poll() is None:
+            return {}
+        process, self.process = self.process, None
+        if process.returncode != 0:
+            print(f"           foul play: the battles for iteration {self.iteration} failed; "
+                  f"see {self.log}", flush=True)
+            return {}
+        result = json.loads(self.results.read_text().splitlines()[-1])
+        return dict(vs_foulplay=result["score"], foulplay_iteration=result["iteration"],
+                    foulplay_battles=result["battles"])
 
 
 # --- the run ---------------------------------------------------------------------
@@ -556,6 +609,9 @@ def summary(s: dict) -> str:
                  f"{s['vs_past']:.3f} against iteration {s['past_iteration']}")
         if "vs_lookback" in s:
             line += f", {s['vs_lookback']:.3f} against iteration {s['lookback_iteration']}"
+    if "vs_foulplay" in s:
+        line += (f"\n           foul play: {s['vs_foulplay']:.3f} for iteration "
+                 f"{s['foulplay_iteration']} over {s['foulplay_battles']} battles")
     return line
 
 
@@ -578,6 +634,7 @@ def main(argv=None):
           f"{len(trainer.opponent_rows)} of {cfg.num_envs} battles against past snapshots; "
           f"{int(trainer.learner_rows.sum()) * cfg.rollout_steps:,} samples an iteration",
           flush=True)
+    foulplay = FoulPlayEvaluation(run_dir, cfg.foulplay_battles) if cfg.foulplay_battles else None
 
     with open(run_dir / "log.jsonl", "a") as log:
         try:
@@ -590,8 +647,13 @@ def main(argv=None):
                 trainer.samples += len(batch["action"])
                 stats |= dict(iteration=trainer.iteration, samples=trainer.samples,
                               collect_seconds=t1 - t0, update_seconds=time.perf_counter() - t1)
+                if foulplay is not None:
+                    stats |= foulplay.poll()
                 if trainer.iteration % cfg.eval_every == 0:
                     stats |= trainer.evaluate_all()
+                    if foulplay is not None:
+                        foulplay.start(trainer.snapshot_path(trainer.iteration),
+                                       trainer.iteration)
                 if trainer.iteration % cfg.save_every == 0:
                     trainer.save(checkpoint)
                 print(summary(stats), flush=True)

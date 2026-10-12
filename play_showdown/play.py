@@ -216,6 +216,7 @@ class ShowdownBattle:
     def __init__(self, username: str):
         self.userid = to_id(username)
         self.me: str | None = None  # "p1" or "p2"
+        self.opponent: str | None = None  # their name
         self.st = {k: np.array(v) for k, v in
                    jax.device_get(empty_state(jax.random.PRNGKey(0)))._asdict().items()}
         # The opponent's unseen Pokemon are at full health and hold an item
@@ -285,6 +286,8 @@ class ShowdownBattle:
     def on_player(self, args, tags):
         if len(args) >= 2 and to_id(args[1]) == self.userid:
             self.me = args[0]
+        elif len(args) >= 2 and args[1]:
+            self.opponent = args[1]
 
     def on_turn(self, args, tags):
         self.turn, self.after_upkeep = int(args[0]), False
@@ -839,6 +842,7 @@ class Bot:
         self.policy, self.verbose = policy, verbose
         self.battles: dict[str, ShowdownBattle] = {}
         self.results: list[str | None] = []  # each finished battle's winner; None, a tie
+        self.opponents: list[str | None] = []  # and whom it was against
         self.ready = asyncio.Event()
         self.ws = None
 
@@ -928,6 +932,7 @@ class Bot:
                 await self.decide(room, battle, request)
         if battle.ended:
             self.results.append(battle.winner)
+            self.opponents.append(battle.opponent)
             won = battle.winner is not None and to_id(battle.winner) == self.userid
             self.say(room, "won" if won else "tie" if battle.winner is None else "lost")
             await self.send(room, "gg")
