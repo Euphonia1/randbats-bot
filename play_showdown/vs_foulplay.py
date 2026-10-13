@@ -20,9 +20,11 @@ it the same for scores to compare. A score over n battles is good to about
 With `--search`, the network searches its decisions as play_online.py does
 (play_showdown/search.py), for `--search-time` seconds or `--simulations`
 each. Its searches run one at a time, so the battles in flight wait on each
-other: a smaller budget than online keeps the run to a sensible length.
+other: a smaller budget than online keeps the run to a sensible length, and
+`--timeout` and `--stall-seconds` need raising to leave room for it.
 
-    python play_showdown/vs_foulplay.py runs/selfplay/snapshots/01080.pt --search --simulations 512
+    python play_showdown/vs_foulplay.py runs/selfplay/snapshots/01080.pt --search \
+        --simulations 512 --timeout 7200 --stall-seconds 900
 
 Foul Play needs Python 3.11+, and Rust to build its engine, so it gets a conda
 env of its own, apart from training's, which also holds the Node.js that the
