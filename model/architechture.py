@@ -206,6 +206,8 @@ class PokemonEmbeddingLayer(nn.Module):
         super().__init__()
         self.type_embedding = type_embedding  # shared with moves
         self.move_embedding = move_embedding  # one layer shared by all four slots
+        # Each move slot with its PP left, before the four are summed
+        self.move_slot = nn.Linear(move_embedding.output_dim + 1, move_embedding.output_dim)
         type_ids, base_stats = build_species_table()
         n = names()
         self.species_embedding = nn.Embedding(type_ids.shape[0], config.SPECIES_EMBEDDING_OUTPUT_DIM)
@@ -230,7 +232,7 @@ class PokemonEmbeddingLayer(nn.Module):
             + 1  # fraction of HP left
             + len(STATUSES)  # status one-hot
             + 2  # failed attempts so far while asleep, and whether Rest caused the sleep
-            + C.MOVES_PER_POKEMON * (move_embedding.output_dim + 1)  # each move and its PP left
+            + move_embedding.output_dim  # its moves, each with its PP left, summed
             + base_stats.shape[1]
             + 1  # level
             + C.NUM_STATS - 1  # Attack through Speed at that level
@@ -283,7 +285,10 @@ class PokemonEmbeddingLayer(nn.Module):
                       torch.where(known, self.species_type_ids[species_ids], UNKNOWN),
                       self.type_embedding.unknown)
         tera_type = embed(self.type_embedding, tera_type_ids, self.type_embedding.unknown)
+        # Summed, so a set is the same whichever slots its moves are in; an
+        # empty slot adds nothing
         moves = embed_move_slots(self.move_embedding, move_ids, pp, maxpp)
+        moves = (F.relu(self.move_slot(moves)) * (move_ids != -1).unsqueeze(-1)).sum(-2)
         base_stats = self.species_base_stats[species_ids] * known
         hp_left = (hp / maxhp.clamp(min=1)).unsqueeze(-1).to(species.dtype)
         asleep = status == C.SLP
@@ -298,7 +303,7 @@ class PokemonEmbeddingLayer(nn.Module):
         return self.project(torch.cat([
             species, item, ability, types.flatten(-2), tera_type,
             terastallized.unsqueeze(-1).to(species.dtype), hp_left, status, sleep,
-            moves.flatten(-2), base_stats, level, stats, toxic_counter,
+            moves, base_stats, level, stats, toxic_counter,
         ], dim=-1))
 
 
@@ -456,6 +461,9 @@ TOKEN_TYPES = (
     + [TOKEN_TERA_MOVE] * C.MOVES_PER_POKEMON
     + [TOKEN_MY_POKEMON] * C.TEAM_SIZE
 )
+# The opponent's Pokemon tokens, in team slot order, which the belief heads read
+THEIR_POKEMON = slice(TOKEN_TYPES.index(TOKEN_THEIR_POKEMON),
+                      TOKEN_TYPES.index(TOKEN_THEIR_POKEMON) + C.TEAM_SIZE)
 # Matchup features from `game_inputs._matchups`. A move token gets (min roll,
 # max roll, present) against the opponent's active Pokemon and up to three of
 # their others, then who moves first. Each of your Pokemon gets (min, max) for
@@ -473,6 +481,12 @@ class GameNetwork(nn.Module):
     judged in the context of the whole game; a switch is scored from the
     token of the Pokemon it brings in. The win head reads the summary token.
     Everything is from your point of view.
+
+    The belief heads read each of the opponent's Pokemon tokens for what it
+    really holds -- its moves, item, ability and Tera type -- most of which
+    the inputs hide. Nothing plays by them: train.py holds them to the truth,
+    which self-play knows, so that the transformer has to keep track of what
+    the opponent probably has, where the policy and the win head can read it.
 
     The history is the battle log's last HISTORY_LEN moves and switch-ins, a
     token each, in the order they happened. That order is the one thing the
@@ -522,10 +536,15 @@ class GameNetwork(nn.Module):
             enable_nested_tensor=False)
         self.action_head = nn.Linear(d, 1)
         self.win_head = nn.Linear(d, 1)
+        self.belief_heads = nn.ModuleDict(dict(
+            moves=nn.Linear(d, self.move_embedding.move_embedding.num_embeddings),
+            item=nn.Linear(d, self.pokemon_embedding.item_embedding.num_embeddings),
+            ability=nn.Linear(d, self.pokemon_embedding.ability_embedding.num_embeddings),
+            tera_type=nn.Linear(d, C.NUM_TYPES)))
 
     def forward(self, me: dict, opponent: dict, field: dict[str, torch.Tensor],
                 legal_actions: torch.Tensor, matchups: dict[str, torch.Tensor],
-                history: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+                history: dict[str, torch.Tensor], beliefs: bool = False) -> tuple:
         """me, opponent: each a dict of
             team: PokemonEmbeddingLayer.forward's arguments by name, each with
                 a team dimension of 6, e.g. species_ids (batch, 6) and move_ids
@@ -540,14 +559,19 @@ class GameNetwork(nn.Module):
         history: HistoryEmbeddingLayer.forward's arguments by name, each
             (batch, HISTORY_LEN), oldest first; rows with no event in them
             (until the battle has that many) are masked out
+        beliefs: also return the belief heads' logits, which only training needs
 
         `game_inputs.game_inputs` builds all of it from a battle, as one player
         is allowed to see it.
 
-        Returns (action_logits, win_logit):
+        Returns (action_logits, win_logit), and with `beliefs` a third, beliefs:
             action_logits: (batch, C.NUM_ACTIONS); illegal actions are set to
                 the lowest float, so a softmax gives them probability 0
             win_logit: (batch,); its sigmoid is the probability that you win
+            beliefs: for each of the opponent's Pokemon, in team slot order,
+                logits over every move (one softmax for the four of its set),
+                item, ability and Tera type, by those names (`moves`, `item`,
+                `ability`, `tera_type`): each (batch, 6, how many there are)
         """
         my_team, my_active = me["team"], me["active_slot"].long()
         slots = torch.arange(C.TEAM_SIZE, device=my_active.device)
@@ -605,7 +629,10 @@ class GameNetwork(nn.Module):
         action_logits = action_logits.masked_fill(
             ~legal_actions, torch.finfo(action_logits.dtype).min)
         win_logit = self.win_head(out[:, 0]).squeeze(-1)
-        return action_logits, win_logit
+        if not beliefs:
+            return action_logits, win_logit
+        theirs = out[:, THEIR_POKEMON]  # (batch, 6, d)
+        return action_logits, win_logit, {k: head(theirs) for k, head in self.belief_heads.items()}
 
 
 if __name__ == "__main__":

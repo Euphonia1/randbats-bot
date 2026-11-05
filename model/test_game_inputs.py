@@ -1,4 +1,5 @@
-"""GameNetwork inputs must show the opponent's public side and nothing more.
+"""GameNetwork inputs must show the opponent's public side and nothing more,
+and what the belief heads learn must be the truth behind it.
 
     python -m pytest model/test_game_inputs.py
 """
@@ -21,7 +22,7 @@ from psjax.mechanics import species_stats
 from psjax.teams import legal_action_mask
 
 from architechture import UNKNOWN, GameNetwork
-from game_inputs import game_inputs
+from game_inputs import _hidden, game_inputs
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "simulator" / "tests"))
 from scenario import build  # noqa: E402  (the simulator tests' battle builder)
@@ -59,6 +60,27 @@ def test_the_network_runs_on_both_players_views(battles, player):
     legal = _t(jax.vmap(ENV.legal_actions)(battles))[:, player]
     assert torch.equal(inputs["legal_actions"], legal)
     assert torch.all(logits.softmax(-1)[~legal] == 0)
+
+
+def test_the_belief_heads_guess_for_each_of_the_opponents_pokemon(battles):
+    inputs = game_inputs(ENV, battles, 0)
+    net = GameNetwork()
+    logits, win, beliefs = net(**inputs, beliefs=True)
+    sizes = dict(moves=ENV.data["move_base_power"].shape[0], item=len(N.items),
+                 ability=len(N.abilities), tera_type=C.NUM_TYPES)
+    assert {k: v.shape for k, v in beliefs.items()} == {
+        k: (BATCH, C.TEAM_SIZE, n) for k, n in sizes.items()}
+    # Asking for them changes nothing else
+    assert torch.equal(logits, net(**inputs)[0]) and torch.equal(win, net(**inputs)[1])
+
+
+def test_a_pokemon_is_the_same_whichever_slots_its_moves_are_in(battles):
+    team = game_inputs(ENV, battles, 0)["me"]["team"]
+    order = torch.tensor([2, 0, 3, 1])
+    shuffled = {k: v[..., order] if k in ("move_ids", "pp", "maxpp") else v
+                for k, v in team.items()}
+    pokemon = GameNetwork().pokemon_embedding
+    assert torch.allclose(pokemon(**team), pokemon(**shuffled), atol=1e-5)
 
 
 def test_your_own_side_is_shown_in_full(battles):
@@ -104,6 +126,27 @@ def test_the_opponent_shows_only_what_has_been_revealed(battles):
         expected = species_stats(ENV.data, b.species[i, 1, j], b.level[i, 1, j], jnp.int8(0))
         assert torch.equal(them["stats"][i, j], _t(expected[1:]).long())
     assert torch.all(them["stats"][~revealed] == 0)
+
+
+@pytest.mark.parametrize("player", [0, 1])
+def test_the_belief_heads_learn_what_the_opponents_tokens_hide(battles, player):
+    """`_hidden` lines up with the opponent's tokens: it counts the Pokemon
+    the inputs show, and what they show of them agrees with it."""
+    them = game_inputs(ENV, battles, player)["opponent"]["team"]
+    truth = {k: _t(v) for k, v in _hidden(battles, player).items()}
+    known, moves = truth["known"], truth["moves"].long()
+    assert torch.equal(known, them["species_ids"] != UNKNOWN)
+    for i, j, m in torch.nonzero(them["move_ids"] >= 0).tolist():
+        assert them["move_ids"][i, j, m] in moves[i, j]
+    tera = them["tera_type_ids"] >= 0
+    assert torch.equal(them["tera_type_ids"][tera], truth["tera_type"].long()[tera])
+    assert torch.all(truth["item"][them["item_ids"] == 0] == 0)
+    # Every answer is one the heads can give
+    assert torch.all((moves[known] >= 0).any(-1))
+    assert torch.all((moves >= -1) & (moves < ENV.data["move_base_power"].shape[0]))
+    for k, n in (("item", len(N.items)), ("ability", len(N.abilities)),
+                 ("tera_type", C.NUM_TYPES)):
+        assert torch.all((truth[k] >= 0) & (truth[k] < n)), k
 
 
 def test_the_opponents_secrets_do_not_change_the_inputs(battles):

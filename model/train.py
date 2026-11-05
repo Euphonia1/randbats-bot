@@ -13,8 +13,9 @@ backend it has; PyTorch runs the network on `--device`, under bfloat16
 autocast unless `--precision fp32`.
 
 In an `opponent_pool` share of the battles the other side is not the network
-but a snapshot of it from an earlier evaluation, drawn uniformly from all of
-them each iteration, and the network learns from its own side only. Against
+but a snapshot of it from an earlier evaluation, drawn uniformly each
+iteration from all of them, or from those of the last `pool_window`
+iterations, and the network learns from its own side only. Against
 nothing but its current self, a game of simultaneous moves can send it round
 in circles: each version learns to beat the last, forgetting what beat the one
 before. The pool keeps it playing against its whole past (fictitious self-play).
@@ -41,19 +42,27 @@ n legal actions:
   1/n. In a game of hidden information and simultaneous moves, a policy that
   never plays an action can no longer find out it was wrong to.
 
+The network's belief heads guess, from each of the opponent's Pokemon tokens,
+what that Pokemon really holds: its moves, item, ability and Tera type. Self-
+play knows the truth (`game_inputs._hidden`), so their loss (`belief_loss`)
+joins the rest at `belief_coef`. Nothing plays by them; they are there so the
+transformer learns to keep track of what the opponent probably has, from a
+signal far denser than winning and losing.
+
 Every `eval_every` iterations the network plays `num_envs` new battles against
-uniform random play, as many against itself as it was at the previous
-evaluation, and as many against the newest snapshot at least `eval_lookback`
-iterations old. It takes player 0 in half of each set and player 1 in the
-rest, and samples its actions as it does in training. Then it is saved as a
-snapshot, in the run directory's `snapshots/`, for later evaluations and the
-opponent pool.
+itself as it was at the previous evaluation, and as many against the newest
+snapshot at least `eval_lookback` iterations old. It takes player 0 in half of
+each set and player 1 in the rest, and samples its actions as it does in
+training. Then it is saved as a snapshot, in the run directory's `snapshots/`,
+for later evaluations and the opponent pool.
 
 With `foulplay_battles`, each snapshot also plays that many battles against
 Foul Play, an open-source Showdown bot that searches each decision, through
-play_showdown/vs_foulplay.py (which says how to install it). They run in the
-background, on the CPU, while training carries on; the score shows in the log
-at the iteration they finish, and in the run directory's `foulplay.jsonl`.
+play_showdown/vs_foulplay.py (which says how to install it). There the network
+always takes its likeliest action, so the score measures its best play rather
+than how much randomness its policy has left. They run in the background, on
+the CPU, while training carries on; the score shows in the log at the
+iteration they finish, and in the run directory's `foulplay.jsonl`.
 """
 from __future__ import annotations
 
@@ -86,7 +95,7 @@ from psjax.fog import FogOfWarEnv, FogState
 from psjax.teams import legal_action_mask
 
 from architechture import GameNetwork
-from game_inputs import _view
+from game_inputs import _hidden, _view
 
 
 @dataclasses.dataclass
@@ -96,6 +105,7 @@ class TrainConfig:
     rollout_steps: int = 64  # decisions every battle plays between updates
     max_turns: int = 500  # a battle still going at this turn ends as a tie
     opponent_pool: float = 0.25  # share of battles against a past snapshot, not the current network
+    pool_window: int = 0  # draw that snapshot from the last this many iterations; 0 from all
     # PPO
     lr: float = 3e-4
     epochs: int = 4  # passes over each rollout
@@ -105,6 +115,7 @@ class TrainConfig:
     value_coef: float = 0.5
     entropy_coef: float = 0.01
     zero_avoid_coef: float = 0.01
+    belief_coef: float = 0.1  # the belief heads' loss; see belief_loss
     max_grad_norm: float = 0.5
     target_kl: float = 0.0  # stop an update's epochs once one goes past this KL; 0 never stops
     # The run
@@ -127,6 +138,14 @@ def _views(env: FogOfWarEnv, fs: FogState) -> dict:
     """Both players' GameNetwork inputs, as JAX arrays, player 0's rows first."""
     return jax.tree.map(lambda a, b: jnp.concatenate([a, b]),
                         _view(env, fs, 0), _view(env, fs, 1))
+
+
+@jax.jit
+def _truth(fs: FogState) -> dict:
+    """What each row's inputs hide of the opponent, for the belief heads
+    (`game_inputs._hidden`), player 0's rows first, as `_views` has them."""
+    return jax.tree.map(lambda a, b: jnp.concatenate([a, b]),
+                        _hidden(fs, 0), _hidden(fs, 1))
 
 
 def _legal(env: FogOfWarEnv, fs: FogState) -> jnp.ndarray:
@@ -204,10 +223,11 @@ def rows(tree: dict, index) -> dict:
 
 
 def policy(net: GameNetwork, inputs: dict, bf16: bool = False,
-           legal: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+           legal: torch.Tensor | None = None, beliefs: bool = False) -> tuple:
     """(log_probs, win_logit) for a batch of stored inputs: log_probs is
     (batch, NUM_ACTIONS) float32, with illegal actions at the lowest float --
     those the inputs show as illegal, and any more that `legal` rules out.
+    With `beliefs`, a third: the belief heads' logits (see GameNetwork.forward).
 
     With bf16 the network runs under bfloat16 autocast. Its forward and
     backward are memory-bound, moving large activations more than they
@@ -215,11 +235,14 @@ def policy(net: GameNetwork, inputs: dict, bf16: bool = False,
     The outputs are float32 either way."""
     device_type = next(net.parameters()).device.type
     with torch.autocast(device_type, dtype=torch.bfloat16, enabled=bf16):
-        logits, win_logit = net(**model_inputs(inputs))
-    logits = logits.float()
+        out = net(**model_inputs(inputs), beliefs=beliefs)
+    logits = out[0].float()
     if legal is not None:
         logits = logits.masked_fill(~legal, torch.finfo(logits.dtype).min)
-    return torch.log_softmax(logits, dim=-1), win_logit.float()
+    result = (torch.log_softmax(logits, dim=-1), out[1].float())
+    if beliefs:
+        result += ({k: v.float() for k, v in out[2].items()},)
+    return result
 
 
 def sample(log_probs: torch.Tensor, legal: torch.Tensor) -> torch.Tensor:
@@ -296,6 +319,31 @@ def ppo_loss(log_probs: torch.Tensor, win_logit: torch.Tensor, legal: torch.Tens
     return loss, {k: v.item() for k, v in parts.items()}
 
 
+def belief_loss(beliefs: dict, truth: dict) -> tuple[torch.Tensor, dict]:
+    """The belief heads' loss for one minibatch: how far each head is from
+    `truth` (`game_inputs._hidden`), averaged over the opponent's Pokemon the
+    inputs show and summed over the heads; returns it, and it and each head's
+    part as floats.
+
+    An item, an ability or a Tera type is one answer, so its part is the
+    cross-entropy. A set's moves are several: their target spreads evenly over
+    them, and their part is its KL from the head, so that it too is 0 for a
+    head that knows the set exactly.
+    """
+    known = truth["known"]
+    mean = lambda x: (x * known).sum() / known.sum().clamp(min=1)
+    moves = truth["moves"].long()
+    in_set = moves >= 0
+    size = in_set.sum(-1).clamp(min=1)
+    picked = beliefs["moves"].log_softmax(-1).gather(-1, moves.clamp(min=0))
+    parts = dict(moves=mean(-(picked * in_set).sum(-1) / size - torch.log(size.float())))
+    for k in ("item", "ability", "tera_type"):
+        answer = truth[k].long().unsqueeze(-1)
+        parts[k] = mean(-beliefs[k].log_softmax(-1).gather(-1, answer).squeeze(-1))
+    loss = sum(parts.values())
+    return loss, dict(belief=loss.item(), **{f"belief_{k}": v.item() for k, v in parts.items()})
+
+
 def explained_variance(values: torch.Tensor, returns: torch.Tensor) -> float:
     """1 - Var(returns - values) / Var(returns): 1 for a value head that is
     always right, 0 for one no better than the mean."""
@@ -329,6 +377,8 @@ class Trainer:
                  snapshots: pathlib.Path | None = None):
         if not 0 <= cfg.opponent_pool <= 1:
             raise ValueError(f"opponent_pool is a share, 0 to 1, not {cfg.opponent_pool}")
+        if cfg.pool_window < 0:
+            raise ValueError(f"pool_window is a number of iterations, not {cfg.pool_window}")
         self.cfg = cfg
         self.device = torch.device(("cuda" if torch.cuda.is_available() else "cpu")
                                    if cfg.device == "auto" else cfg.device)
@@ -379,14 +429,15 @@ class Trainer:
         drawn afresh in the opponent pool's.
 
         Returns the batch, a row per decision the network made itself, with its
-        advantages and returns; and statistics on the battles that ended.
+        advantages and returns and the truth its inputs hide (`_truth`); and
+        statistics on the battles that ended.
         """
         cfg, n = self.cfg, self.cfg.num_envs
         pool = len(self.opponent_rows) > 0
         if pool:
             # A pool battle still going from the last rollout carries on against
             # the new draw; the network's side of it is on-policy all the same.
-            self.load_opponent(int(self.rng.choice(self.snapshot_iterations())))
+            self.load_opponent(int(self.rng.choice(self.pool_iterations())))
         steps, lengths, ties = [], [], 0
         for _ in range(cfg.rollout_steps):
             log_probs, win_logit = policy(self.net, self.inputs, self.bf16, self.legal)
@@ -395,11 +446,13 @@ class Trainer:
                 theirs = policy(self.opponent, rows(self.inputs, self.opponent_rows), self.bf16)[0]
                 played = log_probs.index_copy(0, self.opponent_rows, theirs)
             actions = sample(played, self.legal)
+            truth = _truth(self.fs)  # behind these inputs, before the battles move on
             self.fs, rewards, done, inputs, legal, self.key = self._advance(
                 self.fs, actions, self.key)
             rewards, done, inputs, legal = jax.device_get((rewards, done, inputs, legal))
             steps.append(dict(
-                inputs=self.inputs, legal=self.legal, action=actions,
+                inputs=self.inputs, legal=self.legal, truth=to_torch(truth, self.device),
+                action=actions,
                 log_prob=log_probs.gather(-1, actions[:, None]).squeeze(-1),
                 value=torch.sigmoid(win_logit),
                 reward=torch.from_numpy(np.array(rewards)).to(self.device),
@@ -443,11 +496,14 @@ class Trainer:
         for _ in range(cfg.epochs):
             epoch = []
             for idx in torch.randperm(len(advantages), device=self.device).split(cfg.minibatch_size):
-                log_probs, win_logit = policy(self.net, rows(batch["inputs"], idx), self.bf16,
-                                              legal[idx])
+                log_probs, win_logit, beliefs = policy(
+                    self.net, rows(batch["inputs"], idx), self.bf16, legal[idx], beliefs=True)
                 loss, info = ppo_loss(log_probs, win_logit, legal[idx], batch["action"][idx],
                                       batch["log_prob"][idx], advantages[idx],
                                       batch["return"][idx], cfg)
+                belief, belief_info = belief_loss(beliefs, rows(batch["truth"], idx))
+                loss = loss + cfg.belief_coef * belief
+                info |= belief_info
                 self.opt.zero_grad(set_to_none=True)
                 loss.backward()
                 info["grad_norm"] = nn.utils.clip_grad_norm_(
@@ -460,11 +516,11 @@ class Trainer:
         return {k: float(np.mean([p[k] for p in parts])) for k in parts[0]}
 
     @torch.no_grad()
-    def evaluate(self, opponent: GameNetwork | None) -> float:
-        """The network's score over `num_envs` new battles against `opponent`,
-        or uniform random play if None: 1 a win, 0.5 a tie and 0 a loss. The
-        network plays player 0 in the first half of the battles and player 1 in
-        the rest, and both sides sample their actions."""
+    def evaluate(self, opponent: GameNetwork) -> float:
+        """The network's score over `num_envs` new battles against `opponent`:
+        1 a win, 0.5 a tie and 0 a loss. The network plays player 0 in the
+        first half of the battles and player 1 in the rest, and both sides
+        sample their actions."""
         n = self.cfg.num_envs
         battle = np.arange(n)
         second = battle >= n // 2
@@ -478,8 +534,7 @@ class Trainer:
         while np.isnan(score).any():
             inputs, legal = to_torch((inputs, legal), self.device)
             mine_lp = policy(self.net, rows(inputs, mine), self.bf16)[0]
-            theirs_lp = (policy(opponent, rows(inputs, theirs), self.bf16)[0]
-                         if opponent is not None else torch.zeros_like(mine_lp))
+            theirs_lp = policy(opponent, rows(inputs, theirs), self.bf16)[0]
             log_probs = mine_lp.new_empty(2 * n, mine_lp.shape[-1])
             log_probs[mine], log_probs[theirs] = mine_lp, theirs_lp
             actions = sample(log_probs, legal)
@@ -491,12 +546,11 @@ class Trainer:
         return float(score.mean())
 
     def evaluate_all(self) -> dict:
-        """Scores against random play, against the previous evaluation's
-        network, which this one then replaces, and against the newest snapshot
-        at least `eval_lookback` iterations old, if there is one yet; then keeps
-        the network as a snapshot."""
-        stats = dict(vs_random=self.evaluate(None), vs_past=self.evaluate(self.past),
-                     past_iteration=self.past_iteration)
+        """Scores against the previous evaluation's network, which this one
+        then replaces, and against the newest snapshot at least `eval_lookback`
+        iterations old, if there is one yet; then keeps the network as a
+        snapshot."""
+        stats = dict(vs_past=self.evaluate(self.past), past_iteration=self.past_iteration)
         if self.snapshots is not None and self.cfg.eval_lookback:
             old = [i for i in self.snapshot_iterations()
                    if i <= self.iteration - self.cfg.eval_lookback]
@@ -511,6 +565,14 @@ class Trainer:
     def snapshot_iterations(self) -> list[int]:
         """The iterations there are snapshots of, oldest first."""
         return sorted(int(p.stem) for p in self.snapshots.glob("*.pt"))
+
+    def pool_iterations(self) -> list[int]:
+        """The snapshots the opponent pool draws from: those of the last
+        `pool_window` iterations, or all of them for 0; the newest, should
+        none be that recent."""
+        every, window = self.snapshot_iterations(), self.cfg.pool_window
+        recent = [i for i in every if not window or i >= self.iteration - window]
+        return recent or every[-1:]
 
     def snapshot_path(self, iteration: int) -> pathlib.Path:
         return self.snapshots / f"{iteration:05d}.pt"
@@ -550,8 +612,9 @@ class Trainer:
 
 class FoulPlayEvaluation:
     """play_showdown/vs_foulplay.py, run in the background on one snapshot at a
-    time. It appends each score to the run directory's foulplay.jsonl; its own
-    output and Foul Play's go to foulplay.log."""
+    time, taking the likeliest action rather than sampling. It appends each
+    score to the run directory's foulplay.jsonl; its own output and Foul Play's
+    go to foulplay.log."""
 
     SCRIPT = pathlib.Path(__file__).resolve().parents[1] / "play_showdown" / "vs_foulplay.py"
 
@@ -570,7 +633,7 @@ class FoulPlayEvaluation:
         with open(self.log, "a") as log:
             self.process = subprocess.Popen(
                 [sys.executable, str(self.SCRIPT), str(snapshot.resolve()),
-                 "--battles", str(self.battles), "--out", str(self.results),
+                 "--battles", str(self.battles), "--greedy", "--out", str(self.results),
                  "--log", str(self.log)],
                 stdout=subprocess.DEVNULL, stderr=log)
         self.iteration = iteration
@@ -620,12 +683,12 @@ def summary(s: dict) -> str:
     line = (f"iter {s['iteration']:5d}  {s['samples'] / 1e6:7.2f}M samples  "
             f"{s['games']:4d} games (length {s['battle_length']:5.1f}, {s['ties']} ties)  "
             f"policy {s['policy_loss']:+.4f}  value {s['value_loss']:.4f} "
-            f"(ev {s['explained_variance']:+.3f})  entropy {s['entropy']:.3f}  "
+            f"(ev {s['explained_variance']:+.3f})  belief {s['belief']:.3f}  "
+            f"entropy {s['entropy']:.3f}  "
             f"zero-avoid {s['zero_avoid']:.3f}  kl {s['approx_kl']:.4f}  "
             f"clip {s['clip_frac']:.3f}  [{s['collect_seconds']:.1f}s + {s['update_seconds']:.1f}s]")
-    if "vs_random" in s:
-        line += (f"\n           eval: {s['vs_random']:.3f} against random play, "
-                 f"{s['vs_past']:.3f} against iteration {s['past_iteration']}")
+    if "vs_past" in s:
+        line += f"\n           eval: {s['vs_past']:.3f} against iteration {s['past_iteration']}"
         if "vs_lookback" in s:
             line += f", {s['vs_lookback']:.3f} against iteration {s['lookback_iteration']}"
     if "vs_foulplay" in s:

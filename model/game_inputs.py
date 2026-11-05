@@ -49,6 +49,9 @@ so a Zoroark that came in disguised stays logged as its disguise.
 what you believe about the battle: your side as it is, and the opponent's
 Pokemon as shown, with the stats, HP and ability above and no item. See
 `_matchups` for what is calculated.
+
+`_hidden` is the other side of it: what the opponent's Pokemon really hold,
+for training GameNetwork's belief heads, never for its inputs.
 """
 from __future__ import annotations
 
@@ -198,6 +201,24 @@ def _view(env: FogOfWarEnv, fs: FogState, player: int) -> dict:
             history=_history(fs, me))
 
     return jax.vmap(one)(fs)
+
+
+def _hidden(fs: FogState, player: int) -> dict:
+    """What the opponent's Pokemon really hold, most of which `player`'s
+    inputs hide: the truth GameNetwork's belief heads learn, in the order of
+    the opponent's Pokemon tokens, each (batch, 6) but for moves:
+
+    known: bool, whether the inputs show that Pokemon, as `_view` decides it
+        (its active one counts, Illusion or not); the heads learn only these
+    moves: (batch, 6, 4) its set's move IDs, in slot order; -1 an empty slot
+    item, ability, tera_type: as the battle has them now, item 0 being none
+        (never held, eaten, Knocked Off)
+    """
+    them, b = 1 - player, fs.battle
+    active = jnp.arange(C.TEAM_SIZE) == b.active[:, them, None]
+    return dict(known=fs.revealed[:, them] | active, moves=b.moves[:, them],
+                item=b.item[:, them], ability=b.ability[:, them],
+                tera_type=b.tera_type[:, them])
 
 
 def _history(fs: FogState, me: int) -> dict:

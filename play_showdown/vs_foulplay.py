@@ -10,8 +10,8 @@ does, and runs `--processes` copies of Foul Play, which challenge it to
 `--battles` Random Battles between them. The network runs on the CPU and
 samples its actions, as in training's evaluations. Its score, 1 a win, 0.5 a
 tie and 0 a loss, goes to stdout as a line of JSON, and is appended to `--out`
-if given: model/train.py runs this in the background at every evaluation when
-given --foulplay-battles.
+if given: model/train.py runs this in the background, with --greedy, at every
+evaluation when given --foulplay-battles.
 
 Foul Play's strength is its search time per decision, `--search-time-ms`; keep
 it the same for scores to compare. A score over n battles is good to about
@@ -174,6 +174,8 @@ async def evaluate(args: argparse.Namespace) -> dict:
                   ties=ties, score=(wins + 0.5 * ties) / n, search_time_ms=args.search_time_ms,
                   foulplay_restarts=restarts, seconds=round(time.monotonic() - start, 1),
                   snapshot=str(args.snapshot))
+    if args.greedy:
+        result["greedy"] = True
     if args.search:  # the network's own search, apart from Foul Play's search_time_ms
         result |= dict(network_search_time=args.search_time, simulations=args.simulations,
                        determinizations=args.determinizations, c_puct=args.c_puct)

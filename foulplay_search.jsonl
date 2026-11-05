@@ -1,0 +1,1 @@
+{"iteration": 2320, "battles": 100, "wins": 26, "losses": 74, "ties": 0, "score": 0.26, "search_time_ms": 100, "foulplay_restarts": 0, "seconds": 2110.2, "snapshot": "runs/selfplay/snapshots/02320.pt", "network_search_time": 2.0, "simulations": 512, "determinizations": 8, "c_puct": 1.0}
